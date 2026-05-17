@@ -447,7 +447,7 @@ private fun VersionGridItem(
         
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = backgroundColor,
+            color = if (isSelected) selectionColor else backgroundColor,
             shape = RoundedCornerShape(4.dp)
         ) {
             Row(
@@ -462,7 +462,7 @@ private fun VersionGridItem(
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     maxLines = 2,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                    color = if (isSelected) selectionColor else MaterialTheme.colorScheme.onSurface,
+                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
                 )
                 if (group.isNotEmpty()) {
                     Spacer(modifier = Modifier.width(4.dp))
