@@ -89,8 +89,7 @@ fun DownloadScreen(
     backScreenViewModel: ScreenBackStackViewModel,
     modpackImportViewModel: ModpackImportViewModel,
     eventViewModel: EventViewModel,
-    submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
-    onNavigateBack: () -> Unit = {}
+    submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
     BaseScreen(
         screenKey = key,
@@ -111,8 +110,7 @@ fun DownloadScreen(
                 eventViewModel = eventViewModel,
                 modpackImportViewModel = modpackImportViewModel,
                 submitError = submitError,
-                modifier = Modifier.fillMaxHeight(),
-                onNavigateBack = onNavigateBack
+                modifier = Modifier.fillMaxHeight()
             )
         }
     }
@@ -192,8 +190,7 @@ private fun NavigationUI(
     eventViewModel: EventViewModel,
     modpackImportViewModel: ModpackImportViewModel,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
-    modifier: Modifier = Modifier,
-    onNavigateBack: () -> Unit = {}
+    modifier: Modifier = Modifier
 ) {
     val backStack = key.backStack
     val stackTopKey = backStack.lastOrNull()
@@ -220,8 +217,7 @@ private fun NavigationUI(
                         onCurrentKeyChange = { newKey ->
                             backScreenViewModel.downloadGameScreen.currentKey = newKey
                         },
-                        eventViewModel = eventViewModel,
-                        onNavigateBack = onNavigateBack
+                        eventViewModel = eventViewModel
                     )
                 }
                 entry<NestedNavKey.DownloadModPack> { key ->
@@ -234,8 +230,7 @@ private fun NavigationUI(
                             backScreenViewModel.downloadModPackScreen.currentKey = newKey
                         },
                         eventViewModel = eventViewModel,
-                        importerViewModel = modpackImportViewModel,
-                        onNavigateBack = onNavigateBack
+                        importerViewModel = modpackImportViewModel
                     )
                 }
                 entry<NestedNavKey.DownloadMod> { key ->
