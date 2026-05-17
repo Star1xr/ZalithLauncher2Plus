@@ -52,11 +52,14 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.google.gson.JsonSyntaxException
 import com.star1xr.treelauncher.R
+import com.star1xr.treelauncher.coroutine.Task
+import com.star1xr.treelauncher.coroutine.TaskSystem
 import com.star1xr.treelauncher.game.download.assets.platform.PlatformClasses
 import com.star1xr.treelauncher.game.download.assets.platform.PlatformVersion
 import com.star1xr.treelauncher.game.download.jvm_server.JvmCrashException
 import com.star1xr.treelauncher.game.download.modpack.install.ModPackInfo
 import com.star1xr.treelauncher.game.download.modpack.install.ModPackInstaller
+import com.star1xr.treelauncher.game.version.download.DOWNLOADER_TAG
 import com.star1xr.treelauncher.game.version.download.DownloadFailedException
 import com.star1xr.treelauncher.game.version.installed.VersionsManager
 import com.star1xr.treelauncher.notification.NotificationManager
@@ -82,6 +85,8 @@ import com.star1xr.treelauncher.viewmodel.ModpackConfirmUseMobileDataOperation
 import com.star1xr.treelauncher.viewmodel.ModpackImportViewModel
 import com.star1xr.treelauncher.viewmodel.sendKeepScreen
 import io.ktor.client.plugins.HttpRequestTimeoutException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.SerializationException
 import java.net.ConnectException
@@ -224,11 +229,6 @@ private fun rememberModPackViewModel(
     }
 }
 
-import com.star1xr.treelauncher.coroutine.Task
-import com.star1xr.treelauncher.coroutine.TaskSystem
-import com.star1xr.treelauncher.game.version.download.DOWNLOADER_TAG
-import kotlinx.coroutines.CompletableDeferred
-
 @Composable
 fun DownloadModPackScreen(
     key: NestedNavKey.DownloadModPack,
@@ -258,13 +258,13 @@ fun DownloadModPackScreen(
 
             val installTask = Task.runTask(
                 id = DOWNLOADER_TAG,
-                task = { scope, task ->
+                task = { task ->
                     val deferred = CompletableDeferred<Unit>()
                     val installer = ModPackInstaller(
                         context = context,
                         version = version,
                         iconUrl = iconUrl,
-                        scope = scope,
+                        scope = this,
                         waitForVersionName = { viewModel.waitForVersionName(it) },
                         waitForConfirmMobileData = { viewModel.waitForConfirmMobileData() }
                     )
@@ -279,12 +279,12 @@ fun DownloadModPackScreen(
                     }
 
                     installer.installModPack(
-                        onInstalled = {
-                            VersionsManager.refresh("[Modpack] ModPackInstaller.onInstalled", it)
+                        onInstalled = { version ->
+                            VersionsManager.refresh("[Modpack] ModPackInstaller.onInstalled", version)
                             deferred.complete(Unit)
                         },
                         onCancelled = { deferred.complete(Unit) },
-                        onError = { deferred.completeExceptionally(it) }
+                        onError = { th -> deferred.completeExceptionally(th) }
                     )
                     deferred.await()
                 }
@@ -374,7 +374,6 @@ fun DownloadModPackScreen(
         Box(Modifier.fillMaxSize())
     }
 }
-
 @Composable
 private fun ModPackInstallOperation(
     operation: ModPackInstallOperation,
