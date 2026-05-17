@@ -356,47 +356,7 @@ fun LauncherSettingsScreen(
                 }
             }
 
-            //动画设置板块
-            AnimatedItem(scope) { yOffset ->
-                SettingsCardColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-                ) {
-                    IntSliderSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Top,
-                        unit = AllSettings.launcherAnimateSpeed,
-                        title = stringResource(R.string.settings_launcher_animate_speed_title),
-                        summary = stringResource(R.string.settings_launcher_animate_speed_summary),
-                        valueRange = AllSettings.launcherAnimateSpeed.floatRange,
-                        suffix = "x"
-                    )
 
-                    IntSliderSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.launcherAnimateExtent,
-                        title = stringResource(R.string.settings_launcher_animate_extent_title),
-                        summary = stringResource(R.string.settings_launcher_animate_extent_summary),
-                        valueRange = AllSettings.launcherAnimateExtent.floatRange,
-                        suffix = "x"
-                    )
-
-                    EnumSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
-                        unit = AllSettings.launcherSwapAnimateType,
-                        title = stringResource(R.string.settings_launcher_swap_animate_type_title),
-                        summary = stringResource(R.string.settings_launcher_swap_animate_type_summary),
-                        entries = TransitionAnimationType.entries,
-                        getRadioEnable = { true },
-                        getRadioText = { enum ->
-                            stringResource(enum.textRes)
-                        }
-                    )
-                }
-            }
 
             AnimatedItem(scope) { yOffset ->
                 SettingsCardColumn(

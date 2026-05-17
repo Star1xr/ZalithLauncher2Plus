@@ -363,19 +363,19 @@ object AllSettings : SettingsRegistry() {
     val launcherFestivalEffects = boolSetting("launcherFestivalEffects", true)
 
     /**
-     * 动画倍速
+     * 启动器动画速度 (0-10)
      */
-    val launcherAnimateSpeed = intSetting("launcherAnimateSpeed", 5, 0..10)
+    val launcherAnimateSpeed = intSetting("launcherAnimateSpeed", 6, 0..10)
 
     /**
-     * 动画幅度
+     * 启动器动画幅度 (0-10)
      */
     val launcherAnimateExtent = intSetting("launcherAnimateExtent", 5, 0..10)
 
     /**
-     * 启动器页面切换动画类型
+     * 启动器切换动画类型
      */
-    val launcherSwapAnimateType = enumSetting("launcherSwapAnimateType", TransitionAnimationType.JELLY_BOUNCE)
+    val launcherSwapAnimateType = enumSetting("launcherSwapAnimateType", TransitionAnimationType.SLICE_IN)
 
     /**
      * 启动器背景元素不透明度
