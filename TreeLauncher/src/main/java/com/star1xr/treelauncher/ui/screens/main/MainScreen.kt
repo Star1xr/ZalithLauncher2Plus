@@ -131,6 +131,11 @@ import com.star1xr.treelauncher.viewmodel.ScreenBackStackViewModel
 import com.star1xr.treelauncher.viewmodel.sendKeepScreen
 import java.io.File
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.ui.text.style.TextAlign
+import com.star1xr.treelauncher.game.version.download.DOWNLOADER_TAG
+import com.star1xr.treelauncher.ui.screens.content.SetupScreen
+
 @Composable
 fun MainScreen(
     screenBackStackModel: ScreenBackStackViewModel,
@@ -145,6 +150,13 @@ fun MainScreen(
             eventViewModel.sendKeepScreen(false)
         } else {
             eventViewModel.sendKeepScreen(true)
+        }
+    }
+
+    val isSetupCompleted = AllSettings.setupCompleted.state
+    LaunchedEffect(isSetupCompleted) {
+        if (!isSetupCompleted) {
+            screenBackStackModel.mainScreen.navigateTo(NormalNavKey.Setup)
         }
     }
 
@@ -269,6 +281,14 @@ fun MainScreen(
                     submitError = submitError
                 )
 
+                TopProgressBanner(
+                    tasks = tasks,
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .align(Alignment.TopCenter)
+                        .padding(top = 8.dp)
+                )
+
                 TaskMenu(
                     tasks = tasks,
                     isExpanded = isTaskMenuExpanded,
@@ -369,6 +389,8 @@ private fun <E: TitledNavKey> TopBar(
     val currentAccount by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
     val hasAccount = currentAccount != null
 
+    val tasks by TaskSystem.tasksFlow.collectAsStateWithLifecycle()
+
     CompositionLocalProvider(
         LocalContentColor provides contentColor
     ) {
@@ -399,6 +421,36 @@ private fun <E: TitledNavKey> TopBar(
                 horizontalArrangement = Arrangement.spacedBy(6.dp), // Increased spacing
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                if (!isTasksExpanded && tasks.isNotEmpty()) {
+                    IconButton(
+                        onClick = changeExpandedState,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_schedule_outlined),
+                                contentDescription = stringResource(R.string.main_task_menu),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Surface(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .size(12.dp),
+                                shape = androidx.compose.foundation.shape.CircleShape,
+                                color = MaterialTheme.colorScheme.error
+                            ) {
+                                Text(
+                                    text = tasks.size.toString(),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                                    textAlign = TextAlign.Center,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.width(8.dp))
+                }
+
                 // Add Instance
                 TopBarTextButton(
                     icon = R.drawable.ic_add,
@@ -733,6 +785,12 @@ private fun NavigationUI(
                         backStackViewModel = screenBackStackModel,
                     )
                 }
+                entry<NormalNavKey.Setup> {
+                    SetupScreen(
+                        backStackViewModel = screenBackStackModel,
+                        onFinished = toMainScreen
+                    )
+                }
             }
         )
     } else {
@@ -906,6 +964,72 @@ private fun TaskItem(
                             text = text,
                             style = MaterialTheme.typography.labelMedium
                         )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TopProgressBanner(
+    tasks: List<Task>,
+    modifier: Modifier = Modifier
+) {
+    val downloadTask = tasks.find { it.id == DOWNLOADER_TAG } ?: return
+    var isExpanded by remember { mutableStateOf(true) }
+
+    Surface(
+        modifier = modifier.animateContentSize(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+        shadowElevation = 4.dp
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_download),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.minecraft_download_stat_download_task),
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { isExpanded = !isExpanded }, modifier = Modifier.size(24.dp)) {
+                    Icon(
+                        painter = painterResource(if (isExpanded) R.drawable.ic_arrow_drop_down_rounded else R.drawable.ic_arrow_left_rounded),
+                        contentDescription = null,
+                        modifier = Modifier.rotate(if (isExpanded) 0f else -90f)
+                    )
+                }
+            }
+
+            if (isExpanded) {
+                Spacer(Modifier.height(4.dp))
+                if (downloadTask.currentProgress < 0) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                } else {
+                    LinearProgressIndicator(
+                        progress = { downloadTask.currentProgress },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    downloadTask.currentMessageRes?.let {
+                        Text(
+                            text = if (downloadTask.currentMessageArgs != null) stringResource(it, *downloadTask.currentMessageArgs) else stringResource(it),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                    downloadTask.currentRateBytesPerSec.takeIf { it >= 0L }?.let {
+                        Text(text = "${formatFileSize(it)}/s", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }

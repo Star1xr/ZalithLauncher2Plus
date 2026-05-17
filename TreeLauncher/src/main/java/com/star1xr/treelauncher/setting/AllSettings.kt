@@ -566,6 +566,11 @@ object AllSettings : SettingsRegistry() {
     val joystickControlLockSpring = boolSetting("joystickControlLockSpring", true)
 
     /**
+     * 是否已完成初始化引导
+     */
+    val setupCompleted = boolSetting("setupCompleted", false)
+
+    /**
      * 上次检查更新的时间戳
      */
     val lastUpgradeCheck = longSetting("lastUpgradeCheck", 0L)
