@@ -224,6 +224,11 @@ private fun rememberModPackViewModel(
     }
 }
 
+import com.star1xr.treelauncher.coroutine.Task
+import com.star1xr.treelauncher.coroutine.TaskSystem
+import com.star1xr.treelauncher.game.version.download.DOWNLOADER_TAG
+import kotlinx.coroutines.CompletableDeferred
+
 @Composable
 fun DownloadModPackScreen(
     key: NestedNavKey.DownloadModPack,
@@ -232,7 +237,8 @@ fun DownloadModPackScreen(
     downloadModPackScreenKey: TitledNavKey?,
     onCurrentKeyChange: (TitledNavKey?) -> Unit,
     importerViewModel: ModpackImportViewModel,
-    eventViewModel: EventViewModel
+    eventViewModel: EventViewModel,
+    onNavigateBack: () -> Unit = {}
 ) {
     val viewModel: ModPackViewModel = rememberModPackViewModel(key)
 
@@ -248,22 +254,49 @@ fun DownloadModPackScreen(
         updateOperation = { viewModel.installOperation = it },
         installer = viewModel.installer,
         onInstall = { version, iconUrl ->
-            viewModel.install(
-                context = context,
-                version = version,
-                iconUrl = iconUrl,
-                onStart = {
-                    eventViewModel.sendKeepScreen(true)
-                },
-                onStop = {
-                    eventViewModel.sendKeepScreen(false)
+            if (TaskSystem.containsTask(DOWNLOADER_TAG)) return@ModPackInstallOperation
+
+            val installTask = Task.runTask(
+                id = DOWNLOADER_TAG,
+                task = { scope, task ->
+                    val deferred = CompletableDeferred<Unit>()
+                    val installer = ModPackInstaller(
+                        context = context,
+                        version = version,
+                        iconUrl = iconUrl,
+                        scope = scope,
+                        waitForVersionName = { viewModel.waitForVersionName(it) },
+                        waitForConfirmMobileData = { viewModel.waitForConfirmMobileData() }
+                    )
+
+                    launch {
+                        installer.tasksFlow.collect { titledTasks ->
+                            titledTasks.lastOrNull()?.let { lastTask ->
+                                task.updateProgress(lastTask.currentProgress, lastTask.titleRes)
+                                task.updateSpeed(lastTask.currentRateBytesPerSec)
+                            }
+                        }
+                    }
+
+                    installer.installModPack(
+                        onInstalled = {
+                            VersionsManager.refresh("[Modpack] ModPackInstaller.onInstalled", it)
+                            deferred.complete(Unit)
+                        },
+                        onCancelled = { deferred.complete(Unit) },
+                        onError = { deferred.completeExceptionally(it) }
+                    )
+                    deferred.await()
                 }
             )
+            TaskSystem.submitTask(installTask)
+            onNavigateBack()
         },
         onCancel = {
             viewModel.cancel()
             eventViewModel.sendKeepScreen(false)
-        }
+        },
+        onNavigateBack = onNavigateBack
     )
 
     //用户确认版本名称 操作流程
@@ -348,7 +381,8 @@ private fun ModPackInstallOperation(
     updateOperation: (ModPackInstallOperation) -> Unit,
     installer: ModPackInstaller?,
     onInstall: (PlatformVersion, iconUrl: String?) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onNavigateBack: () -> Unit = {}
 ) {
     when (operation) {
         is ModPackInstallOperation.None -> {}
@@ -356,11 +390,9 @@ private fun ModPackInstallOperation(
             NotificationCheck(
                 text = stringResource(R.string.notification_data_jvm_service_message),
                 onGranted = {
-                    //权限被授予，开始安装
                     updateOperation(ModPackInstallOperation.Warning(operation.version, operation.iconUrl))
                 },
                 onIgnore = {
-                    //用户不想授权，但是支持继续进行安装
                     updateOperation(ModPackInstallOperation.Warning(operation.version, operation.iconUrl))
                 },
                 onDismiss = {
@@ -388,24 +420,12 @@ private fun ModPackInstallOperation(
                 },
                 onConfirm = {
                     onInstall(operation.version, operation.iconUrl)
+                    onNavigateBack()
                 }
             )
         }
         is ModPackInstallOperation.Install -> {
-            if (installer != null) {
-                val tasks = installer.tasksFlow.collectAsStateWithLifecycle()
-                if (tasks.value.isNotEmpty()) {
-                    //安装整合包流程对话框
-                    TitleTaskFlowDialog(
-                        title = stringResource(R.string.download_modpack_install_title),
-                        tasks = tasks.value,
-                        onCancel = {
-                            onCancel()
-                            updateOperation(ModPackInstallOperation.None)
-                        }
-                    )
-                }
-            }
+            // Backgrounded
         }
         is ModPackInstallOperation.Error -> {
             val th = operation.th

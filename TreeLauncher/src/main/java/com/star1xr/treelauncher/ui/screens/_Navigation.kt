@@ -138,22 +138,22 @@ fun <T : Any> rememberTransitionSpec(): AnimatedContentTransitionScope<Scene<T>>
         {
             val enterTransition = when (type) {
                 TransitionAnimationType.SLICE_IN -> {
-                    fadeIn(animationSpec = tweenFloat) + slideInHorizontally(
+                    slideInHorizontally(
                         animationSpec = tweenOffset,
-                        initialOffsetX = { it / 8 }
+                        initialOffsetX = { it / 10 }
                     )
                 }
-                else -> fadeIn(animationSpec = tweenFloat)
+                else -> androidx.compose.animation.EnterTransition.None
             }
             
             val exitTransition = when (type) {
                 TransitionAnimationType.SLICE_IN -> {
-                    fadeOut(animationSpec = tweenFloat) + slideOutHorizontally(
+                    slideOutHorizontally(
                         animationSpec = tweenOffset,
-                        targetOffsetX = { -it / 8 }
+                        targetOffsetX = { -it / 10 }
                     )
                 }
-                else -> fadeOut(animationSpec = tweenFloat)
+                else -> androidx.compose.animation.ExitTransition.None
             }
 
             enterTransition togetherWith exitTransition

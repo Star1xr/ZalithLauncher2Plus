@@ -54,6 +54,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -783,9 +784,10 @@ private fun NavigationUI(
                     DownloadScreen(
                         key = key,
                         backScreenViewModel = screenBackStackModel,
-                        eventViewModel = eventViewModel,
                         modpackImportViewModel = modpackImportViewModel,
-                        submitError = submitError
+                        eventViewModel = eventViewModel,
+                        submitError = submitError,
+                        onNavigateBack = toMainScreen
                     )
                 }
                 entry<NormalNavKey.Multiplayer> {
@@ -999,10 +1001,11 @@ private fun TopProgressBanner(
     Surface(
         modifier = modifier.animateContentSize(),
         shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-        shadowElevation = 8.dp
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp).copy(alpha = 0.98f),
+        shadowElevation = 8.dp,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
-        Column(modifier = Modifier.padding(8.dp)) {
+        Column(modifier = Modifier.padding(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(R.drawable.ic_download),
@@ -1011,10 +1014,17 @@ private fun TopProgressBanner(
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(Modifier.width(8.dp))
+                val title = downloadTask.currentMessageRes?.let {
+                    val args = downloadTask.currentMessageArgs
+                    if (args != null) stringResource(it, *args) else stringResource(it)
+                } ?: stringResource(R.string.minecraft_download_stat_download_task)
+                
                 Text(
-                    text = stringResource(R.string.minecraft_download_stat_download_task),
+                    text = title,
                     style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 
                 // Details button

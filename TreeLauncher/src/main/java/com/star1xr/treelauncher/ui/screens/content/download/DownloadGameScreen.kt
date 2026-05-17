@@ -170,6 +170,11 @@ private fun rememberGameDownloadViewModel(
     }
 }
 
+import com.star1xr.treelauncher.coroutine.Task
+import com.star1xr.treelauncher.coroutine.TaskSystem
+import com.star1xr.treelauncher.game.version.download.DOWNLOADER_TAG
+import kotlinx.coroutines.CompletableDeferred
+
 @Composable
 fun DownloadGameScreen(
     key: NestedNavKey.DownloadGame,
@@ -177,7 +182,8 @@ fun DownloadGameScreen(
     downloadScreenKey: TitledNavKey?,
     downloadGameScreenKey: TitledNavKey?,
     onCurrentKeyChange: (TitledNavKey?) -> Unit,
-    eventViewModel: EventViewModel
+    eventViewModel: EventViewModel,
+    onNavigateBack: () -> Unit = {}
 ) {
     val viewModel: GameDownloadViewModel = rememberGameDownloadViewModel(key)
 
@@ -245,29 +251,44 @@ fun DownloadGameScreen(
                         key = key,
                         refreshErrorCheck = viewModel.versionNameErrorCheck
                     ) { info ->
-                        if (viewModel.installOperation !is GameInstallOperation.None) {
-                            //不是待安装状态，拒绝此次安装
+                        if (TaskSystem.containsTask(DOWNLOADER_TAG)) {
                             return@DownloadGameWithAddonScreen
                         }
-                        if (!NotificationManager.checkNotificationEnabled(context)) {
-                            //警告通知权限
-                            viewModel.installOperation = GameInstallOperation.WarningForNotification(info)
-                        } else {
-                            if (isUsingMobileData(context)) {
-                                //警告正在使用流量
-                                viewModel.installOperation = GameInstallOperation.WarningForMobileData(info)
-                            } else {
-                                viewModel.install(
-                                    context = context,
-                                    info = info,
-                                    onStart = {
-                                        eventViewModel.sendKeepScreen(true)
-                                    },
-                                    onStop = {
-                                        eventViewModel.sendKeepScreen(false)
+
+                        val installTask = Task.runTask(
+                            id = DOWNLOADER_TAG,
+                            task = { scope, task ->
+                                val installer = GameInstaller(context, info, scope)
+                                val deferred = CompletableDeferred<Unit>()
+
+                                launch {
+                                    installer.tasksFlow.collect { titledTasks ->
+                                        titledTasks.lastOrNull()?.let { lastTask ->
+                                            task.updateProgress(lastTask.currentProgress, lastTask.titleRes)
+                                            task.updateSpeed(lastTask.currentRateBytesPerSec)
+                                        }
                                     }
+                                }
+
+                                installer.installGame(
+                                    onInstalled = {
+                                        VersionsManager.refresh("[DownloadGame] GameInstaller.onInstalled", it)
+                                        deferred.complete(Unit)
+                                    },
+                                    onError = { deferred.completeExceptionally(it) },
+                                    onGameAlreadyInstalled = { deferred.complete(Unit) }
                                 )
+                                deferred.await()
                             }
+                        )
+
+                        if (!NotificationManager.checkNotificationEnabled(context)) {
+                            viewModel.installOperation = GameInstallOperation.WarningForNotification(info)
+                        } else if (isUsingMobileData(context)) {
+                            viewModel.installOperation = GameInstallOperation.WarningForMobileData(info)
+                        } else {
+                            TaskSystem.submitTask(installTask)
+                            onNavigateBack()
                         }
                     }
                 }
@@ -291,13 +312,13 @@ private fun GameInstallOperation(
         is GameInstallOperation.WarningForNotification -> {
             NotificationCheck(
                 text = stringResource(R.string.notification_data_jvm_service_message),
-                onGranted = {
-                    //权限被授予，开始安装
+                onGranted = { 
                     onInstall(gameInstallOperation.info)
+                    onNavigateBack()
                 },
-                onIgnore = {
-                    //用户不想授权，但是支持继续进行安装
+                onIgnore = { 
                     onInstall(gameInstallOperation.info)
+                    onNavigateBack()
                 },
                 onDismiss = {
                     updateOperation(GameInstallOperation.None)
@@ -313,26 +334,13 @@ private fun GameInstallOperation(
                     updateOperation(GameInstallOperation.None)
                 },
                 onConfirm = {
-                    //用户坚持使用移动网络
                     onInstall(gameInstallOperation.info)
+                    onNavigateBack()
                 }
             )
         }
         is GameInstallOperation.Install -> {
-            if (installer != null) {
-                val installGame = installer.tasksFlow.collectAsStateWithLifecycle()
-                if (installGame.value.isNotEmpty()) {
-                    //安装游戏流程对话框
-                    TitleTaskFlowDialog(
-                        title = stringResource(R.string.download_game_install_title),
-                        tasks = installGame.value,
-                        onCancel = {
-                            onCancel()
-                            updateOperation(GameInstallOperation.None)
-                        }
-                    )
-                }
-            }
+            // Backgrounded, nothing to show here
         }
         is GameInstallOperation.Error -> {
             val th = gameInstallOperation.th

@@ -224,21 +224,6 @@ fun LauncherScreen(
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Left Sidebar: Launch Progress/Details
-            AnimatedVisibility(
-                visible = LaunchGame.isLaunching,
-                enter = expandHorizontally(),
-                exit = shrinkHorizontally()
-            ) {
-                LeftLaunchSidebar(
-                    version = currentVersion,
-                    modifier = Modifier
-                        .width(200.dp)
-                        .fillMaxHeight()
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                )
-            }
-
             // Main Content: Categorized Grid
             Box(
                 modifier = Modifier
@@ -633,40 +618,6 @@ private fun SidebarActionItem(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun LeftLaunchSidebar(
-    version: Version?,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        VersionIconImage(
-            version = version,
-            modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp))
-        )
-        Spacer(Modifier.height(16.dp))
-        Text(
-            text = version?.getVersionName() ?: "",
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = "Başlatılıyor...",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(Modifier.height(24.dp))
-        androidx.compose.material3.CircularProgressIndicator(
-            modifier = Modifier.size(32.dp),
-            strokeWidth = 3.dp
-        )
     }
 }
 
