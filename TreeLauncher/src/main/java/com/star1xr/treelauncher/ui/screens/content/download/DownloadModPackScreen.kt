@@ -54,6 +54,7 @@ import com.google.gson.JsonSyntaxException
 import com.star1xr.treelauncher.R
 import com.star1xr.treelauncher.coroutine.Task
 import com.star1xr.treelauncher.coroutine.TaskSystem
+import com.star1xr.treelauncher.coroutine.TitledTask
 import com.star1xr.treelauncher.game.download.assets.platform.PlatformClasses
 import com.star1xr.treelauncher.game.download.assets.platform.PlatformVersion
 import com.star1xr.treelauncher.game.download.jvm_server.JvmCrashException
@@ -258,7 +259,7 @@ fun DownloadModPackScreen(
 
             val installTask = Task.runTask(
                 id = DOWNLOADER_TAG,
-                task = { actualTask ->
+                task = { innerTask: Task ->
                     val deferred = CompletableDeferred<Unit>()
                     val installer = ModPackInstaller(
                         context = context,
@@ -272,9 +273,9 @@ fun DownloadModPackScreen(
                     launch {
                         installer.tasksFlow.collect { titledTasks ->
                             titledTasks.lastOrNull()?.let { titledTask ->
-                                val lastTask = titledTask.task
-                                actualTask.updateProgress(lastTask.currentProgress, lastTask.currentMessageRes)
-                                actualTask.updateSpeed(lastTask.currentRateBytesPerSec)
+                                val progressTask = titledTask.task
+                                innerTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
+                                innerTask.updateSpeed(progressTask.currentRateBytesPerSec)
                             }
                         }
                     }

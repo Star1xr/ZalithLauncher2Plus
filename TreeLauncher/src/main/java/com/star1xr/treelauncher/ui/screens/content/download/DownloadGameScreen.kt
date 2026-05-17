@@ -49,6 +49,7 @@ import com.google.gson.JsonSyntaxException
 import com.star1xr.treelauncher.R
 import com.star1xr.treelauncher.coroutine.Task
 import com.star1xr.treelauncher.coroutine.TaskSystem
+import com.star1xr.treelauncher.coroutine.TitledTask
 import com.star1xr.treelauncher.game.download.game.GameDownloadInfo
 import com.star1xr.treelauncher.game.download.game.GameInstaller
 import com.star1xr.treelauncher.game.download.game.optifine.CantFetchingOptiFineUrlException
@@ -203,17 +204,19 @@ fun DownloadGameScreen(
 
             val installTask = Task.runTask(
                 id = DOWNLOADER_TAG,
-                task = { task ->
+                task = { innerTask: Task ->
                     val deferred = CompletableDeferred<Unit>()
                     val installer = GameInstaller(context, info, this)
 
                     launch {
                         installer.tasksFlow.collect { titledTasks ->
-                            titledTasks.lastOrNull()?.let { lastTask ->
-                                task.updateProgress(lastTask.currentProgress, lastTask.titleRes)
-                                task.updateSpeed(lastTask.currentRateBytesPerSec)
+                            titledTasks.lastOrNull()?.let { titledTask ->
+                                val progressTask = titledTask.task
+                                innerTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
+                                innerTask.updateSpeed(progressTask.currentRateBytesPerSec)
                             }
                         }
+                    }
                     }
 
                     installer.installGame(
@@ -278,18 +281,19 @@ fun DownloadGameScreen(
 
                         val installTask = Task.runTask(
                             id = DOWNLOADER_TAG,
-                            task = { actualTask ->
+                            task = { innerTask: Task ->
                                 val installer = GameInstaller(context, info, this)
                                 val deferred = CompletableDeferred<Unit>()
 
                                 launch {
                                     installer.tasksFlow.collect { titledTasks ->
                                         titledTasks.lastOrNull()?.let { titledTask ->
-                                            val lastTask = titledTask.task
-                                            actualTask.updateProgress(lastTask.currentProgress, lastTask.currentMessageRes)
-                                            actualTask.updateSpeed(lastTask.currentRateBytesPerSec)
+                                            val progressTask = titledTask.task
+                                            innerTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
+                                            innerTask.updateSpeed(progressTask.currentRateBytesPerSec)
                                         }
                                     }
+                                }
                                 }
 
                                 installer.installGame(
