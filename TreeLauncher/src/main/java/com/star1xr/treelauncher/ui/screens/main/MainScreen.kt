@@ -424,36 +424,6 @@ private fun <E: TitledNavKey> TopBar(
                 horizontalArrangement = Arrangement.spacedBy(6.dp), // Increased spacing
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (!isTasksExpanded && tasks.isNotEmpty()) {
-                    IconButton(
-                        onClick = changeExpandedState,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_schedule_outlined),
-                                contentDescription = stringResource(R.string.main_task_menu),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Surface(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .size(12.dp),
-                                shape = androidx.compose.foundation.shape.CircleShape,
-                                color = MaterialTheme.colorScheme.error
-                            ) {
-                                Text(
-                                    text = tasks.size.toString(),
-                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                                    textAlign = TextAlign.Center,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.width(8.dp))
-                }
-
                 // Add Instance
                 TopBarTextButton(
                     icon = R.drawable.ic_add,
@@ -525,14 +495,56 @@ private fun <E: TitledNavKey> TopBar(
             }
 
             // Right Side: Accounts (Direct navigation as requested)
-            TopBarTextButton(
-                icon = R.drawable.img_steve_account,
-                text = stringResource(R.string.page_title_account_list),
-                onClick = toAccountManageScreen,
-                iconSize = 24.dp,
-                iconTint = null,
-                isGrayscale = !hasAccount
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (!isTasksExpanded && tasks.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .clip(MaterialTheme.shapes.small)
+                            .background(Color.Gray.copy(alpha = 0.2f))
+                            .clickable(onClick = changeExpandedState)
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                modifier = Modifier.size(18.dp),
+                                painter = painterResource(R.drawable.ic_schedule_outlined),
+                                contentDescription = stringResource(R.string.main_task_menu),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Surface(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .size(10.dp),
+                                shape = androidx.compose.foundation.shape.CircleShape,
+                                color = MaterialTheme.colorScheme.error
+                            ) {
+                                Text(
+                                    text = tasks.size.toString(),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp),
+                                    textAlign = TextAlign.Center,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                        Text(
+                            text = "İndiriliyor...",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
+
+                TopBarTextButton(
+                    icon = R.drawable.img_steve_account,
+                    text = stringResource(R.string.page_title_account_list),
+                    onClick = toAccountManageScreen,
+                    iconSize = 24.dp,
+                    iconTint = null,
+                    isGrayscale = !hasAccount
+                )
+            }
         }
     }
 }
