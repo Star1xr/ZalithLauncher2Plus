@@ -25,8 +25,12 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.scene.Scene
 import com.star1xr.treelauncher.setting.AllSettings
@@ -109,12 +113,6 @@ fun <E: TitledNavKey> NavBackStack<E>.addIfEmpty(navKey: E) {
     }
 }
 
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-
 @Composable
 fun rememberSwapTween(): FiniteAnimationSpec<Float> {
     val speed = AllSettings.launcherAnimateSpeed.state
@@ -128,7 +126,11 @@ fun <T : Any> rememberTransitionSpec(): AnimatedContentTransitionScope<Scene<T>>
     val type = AllSettings.launcherSwapAnimateType.state
     val speed = AllSettings.launcherAnimateSpeed.state
     return remember(type, speed) {
-        val tween: FiniteAnimationSpec<Float> = when (type) {
+        val tweenFloat: FiniteAnimationSpec<Float> = when (type) {
+            TransitionAnimationType.CLOSE -> snap()
+            else -> tween(durationMillis = (getAnimateSpeed() / 7) * 2)
+        }
+        val tweenOffset: FiniteAnimationSpec<IntOffset> = when (type) {
             TransitionAnimationType.CLOSE -> snap()
             else -> tween(durationMillis = (getAnimateSpeed() / 7) * 2)
         }
@@ -136,22 +138,22 @@ fun <T : Any> rememberTransitionSpec(): AnimatedContentTransitionScope<Scene<T>>
         {
             val enterTransition = when (type) {
                 TransitionAnimationType.SLICE_IN -> {
-                    fadeIn(animationSpec = tween) + slideInHorizontally(
-                        animationSpec = tween,
+                    fadeIn(animationSpec = tweenFloat) + slideInHorizontally(
+                        animationSpec = tweenOffset,
                         initialOffsetX = { it / 8 }
                     )
                 }
-                else -> fadeIn(animationSpec = tween)
+                else -> fadeIn(animationSpec = tweenFloat)
             }
             
             val exitTransition = when (type) {
                 TransitionAnimationType.SLICE_IN -> {
-                    fadeOut(animationSpec = tween) + slideOutHorizontally(
-                        animationSpec = tween,
+                    fadeOut(animationSpec = tweenFloat) + slideOutHorizontally(
+                        animationSpec = tweenOffset,
                         targetOffsetX = { -it / 8 }
                     )
                 }
-                else -> fadeOut(animationSpec = tween)
+                else -> fadeOut(animationSpec = tweenFloat)
             }
 
             enterTransition togetherWith exitTransition
