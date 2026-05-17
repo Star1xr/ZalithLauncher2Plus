@@ -1062,10 +1062,7 @@ fun VersionIconImage(
         } ?: defaultIcon
     }
 
-    val iconBackground = remember(version) {
-        val info = version?.getVersionInfo()
-        if (info?.type == "april_fools") Color.White else Color.Transparent
-    }
+    val iconBackground = Color.Transparent
 
     Surface(
         color = iconBackground,

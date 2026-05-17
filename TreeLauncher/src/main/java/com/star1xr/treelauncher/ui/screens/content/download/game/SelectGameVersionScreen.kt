@@ -475,9 +475,7 @@ private fun VersionItemLayout(
 
     val (icon, versionType, wikiUrl, summary) = getVersionComponents(version)
 
-    val iconBackground = remember(version) {
-        if (version.type == MinecraftVersion.Type.AprilFools) Color.White else Color.Transparent
-    }
+    val iconBackground = Color.Transparent
 
     Surface(
         modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
