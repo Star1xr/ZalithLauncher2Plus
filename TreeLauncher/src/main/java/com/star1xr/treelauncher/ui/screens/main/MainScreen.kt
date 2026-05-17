@@ -1020,7 +1020,7 @@ private fun TopProgressBanner(
                 // Details button
                 IconButton(onClick = onExpandTasks, modifier = Modifier.size(24.dp)) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_list),
+                        painter = painterResource(R.drawable.ic_list_down),
                         contentDescription = stringResource(R.string.main_task_menu),
                         modifier = Modifier.size(18.dp)
                     )
