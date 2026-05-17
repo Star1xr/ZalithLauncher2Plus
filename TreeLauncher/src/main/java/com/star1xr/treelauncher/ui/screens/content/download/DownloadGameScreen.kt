@@ -278,15 +278,16 @@ fun DownloadGameScreen(
 
                         val installTask = Task.runTask(
                             id = DOWNLOADER_TAG,
-                            task = { scope, task ->
-                                val installer = GameInstaller(context, info, scope)
+                            task = { actualTask ->
+                                val installer = GameInstaller(context, info, this)
                                 val deferred = CompletableDeferred<Unit>()
 
                                 launch {
                                     installer.tasksFlow.collect { titledTasks ->
-                                        titledTasks.lastOrNull()?.let { lastTask ->
-                                            task.updateProgress(lastTask.currentProgress, lastTask.titleRes)
-                                            task.updateSpeed(lastTask.currentRateBytesPerSec)
+                                        titledTasks.lastOrNull()?.let { titledTask ->
+                                            val lastTask = titledTask.task
+                                            actualTask.updateProgress(lastTask.currentProgress, lastTask.currentMessageRes)
+                                            actualTask.updateSpeed(lastTask.currentRateBytesPerSec)
                                         }
                                     }
                                 }
