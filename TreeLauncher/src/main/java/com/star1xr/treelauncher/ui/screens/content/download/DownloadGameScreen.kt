@@ -47,13 +47,10 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.google.gson.JsonSyntaxException
 import com.star1xr.treelauncher.R
-import com.star1xr.treelauncher.coroutine.Task
-import com.star1xr.treelauncher.coroutine.TaskSystem
 import com.star1xr.treelauncher.game.download.game.GameDownloadInfo
 import com.star1xr.treelauncher.game.download.game.GameInstaller
 import com.star1xr.treelauncher.game.download.game.optifine.CantFetchingOptiFineUrlException
 import com.star1xr.treelauncher.game.download.jvm_server.JvmCrashException
-import com.star1xr.treelauncher.game.version.download.DOWNLOADER_TAG
 import com.star1xr.treelauncher.game.version.download.DownloadFailedException
 import com.star1xr.treelauncher.game.version.installed.VersionsManager
 import com.star1xr.treelauncher.notification.NotificationManager
@@ -75,8 +72,6 @@ import com.star1xr.treelauncher.utils.network.isUsingMobileData
 import com.star1xr.treelauncher.viewmodel.EventViewModel
 import com.star1xr.treelauncher.viewmodel.sendKeepScreen
 import io.ktor.client.plugins.HttpRequestTimeoutException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -175,6 +170,11 @@ private fun rememberGameDownloadViewModel(
     }
 }
 
+import com.star1xr.treelauncher.coroutine.Task
+import com.star1xr.treelauncher.coroutine.TaskSystem
+import com.star1xr.treelauncher.game.version.download.DOWNLOADER_TAG
+import kotlinx.coroutines.CompletableDeferred
+
 @Composable
 fun DownloadGameScreen(
     key: NestedNavKey.DownloadGame,
@@ -199,42 +199,21 @@ fun DownloadGameScreen(
         updateOperation = { viewModel.installOperation = it },
         installer = viewModel.installer,
         onInstall = { info ->
-            if (TaskSystem.containsTask(DOWNLOADER_TAG)) return@GameInstallOperation
-
-            val installTask = Task.runTask(
-                id = DOWNLOADER_TAG,
-                task = { task ->
-                    val deferred = CompletableDeferred<Unit>()
-                    val installer = GameInstaller(context, info, this)
-
-                    launch {
-                        installer.tasksFlow.collect { titledTasks ->
-                            titledTasks.lastOrNull()?.let { lastTask ->
-                                task.updateProgress(lastTask.currentProgress, lastTask.titleRes)
-                                task.updateSpeed(lastTask.currentRateBytesPerSec)
-                            }
-                        }
-                    }
-
-                    installer.installGame(
-                        onInstalled = { version ->
-                            VersionsManager.refresh("[DownloadGame] GameInstaller.onInstalled", version)
-                            deferred.complete(Unit)
-                        },
-                        onError = { deferred.completeExceptionally(it) },
-                        onGameAlreadyInstalled = { deferred.complete(Unit) }
-                    )
-                    deferred.await()
+            viewModel.install(
+                context = context,
+                info = info,
+                onStart = {
+                    eventViewModel.sendKeepScreen(true)
+                },
+                onStop = {
+                    eventViewModel.sendKeepScreen(false)
                 }
             )
-            TaskSystem.submitTask(installTask)
-            onNavigateBack()
         },
         onCancel = {
             viewModel.cancel()
             eventViewModel.sendKeepScreen(false)
-        },
-        onNavigateBack = onNavigateBack
+        }
     )
 
     if (backStack.isNotEmpty()) {
@@ -326,8 +305,7 @@ private fun GameInstallOperation(
     updateOperation: (GameInstallOperation) -> Unit = {},
     installer: GameInstaller?,
     onInstall: (GameDownloadInfo) -> Unit,
-    onCancel: () -> Unit,
-    onNavigateBack: () -> Unit = {}
+    onCancel: () -> Unit
 ) {
     when (gameInstallOperation) {
         is GameInstallOperation.None -> {}
