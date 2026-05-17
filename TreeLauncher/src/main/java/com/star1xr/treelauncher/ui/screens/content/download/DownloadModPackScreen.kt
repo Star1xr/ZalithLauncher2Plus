@@ -258,7 +258,7 @@ fun DownloadModPackScreen(
 
             val installTask = Task.runTask(
                 id = DOWNLOADER_TAG,
-                task = { actualTask ->
+                task = { task ->
                     val deferred = CompletableDeferred<Unit>()
                     val installer = ModPackInstaller(
                         context = context,
@@ -271,10 +271,9 @@ fun DownloadModPackScreen(
 
                     launch {
                         installer.tasksFlow.collect { titledTasks ->
-                            titledTasks.lastOrNull()?.let { titledTask ->
-                                val lastTask = titledTask.task
-                                actualTask.updateProgress(lastTask.currentProgress, lastTask.currentMessageRes)
-                                actualTask.updateSpeed(lastTask.currentRateBytesPerSec)
+                            titledTasks.lastOrNull()?.let { lastTask ->
+                                task.updateProgress(lastTask.currentProgress, lastTask.titleRes)
+                                task.updateSpeed(lastTask.currentRateBytesPerSec)
                             }
                         }
                     }
