@@ -144,7 +144,7 @@ private class ModPackViewModel: ViewModel() {
     }
 
 
-    //警告使用移动网络相关
+    //警告使用 mobile data 相关
     private var confirmMobileData : (Continuation<Boolean>)? = null
     suspend fun waitForConfirmMobileData(): Boolean {
         return suspendCancellableCoroutine { cont ->
@@ -255,11 +255,11 @@ fun DownloadModPackScreen(
         updateOperation = { viewModel.installOperation = it },
         installer = viewModel.installer,
         onInstall = { version, iconUrl ->
-            if (TaskSystem.containsTask(DOWNLOADER_TAG)) return@ModPackInstallOperation
+            if (TaskSystem.containsTask(DOWNLOADER_TAG)) return@onInstall
 
             val installTask = Task.runTask(
                 id = DOWNLOADER_TAG,
-                task = { innerTask: Task ->
+                task = { actualTask ->
                     val deferred = CompletableDeferred<Unit>()
                     val installer = ModPackInstaller(
                         context = context,
@@ -274,8 +274,8 @@ fun DownloadModPackScreen(
                         installer.tasksFlow.collect { titledTasks ->
                             titledTasks.lastOrNull()?.let { titledTask ->
                                 val progressTask = titledTask.task
-                                innerTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
-                                innerTask.updateSpeed(progressTask.currentRateBytesPerSec)
+                                actualTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
+                                actualTask.updateSpeed(progressTask.currentRateBytesPerSec)
                             }
                         }
                     }
@@ -312,7 +312,7 @@ fun DownloadModPackScreen(
         }
     )
 
-    //用户确认使用移动网络 操作流程
+    //用户确认使用 mobile data 操作流程
     ModpackConfirmUseMobileDataOperation(
         operation = viewModel.confirmMobileDataOperation,
         onConfirmUse = { use ->
