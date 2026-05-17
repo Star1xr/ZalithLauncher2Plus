@@ -200,11 +200,11 @@ fun DownloadGameScreen(
         updateOperation = { viewModel.installOperation = it },
         installer = viewModel.installer,
         onInstall = { info ->
-            if (TaskSystem.containsTask(DOWNLOADER_TAG)) return@onInstall
+            if (TaskSystem.containsTask(DOWNLOADER_TAG)) return@GameInstallOperation
 
             val installTask = Task.runTask(
                 id = DOWNLOADER_TAG,
-                task = { actualTask ->
+                task = { innerTask: Task ->
                     val deferred = CompletableDeferred<Unit>()
                     val installer = GameInstaller(context, info, this)
 
@@ -212,10 +212,11 @@ fun DownloadGameScreen(
                         installer.tasksFlow.collect { titledTasks ->
                             titledTasks.lastOrNull()?.let { titledTask ->
                                 val progressTask = titledTask.task
-                                actualTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
-                                actualTask.updateSpeed(progressTask.currentRateBytesPerSec)
+                                innerTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
+                                innerTask.updateSpeed(progressTask.currentRateBytesPerSec)
                             }
                         }
+                    }
                     }
 
                     installer.installGame(
@@ -280,7 +281,7 @@ fun DownloadGameScreen(
 
                         val installTask = Task.runTask(
                             id = DOWNLOADER_TAG,
-                            task = { actualTask ->
+                            task = { innerTask: Task ->
                                 val installer = GameInstaller(context, info, this)
                                 val deferred = CompletableDeferred<Unit>()
 
@@ -288,15 +289,16 @@ fun DownloadGameScreen(
                                     installer.tasksFlow.collect { titledTasks ->
                                         titledTasks.lastOrNull()?.let { titledTask ->
                                             val progressTask = titledTask.task
-                                            actualTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
-                                            actualTask.updateSpeed(progressTask.currentRateBytesPerSec)
+                                            innerTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
+                                            innerTask.updateSpeed(progressTask.currentRateBytesPerSec)
                                         }
                                     }
                                 }
+                                }
 
                                 installer.installGame(
-                                    onInstalled = { version ->
-                                        VersionsManager.refresh("[DownloadGame] GameInstaller.onInstalled", version)
+                                    onInstalled = {
+                                        VersionsManager.refresh("[DownloadGame] GameInstaller.onInstalled", it)
                                         deferred.complete(Unit)
                                     },
                                     onError = { deferred.completeExceptionally(it) },
