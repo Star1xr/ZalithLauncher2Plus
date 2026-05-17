@@ -18,6 +18,7 @@ Bu fork, orijinal Zalith Launcher 2 deneyimini geliştirmeyi ve özelleştirmeyi
 - [x] Tamamen yeni bir kullanıcı arayüzü ve yeniden tasarlanmış üst navigasyon çubuğu
 - [x] Yeni, modern simgelerle güncellendi
 - [x] Chroma (animasyonlu) isimler entegre edildi
+- [ ] Yeni indirme arayüzleri
 
 ### 🎮 Oyun İçi Özellikler
 - [x] Özel bir pelerin (cape) sistemi uygulandı
@@ -31,6 +32,7 @@ Bu fork, orijinal Zalith Launcher 2 deneyimini geliştirmeyi ve özelleştirmeyi
 - [x] İşlevsel gruplar ve örnek klonlama eklendi
 - [x] Örnek gruplama sistemi iyileştirildi
 - [x] Ana ekrana hızlı kısayollar eklendi
+- [ ] Yeni ilk açılış kurulum adımları
 
 ### 🛠️ Kod Tabanı & Stabilite
 - [x] Tamamen yeni bir kod tabanı ile yeniden yazıldı
