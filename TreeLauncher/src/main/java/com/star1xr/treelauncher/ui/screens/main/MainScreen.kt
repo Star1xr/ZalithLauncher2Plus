@@ -284,6 +284,8 @@ fun MainScreen(
 
                 TopProgressBanner(
                     tasks = tasks,
+                    onExpandTasks = { changeTasksExpandedState() },
+                    onCancelTask = { TaskSystem.cancelTask(DOWNLOADER_TAG) },
                     modifier = Modifier
                         .fillMaxWidth(0.5f)
                         .align(Alignment.TopCenter)
@@ -975,6 +977,8 @@ private fun TaskItem(
 @Composable
 private fun TopProgressBanner(
     tasks: List<Task>,
+    onExpandTasks: () -> Unit,
+    onCancelTask: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val downloadTask = tasks.find { it.id == DOWNLOADER_TAG } ?: return
@@ -983,8 +987,8 @@ private fun TopProgressBanner(
     Surface(
         modifier = modifier.animateContentSize(),
         shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-        shadowElevation = 4.dp
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
+        shadowElevation = 8.dp
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1000,6 +1004,26 @@ private fun TopProgressBanner(
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.weight(1f)
                 )
+                
+                // Details button
+                IconButton(onClick = onExpandTasks, modifier = Modifier.size(24.dp)) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_list),
+                        contentDescription = stringResource(R.string.main_task_menu),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                
+                // Cancel button
+                IconButton(onClick = onCancelTask, modifier = Modifier.size(24.dp)) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_close),
+                        contentDescription = stringResource(R.string.generic_cancel),
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+
                 IconButton(onClick = { isExpanded = !isExpanded }, modifier = Modifier.size(24.dp)) {
                     Icon(
                         painter = painterResource(if (isExpanded) R.drawable.ic_arrow_drop_down_rounded else R.drawable.ic_arrow_left_rounded),

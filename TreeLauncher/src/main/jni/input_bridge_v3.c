@@ -545,7 +545,7 @@ static bool tryCriticalNative(JNIEnv *env) {
     static const JNINativeMethod testJNIMethod[] = {
             { "testCriticalNative", "(II)V", dvm_testCriticalNative}
     };
-    jclass criticalNativeTest = (*env)->FindClass(env, "com/movtery/zalithlauncher/game/input/CriticalNativeTest");
+    jclass criticalNativeTest = (*env)->FindClass(env, "com/star1xr/treelauncher/game/input/CriticalNativeTest");
     if(criticalNativeTest == NULL) {
         LOG_TO_D("No CriticalNativeTest class found !");
         (*env)->ExceptionClear(env);
