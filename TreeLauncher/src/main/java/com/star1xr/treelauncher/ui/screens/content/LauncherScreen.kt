@@ -404,6 +404,8 @@ private fun VersionGrid(
     }
 }
 
+import androidx.compose.foundation.border
+
 @Composable
 private fun VersionGridItem(
     version: Version,
@@ -411,41 +413,64 @@ private fun VersionGridItem(
     onClick: () -> Unit
 ) {
     val group = version.getVersionConfig().group
+    val backgroundColor = Color.Black.copy(alpha = 0.2f)
+    val selectionColor = Color(0xFF3DAEE9)
+
     Column(
         modifier = Modifier
             .width(110.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
-            .background(if (isSelected) Color(0xFF3DAEE9) else Color.Transparent)
             .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        VersionIconImage(
-            version = version,
+        Box(
             modifier = Modifier
-                .size(72.dp)
-                .clip(RoundedCornerShape(8.dp))
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+                .size(80.dp)
+                .background(backgroundColor, RoundedCornerShape(8.dp))
+                .then(
+                    if (isSelected) {
+                        Modifier.border(1.5.dp, selectionColor.copy(alpha = 0.8f), RoundedCornerShape(8.dp))
+                    } else Modifier
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                modifier = Modifier.weight(1f, fill = false),
-                text = version.getVersionName(),
-                style = MaterialTheme.typography.labelSmall,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                maxLines = 2,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+            VersionIconImage(
+                version = version,
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(6.dp))
             )
-            if (group.isNotEmpty()) {
-                Spacer(modifier = Modifier.width(4.dp))
-                LittleTextLabel(
-                    text = group,
-                    textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = MaterialTheme.typography.labelSmall.fontSize * 0.8f)
+        }
+        
+        Spacer(modifier = Modifier.height(6.dp))
+        
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = backgroundColor,
+            shape = RoundedCornerShape(4.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(vertical = 4.dp, horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f, fill = false),
+                    text = version.getVersionName(),
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    color = if (isSelected) selectionColor else MaterialTheme.colorScheme.onSurface,
                 )
+                if (group.isNotEmpty()) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    LittleTextLabel(
+                        text = group,
+                        textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = MaterialTheme.typography.labelSmall.fontSize * 0.8f)
+                    )
+                }
             }
         }
     }
