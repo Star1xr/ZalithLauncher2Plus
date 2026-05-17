@@ -365,7 +365,7 @@ object AllSettings : SettingsRegistry() {
     /**
      * 启动器动画速度 (0-10)
      */
-    val launcherAnimateSpeed = intSetting("launcherAnimateSpeed", 6, 0..10)
+    val launcherAnimateSpeed = intSetting("launcherAnimateSpeed", 7, 0..10)
 
     /**
      * 启动器动画幅度 (0-10)

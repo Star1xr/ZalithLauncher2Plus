@@ -109,11 +109,17 @@ fun <E: TitledNavKey> NavBackStack<E>.addIfEmpty(navKey: E) {
     }
 }
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+
 @Composable
 fun rememberSwapTween(): FiniteAnimationSpec<Float> {
     val speed = AllSettings.launcherAnimateSpeed.state
     return remember(speed) {
-        tween(durationMillis = (getAnimateSpeed() / 5) * 2)
+        tween(durationMillis = (getAnimateSpeed() / 6) * 2)
     }
 }
 
@@ -124,14 +130,31 @@ fun <T : Any> rememberTransitionSpec(): AnimatedContentTransitionScope<Scene<T>>
     return remember(type, speed) {
         val tween: FiniteAnimationSpec<Float> = when (type) {
             TransitionAnimationType.CLOSE -> snap()
-            else -> tween(durationMillis = (getAnimateSpeed() / 5) * 2)
+            else -> tween(durationMillis = (getAnimateSpeed() / 7) * 2)
         }
 
         {
-            ContentTransform(
-                fadeIn(animationSpec = tween),
-                fadeOut(animationSpec = tween),
-            )
+            val enterTransition = when (type) {
+                TransitionAnimationType.SLICE_IN -> {
+                    fadeIn(animationSpec = tween) + slideInHorizontally(
+                        animationSpec = tween,
+                        initialOffsetX = { it / 8 }
+                    )
+                }
+                else -> fadeIn(animationSpec = tween)
+            }
+            
+            val exitTransition = when (type) {
+                TransitionAnimationType.SLICE_IN -> {
+                    fadeOut(animationSpec = tween) + slideOutHorizontally(
+                        animationSpec = tween,
+                        targetOffsetX = { -it / 8 }
+                    )
+                }
+                else -> fadeOut(animationSpec = tween)
+            }
+
+            enterTransition togetherWith exitTransition
         }
     }
 }
