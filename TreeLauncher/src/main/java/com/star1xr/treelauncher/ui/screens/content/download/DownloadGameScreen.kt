@@ -200,37 +200,37 @@ fun DownloadGameScreen(
         updateOperation = { viewModel.installOperation = it },
         installer = viewModel.installer,
         onInstall = { info ->
-            if (!TaskSystem.containsTask(DOWNLOADER_TAG)) {
-                val installTask = Task.runTask(
-                    id = DOWNLOADER_TAG,
-                    task = { actualTask ->
-                        val deferred = CompletableDeferred<Unit>()
-                        val installer = GameInstaller(context, info, this)
+            if (TaskSystem.containsTask(DOWNLOADER_TAG)) return@onInstall
 
-                        launch {
-                            installer.tasksFlow.collect { titledTasks ->
-                                titledTasks.lastOrNull()?.let { titledTask ->
-                                    val progressTask = titledTask.task
-                                    actualTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
-                                    actualTask.updateSpeed(progressTask.currentRateBytesPerSec)
-                                }
+            val installTask = Task.runTask(
+                id = DOWNLOADER_TAG,
+                task = { actualTask ->
+                    val deferred = CompletableDeferred<Unit>()
+                    val installer = GameInstaller(context, info, this)
+
+                    launch {
+                        installer.tasksFlow.collect { titledTasks ->
+                            titledTasks.lastOrNull()?.let { titledTask ->
+                                val progressTask = titledTask.task
+                                actualTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
+                                actualTask.updateSpeed(progressTask.currentRateBytesPerSec)
                             }
                         }
-
-                        installer.installGame(
-                            onInstalled = { version ->
-                                VersionsManager.refresh("[DownloadGame] GameInstaller.onInstalled", version)
-                                deferred.complete(Unit)
-                            },
-                            onError = { deferred.completeExceptionally(it) },
-                            onGameAlreadyInstalled = { deferred.complete(Unit) }
-                        )
-                        deferred.await()
                     }
-                )
-                TaskSystem.submitTask(installTask)
-                onNavigateBack()
-            }
+
+                    installer.installGame(
+                        onInstalled = { version ->
+                            VersionsManager.refresh("[DownloadGame] GameInstaller.onInstalled", version)
+                            deferred.complete(Unit)
+                        },
+                        onError = { deferred.completeExceptionally(it) },
+                        onGameAlreadyInstalled = { deferred.complete(Unit) }
+                    )
+                    deferred.await()
+                }
+            )
+            TaskSystem.submitTask(installTask)
+            onNavigateBack()
         },
         onCancel = {
             viewModel.cancel()
