@@ -132,6 +132,7 @@ import com.star1xr.treelauncher.viewmodel.sendKeepScreen
 import java.io.File
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.style.TextAlign
 import com.star1xr.treelauncher.game.version.download.DOWNLOADER_TAG
 import com.star1xr.treelauncher.ui.screens.content.SetupScreen
@@ -1023,8 +1024,9 @@ private fun TopProgressBanner(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     downloadTask.currentMessageRes?.let {
+                        val args = downloadTask.currentMessageArgs
                         Text(
-                            text = if (downloadTask.currentMessageArgs != null) stringResource(it, *downloadTask.currentMessageArgs) else stringResource(it),
+                            text = if (args != null) stringResource(it, *args) else stringResource(it),
                             style = MaterialTheme.typography.labelSmall
                         )
                     }

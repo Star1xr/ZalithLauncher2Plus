@@ -60,6 +60,7 @@ import com.star1xr.treelauncher.setting.AllSettings
 import com.star1xr.treelauncher.ui.base.BaseScreen
 import com.star1xr.treelauncher.ui.screens.NormalNavKey
 import com.star1xr.treelauncher.ui.screens.navigateTo
+import com.star1xr.treelauncher.ui.screens.content.navigateToDownload
 import com.star1xr.treelauncher.viewmodel.ScreenBackStackViewModel
 
 @Composable
@@ -105,10 +106,7 @@ fun SetupScreen(
                         3 -> VersionStep(
                             onDownloadVersion = {
                                 // Navigate to download screen
-                                // This requires a TitledNavKey for target, using null for now as per DownloadScreen usage
-                                backStackViewModel.mainScreen.navigateTo(
-                                    screenKey = com.star1xr.treelauncher.ui.screens.NestedNavKey.Download(null)
-                                )
+                                backStackViewModel.navigateToDownload()
                             },
                             onFinish = {
                                 AllSettings.setupCompleted.save(true)
