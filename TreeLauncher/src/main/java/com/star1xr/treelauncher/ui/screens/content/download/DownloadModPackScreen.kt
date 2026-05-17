@@ -255,44 +255,44 @@ fun DownloadModPackScreen(
         updateOperation = { viewModel.installOperation = it },
         installer = viewModel.installer,
         onInstall = { version, iconUrl ->
-            if (TaskSystem.containsTask(DOWNLOADER_TAG)) return@onInstall
+            if (!TaskSystem.containsTask(DOWNLOADER_TAG)) {
+                val installTask = Task.runTask(
+                    id = DOWNLOADER_TAG,
+                    task = { actualTask ->
+                        val deferred = CompletableDeferred<Unit>()
+                        val installer = ModPackInstaller(
+                            context = context,
+                            version = version,
+                            iconUrl = iconUrl,
+                            scope = this,
+                            waitForVersionName = { viewModel.waitForVersionName(it) },
+                            waitForConfirmMobileData = { viewModel.waitForConfirmMobileData() }
+                        )
 
-            val installTask = Task.runTask(
-                id = DOWNLOADER_TAG,
-                task = { actualTask ->
-                    val deferred = CompletableDeferred<Unit>()
-                    val installer = ModPackInstaller(
-                        context = context,
-                        version = version,
-                        iconUrl = iconUrl,
-                        scope = this,
-                        waitForVersionName = { viewModel.waitForVersionName(it) },
-                        waitForConfirmMobileData = { viewModel.waitForConfirmMobileData() }
-                    )
-
-                    launch {
-                        installer.tasksFlow.collect { titledTasks ->
-                            titledTasks.lastOrNull()?.let { titledTask ->
-                                val progressTask = titledTask.task
-                                actualTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
-                                actualTask.updateSpeed(progressTask.currentRateBytesPerSec)
+                        launch {
+                            installer.tasksFlow.collect { titledTasks ->
+                                titledTasks.lastOrNull()?.let { titledTask ->
+                                    val progressTask = titledTask.task
+                                    actualTask.updateProgress(progressTask.currentProgress, progressTask.currentMessageRes)
+                                    actualTask.updateSpeed(progressTask.currentRateBytesPerSec)
+                                }
                             }
                         }
-                    }
 
-                    installer.installModPack(
-                        onInstalled = { version ->
-                            VersionsManager.refresh("[Modpack] ModPackInstaller.onInstalled", version)
-                            deferred.complete(Unit)
-                        },
-                        onCancelled = { deferred.complete(Unit) },
-                        onError = { th -> deferred.completeExceptionally(th) }
-                    )
-                    deferred.await()
-                }
-            )
-            TaskSystem.submitTask(installTask)
-            onNavigateBack()
+                        installer.installModPack(
+                            onInstalled = { version ->
+                                VersionsManager.refresh("[Modpack] ModPackInstaller.onInstalled", version)
+                                deferred.complete(Unit)
+                            },
+                            onCancelled = { deferred.complete(Unit) },
+                            onError = { th -> deferred.completeExceptionally(th) }
+                        )
+                        deferred.await()
+                    }
+                )
+                TaskSystem.submitTask(installTask)
+                onNavigateBack()
+            }
         },
         onCancel = {
             viewModel.cancel()
