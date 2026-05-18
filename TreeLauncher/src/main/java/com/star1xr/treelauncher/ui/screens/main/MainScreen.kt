@@ -21,6 +21,7 @@ package com.star1xr.treelauncher.ui.screens.main
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -154,9 +155,10 @@ fun MainScreen(
         }
     }
 
-    val isSetupCompleted = AllSettings.setupCompleted.state
-    LaunchedEffect(isSetupCompleted) {
-        if (!isSetupCompleted) {
+    val setupCompleted = AllSettings.setupCompleted.state
+    val mainScreenKey = screenBackStackModel.mainScreen.currentKey
+    LaunchedEffect(setupCompleted, mainScreenKey) {
+        if (!setupCompleted && mainScreenKey !is NormalNavKey.Setup && mainScreenKey !is NormalNavKey.AccountManager && mainScreenKey !is NormalNavKey.UnpackDeps) {
             screenBackStackModel.mainScreen.navigateTo(NormalNavKey.Setup)
         }
     }
@@ -171,7 +173,6 @@ fun MainScreen(
         screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain)
     }
 
-    val mainScreenKey = screenBackStackModel.mainScreen.currentKey
     val inLauncherScreen = mainScreenKey == null || mainScreenKey is NormalNavKey.LauncherMain
 
     val isBackgroundValid = LocalBackgroundViewModel.current?.isValid == true
@@ -218,6 +219,7 @@ fun MainScreen(
                     screenBackStackModel.mainScreen.backStack.removeFirstOrNull()
                 },
                 toMainScreen = toMainScreen,
+                toSetupScreen = { screenBackStackModel.mainScreen.navigateTo(NormalNavKey.Setup) },
                 toSettingsScreen = {
                     screenBackStackModel.mainScreen.removeAndNavigateTo(
                         removes = screenBackStackModel.clearBeforeNavKeys,
@@ -376,6 +378,7 @@ private fun <E: TitledNavKey> TopBar(
     contentColor: Color,
     onScreenBack: () -> Unit,
     toMainScreen: () -> Unit,
+    toSetupScreen: () -> Unit,
     toSettingsScreen: () -> Unit,
     toDownloadScreen: (target: TitledNavKey?) -> Unit,
     downloadModScreenKey: TitledNavKey,
@@ -393,6 +396,7 @@ private fun <E: TitledNavKey> TopBar(
     val hasAccount = currentAccount != null
 
     val tasks by TaskSystem.tasksFlow.collectAsStateWithLifecycle()
+    val setupCompleted = AllSettings.setupCompleted.state
 
     CompositionLocalProvider(
         LocalContentColor provides contentColor
@@ -406,7 +410,7 @@ private fun <E: TitledNavKey> TopBar(
             // Home Button (If not on main screen)
             if (!inLauncherScreen) {
                 IconButton(
-                    onClick = toMainScreen
+                    onClick = if (setupCompleted) toMainScreen else toSetupScreen
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_home_filled),
@@ -417,84 +421,88 @@ private fun <E: TitledNavKey> TopBar(
             }
 
             // Left Side: Prism Style Buttons
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(6.dp), // Increased spacing
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Add Instance
-                TopBarTextButton(
-                    icon = R.drawable.ic_add,
-                    text = stringResource(R.string.sidebar_action_add_instance),
-                    onClick = { toDownloadScreen(null) }
-                )
-
-                // Mods
-                TopBarTextButton(
-                    icon = R.drawable.ic_extension_outlined,
-                    text = stringResource(R.string.topbar_mods),
-                    onClick = { toDownloadScreen(downloadModScreenKey) }
-                )
-
-                // Versions
-                TopBarTextButton(
-                    icon = R.drawable.ic_sort,
-                    text = stringResource(R.string.page_title_version_list),
-                    onClick = toVersionManageScreen
-                )
-
-                // Settings
-                TopBarTextButton(
-                    icon = R.drawable.ic_settings_filled,
-                    text = stringResource(R.string.generic_setting),
-                    onClick = toSettingsScreen
-                )
-
-                // Shortcuts (Dropdown)
-                var showShortcuts by remember { mutableStateOf<Boolean>(false) }
-                Box {
+            if (setupCompleted) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp), // Increased spacing
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Add Instance
                     TopBarTextButton(
-                        icon = R.drawable.ic_build_filled,
-                        text = stringResource(R.string.shortcuts_title),
-                        onClick = { showShortcuts = true },
-                        hasDropdown = true
+                        icon = R.drawable.ic_add,
+                        text = stringResource(R.string.sidebar_action_add_instance),
+                        onClick = { toDownloadScreen(null) }
                     )
-                    DropdownMenu(
-                        expanded = showShortcuts,
-                        onDismissRequest = { showShortcuts = false },
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.settings_game_java_memory_title)) },
-                            leadingIcon = { Icon(painterResource(R.drawable.ic_build_filled), null, modifier = Modifier.size(20.dp)) },
-                            onClick = { 
-                                showShortcuts = false
-                                onQuickRamClick()
-                            }
+
+                    // Mods
+                    TopBarTextButton(
+                        icon = R.drawable.ic_extension_outlined,
+                        text = stringResource(R.string.topbar_mods),
+                        onClick = { toDownloadScreen(downloadModScreenKey) }
+                    )
+
+                    // Versions
+                    TopBarTextButton(
+                        icon = R.drawable.ic_sort,
+                        text = stringResource(R.string.page_title_version_list),
+                        onClick = toVersionManageScreen
+                    )
+
+                    // Settings
+                    TopBarTextButton(
+                        icon = R.drawable.ic_settings_filled,
+                        text = stringResource(R.string.generic_setting),
+                        onClick = toSettingsScreen
+                    )
+
+                    // Shortcuts (Dropdown)
+                    var showShortcuts by remember { mutableStateOf<Boolean>(false) }
+                    Box {
+                        TopBarTextButton(
+                            icon = R.drawable.ic_build_filled,
+                            text = stringResource(R.string.shortcuts_title),
+                            onClick = { showShortcuts = true },
+                            hasDropdown = true
                         )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.game_menu_option_switch_fps)) },
-                            leadingIcon = { Icon(painterResource(R.drawable.ic_video_settings), null, modifier = Modifier.size(20.dp)) },
-                            onClick = { 
-                                showShortcuts = false
-                                onQuickFpsClick()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.versions_overview_log)) },
-                            leadingIcon = { Icon(painterResource(R.drawable.ic_terminal_outlined), null, modifier = Modifier.size(20.dp)) },
-                            onClick = { 
-                                showShortcuts = false
-                                onLogViewerClick()
-                            }
-                        )
+                        DropdownMenu(
+                            expanded = showShortcuts,
+                            onDismissRequest = { showShortcuts = false },
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.settings_game_java_memory_title)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_build_filled), null, modifier = Modifier.size(20.dp)) },
+                                onClick = { 
+                                    showShortcuts = false
+                                    onQuickRamClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.game_menu_option_switch_fps)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_video_settings), null, modifier = Modifier.size(20.dp)) },
+                                onClick = { 
+                                    showShortcuts = false
+                                    onQuickFpsClick()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.versions_overview_log)) },
+                                leadingIcon = { Icon(painterResource(R.drawable.ic_terminal_outlined), null, modifier = Modifier.size(20.dp)) },
+                                onClick = { 
+                                    showShortcuts = false
+                                    onLogViewerClick()
+                                }
+                            )
+                        }
                     }
                 }
+            } else {
+                Spacer(Modifier.weight(1f))
             }
 
             // Right Side: Accounts (Direct navigation as requested)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (!isTasksExpanded && tasks.isNotEmpty()) {
+                if (setupCompleted && !isTasksExpanded && tasks.isNotEmpty()) {
                     Row(
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.small)

@@ -1235,4 +1235,6 @@
     <string name="festivals_new_year">新年快乐！</string>
     <string name="festivals_april_fools">愚人节快乐！</string>
     <string name="festivals_christmas">圣诞节快乐！</string>
+    <string name="setup_required_files_title">正在下载所需文件 %d%%</string>
+    <string name="setup_required_files_subtitle">下载所需文件后，您可以继续安装。</string>
 </resources>

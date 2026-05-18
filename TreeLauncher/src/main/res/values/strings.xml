@@ -1314,4 +1314,6 @@
     <string name="versions_import_task_finished">Your version has been successfully imported!</string>
     <string name="versions_import_version">Import Version</string>
     <string name="versions_import_version_summary">Import a version from a specialized zip file</string>
+    <string name="setup_required_files_title">Required files are being downloaded %d%%</string>
+    <string name="setup_required_files_subtitle">You can continue the installation once the required files are downloaded.</string>
 </resources>
