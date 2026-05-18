@@ -294,7 +294,7 @@ fun MainScreen(
 
                 TaskMenu(
                     tasks = tasks,
-                    isExpanded = isTaskMenuExpanded,
+                    isExpanded = isTaskMenuExpanded && tasks.any { it.id != DOWNLOADER_TAG },
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(0.3f)
@@ -1016,15 +1016,6 @@ private fun TopProgressBanner(
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.weight(1f)
                 )
-                
-                // Details button
-                IconButton(onClick = onExpandTasks, modifier = Modifier.size(24.dp)) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_list_down),
-                        contentDescription = stringResource(R.string.main_task_menu),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
                 
                 // Cancel button
                 IconButton(onClick = onCancelTask, modifier = Modifier.size(24.dp)) {
