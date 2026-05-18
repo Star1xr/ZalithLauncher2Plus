@@ -87,6 +87,9 @@ class GameHandler(
     ) {
         ZLBridge.setupBridgeWindow(surface)
 
+        val isLowerThan113 = version.getVersionInfo()?.minecraftVersion?.isLowerVer("1.13") ?: false
+        CallbackBridge.setUseAWTMouse(isLowerThan113)
+
         MCOptions.setup(activity, version)
 
         MCOptions.apply {

@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 
 import com.star1xr.treelauncher.bridge.CursorShape;
 import com.star1xr.treelauncher.bridge.NativeLibraryLoader;
+import com.star1xr.treelauncher.bridge.ZLBridge;
 import com.star1xr.treelauncher.bridge.ZLBridgeStates;
 import com.star1xr.treelauncher.bridge.ZLNativeInvoker;
 import com.star1xr.treelauncher.context.ContextsKt;
@@ -53,6 +54,12 @@ public class CallbackBridge {
     public volatile static boolean holdingAlt, holdingCapslock, holdingCtrl,
             holdingNumlock, holdingShift;
 
+    private static boolean useAWTMouse = true;
+
+    public static void setUseAWTMouse(boolean use) {
+        useAWTMouse = use;
+    }
+
     public static void putMouseEventWithCoords(int button, float x, float y) {
         sendCursorPos(x, y);
         putMouseEvent(button);
@@ -72,6 +79,9 @@ public class CallbackBridge {
         mouseX = x;
         mouseY = y;
         nativeSendCursorPos(mouseX, mouseY);
+        if (useAWTMouse) {
+            ZLBridge.sendMousePos((int)mouseX, (int)mouseY);
+        }
     }
 
     public static void sendCursorDelta(float x, float y) {
@@ -130,7 +140,7 @@ public class CallbackBridge {
                 awtButton = 2; // AWT BUTTON2
                 break;
         }
-        if (awtButton != 0) {
+        if (useAWTMouse && awtButton != 0) {
             ZLBridge.sendMousePress(awtButton, isDown);
         }
     }
@@ -315,4 +325,3 @@ public class CallbackBridge {
         NativeLibraryLoader.loadPojavLib();
     }
 }
-

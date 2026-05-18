@@ -372,10 +372,8 @@ private fun SimpleMouseCapture(
                         var deltaX = 0f
                         var deltaY = 0f
 
-                        val relX = event.getAxisValue(MotionEvent.AXIS_RELATIVE_X)
-                        val relY = event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y)
-                        deltaX += if (relX != 0f) relX else event.x
-                        deltaY += if (relY != 0f) relY else event.y
+                        deltaX += event.getAxisValue(MotionEvent.AXIS_RELATIVE_X)
+                        deltaY += event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y)
 
                         val historySize = event.historySize
                         for (i in 0 until historySize) {
