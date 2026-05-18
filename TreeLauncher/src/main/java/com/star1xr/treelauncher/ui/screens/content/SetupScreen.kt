@@ -63,12 +63,41 @@ import com.star1xr.treelauncher.ui.screens.navigateTo
 import com.star1xr.treelauncher.ui.screens.content.navigateToDownload
 import com.star1xr.treelauncher.viewmodel.ScreenBackStackViewModel
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsStateWithLifecycle
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.star1xr.treelauncher.game.account.AccountsManager
+import com.star1xr.treelauncher.game.version.installed.VersionsManager
+
 @Composable
 fun SetupScreen(
     backStackViewModel: ScreenBackStackViewModel,
     onFinished: () -> Unit
 ) {
-    var step by remember { mutableIntStateOf(if (BuildConfig.DEBUG) 0 else 1) }
+    val accounts by AccountsManager.accountsFlow.collectAsStateWithLifecycle()
+    val versions by VersionsManager.versionsFlow.collectAsStateWithLifecycle()
+
+    var step by rememberSaveable {
+        mutableIntStateOf(
+            if (BuildConfig.DEBUG) 0
+            else if (accounts.isEmpty()) 1
+            else if (versions.isEmpty()) 3
+            else 3 // Default to version step if accounts exist but maybe they want to check versions
+        )
+    }
+
+    // Auto-advance logic
+    LaunchedEffect(accounts) {
+        if (step == 2 && accounts.isNotEmpty()) {
+            step = 3
+        }
+    }
+
+    LaunchedEffect(versions) {
+        if (step == 3 && versions.isNotEmpty()) {
+            // If they have versions, they might still want to see the finish button or auto-finish
+        }
+    }
 
     BaseScreen(
         screenKey = NormalNavKey.Setup,

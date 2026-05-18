@@ -403,16 +403,14 @@ private fun <E: TitledNavKey> TopBar(
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Back Button (If not on main screen)
+            // Home Button (If not on main screen)
             if (!inLauncherScreen) {
                 IconButton(
-                    onClick = {
-                        backDispatcher?.onBackPressed() ?: onScreenBack()
-                    }
+                    onClick = toMainScreen
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_arrow_back),
-                        contentDescription = stringResource(R.string.generic_back)
+                        painter = painterResource(R.drawable.ic_home_filled),
+                        contentDescription = stringResource(R.string.main_menu)
                     )
                 }
                 Spacer(Modifier.width(4.dp))

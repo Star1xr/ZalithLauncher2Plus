@@ -72,6 +72,12 @@ object VersionsManager {
     private val _currentVersion = MutableStateFlow<Version?>(null)
     val currentVersion = _currentVersion.asStateFlow()
 
+    private val _versionsFlow = MutableStateFlow<List<Version>>(emptyList())
+    /**
+     * 当前所有的游戏版本 Flow
+     */
+    val versionsFlow = _versionsFlow.asStateFlow()
+
     private var currentJob: Job? = null
 
     private val _isRefreshing = MutableStateFlow(false)
@@ -117,6 +123,7 @@ object VersionsManager {
                 }
 
                 versions = newVersions.toList()
+                _versionsFlow.update { versions }
 
                 gameInfo = refreshCurrentInfo()
                 lDebug("Version list refreshed, refreshing the current version now.")
@@ -313,7 +320,7 @@ object VersionsManager {
     /**
      * 将选中的版本复制为一个新的版本
      * @param version 选中的版本
-     * @param name 新的版本的名称
+     * @param name 新的版本名称
      * @param copyAllFile 是否复制全部文件
      */
     fun copyVersion(version: Version, name: String, copyAllFile: Boolean) {

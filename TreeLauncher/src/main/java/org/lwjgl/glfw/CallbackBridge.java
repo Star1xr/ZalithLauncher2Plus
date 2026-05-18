@@ -116,6 +116,23 @@ public class CallbackBridge {
     public static void sendMouseKeycode(int button, int modifiers, boolean isDown) {
         // if (isGrabbing()) DEBUG_STRING.append("MouseGrabStrace: " + android.util.Log.getStackTraceString(new Throwable()) + "\n");
         nativeSendMouseButton(button, isDown ? 1 : 0, modifiers);
+
+        // Map GLFW to AWT buttons
+        int awtButton = 0;
+        switch (button) {
+            case LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT:
+                awtButton = 1; // AWT BUTTON1
+                break;
+            case LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_RIGHT:
+                awtButton = 3; // AWT BUTTON3
+                break;
+            case LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_MIDDLE:
+                awtButton = 2; // AWT BUTTON2
+                break;
+        }
+        if (awtButton != 0) {
+            ZLBridge.sendMousePress(awtButton, isDown);
+        }
     }
 
     public static void sendMouseKeycode(int keycode) {
