@@ -410,7 +410,7 @@ private fun <E: TitledNavKey> TopBar(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_home_filled),
-                        contentDescription = stringResource(R.string.main_menu)
+                        contentDescription = stringResource(R.string.generic_main_menu)
                     )
                 }
                 Spacer(Modifier.width(4.dp))

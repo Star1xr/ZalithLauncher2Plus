@@ -64,7 +64,7 @@ import com.star1xr.treelauncher.ui.screens.content.navigateToDownload
 import com.star1xr.treelauncher.viewmodel.ScreenBackStackViewModel
 
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.saveable.rememberSaveable
 import com.star1xr.treelauncher.game.account.AccountsManager
 import com.star1xr.treelauncher.game.version.installed.VersionsManager
