@@ -1041,7 +1041,7 @@ fun VersionIconImage(
     modifier: Modifier = Modifier,
     refreshKey: Any? = null
 ) {
-    val iconStyle by AllSettings.versionIconStyle.collectAsStateWithLifecycle()
+    val iconStyle = AllSettings.versionIconStyle.state
     val defaultIconRes = remember(version, iconStyle) {
         version?.let { VersionIconManager.getIconRes(it, iconStyle) } ?: R.drawable.img_version_vanilla
     }
