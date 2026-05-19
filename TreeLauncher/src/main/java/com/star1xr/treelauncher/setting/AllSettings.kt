@@ -34,6 +34,7 @@ import com.star1xr.treelauncher.setting.enums.DarkMode
 import com.star1xr.treelauncher.setting.enums.GestureActionType
 import com.star1xr.treelauncher.setting.enums.MirrorSourceType
 import com.star1xr.treelauncher.setting.enums.MouseControlMode
+import com.star1xr.treelauncher.setting.enums.VersionIconStyle
 import com.star1xr.treelauncher.ui.control.HotbarRule
 import com.star1xr.treelauncher.ui.control.gamepad.JoystickMode
 import com.star1xr.treelauncher.ui.control.mouse.CENTER_HOTSPOT
@@ -381,6 +382,11 @@ object AllSettings : SettingsRegistry() {
      * 启动器背景元素不透明度
      */
     val launcherBackgroundOpacity = intSetting("launcherBackgroundOpacity", 80, 20..100)
+
+    /**
+     * 版本列表图标样式
+     */
+    val versionIconStyle = enumSetting("versionIconStyle", VersionIconStyle.CURRENT)
 
     /**
      * 启动器视频背景音量

@@ -64,6 +64,7 @@ import com.star1xr.treelauncher.path.PathManager
 import com.star1xr.treelauncher.setting.AllSettings
 import com.star1xr.treelauncher.setting.enums.AppLanguage
 import com.star1xr.treelauncher.setting.enums.DarkMode
+import com.star1xr.treelauncher.setting.enums.VersionIconStyle
 import com.star1xr.treelauncher.setting.enums.MirrorSourceType
 
 import com.star1xr.treelauncher.setting.enums.applyLanguage
@@ -290,6 +291,15 @@ fun LauncherSettingsScreen(
                         onValueChange = {
                             applyLanguage(it)
                         }
+                    )
+
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.versionIconStyle,
+                        items = VersionIconStyle.entries,
+                        title = stringResource(R.string.settings_launcher_version_icon_style_title),
+                        getItemText = { stringResource(it.textRes) }
                     )
 
                     SwitchSettingsCard(

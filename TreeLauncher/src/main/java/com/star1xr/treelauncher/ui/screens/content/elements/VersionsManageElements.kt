@@ -81,7 +81,9 @@ import com.star1xr.treelauncher.game.addons.modloader.ModLoader
 import com.star1xr.treelauncher.game.path.GamePath
 import com.star1xr.treelauncher.game.path.GamePathManager
 import com.star1xr.treelauncher.game.version.installed.Version
+import com.star1xr.treelauncher.game.version.installed.VersionIconManager
 import com.star1xr.treelauncher.game.version.installed.VersionsManager
+import com.star1xr.treelauncher.setting.AllSettings
 import com.star1xr.treelauncher.game.version.installed.cleanup.CleanFailedException
 import com.star1xr.treelauncher.game.version.installed.cleanup.GameAssetCleaner
 import com.star1xr.treelauncher.ui.components.LittleTextLabel
@@ -1039,8 +1041,9 @@ fun VersionIconImage(
     modifier: Modifier = Modifier,
     refreshKey: Any? = null
 ) {
-    val defaultIconRes = remember(version) {
-        version?.let { getLoaderIconRes(it) } ?: R.drawable.img_version_vanilla
+    val iconStyle by AllSettings.versionIconStyle.collectAsStateWithLifecycle()
+    val defaultIconRes = remember(version, iconStyle) {
+        version?.let { VersionIconManager.getIconRes(it, iconStyle) } ?: R.drawable.img_version_vanilla
     }
     val defaultIcon = painterResource(defaultIconRes)
 
@@ -1088,26 +1091,5 @@ fun VersionIconImage(
                 )
             }
         }
-    }
-}
-
-private fun getLoaderIconRes(version: Version): Int {
-    val info = version.getVersionInfo() ?: return R.drawable.img_version_neoforge
-    if (info.type == "snapshot") return R.drawable.img_version_snapshot
-    if (info.type == "april_fools") return R.drawable.img_version_cake
-
-    return when (info.loaderInfo?.loader) {
-        ModLoader.FABRIC,
-        ModLoader.BABRIC,
-        ModLoader.LEGACY_FABRIC -> R.drawable.img_version_fabric
-
-        ModLoader.FORGE -> R.drawable.img_version_forge
-        ModLoader.QUILT -> R.drawable.img_version_quilt
-        ModLoader.NEOFORGE -> R.drawable.img_version_neoforge
-
-        ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
-        ModLoader.LITE_LOADER -> R.drawable.img_chicken_old
-        ModLoader.CLEANROOM -> R.drawable.img_loader_cleanroom
-        else -> R.drawable.img_version_vanilla
     }
 }

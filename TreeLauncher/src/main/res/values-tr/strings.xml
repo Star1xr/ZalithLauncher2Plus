@@ -1281,4 +1281,14 @@
     <string name="setup_version_finish">Bitir</string>
     <string name="setup_debug_title">Debug Modu Aktif</string>
     <string name="setup_debug_next">Devam Et</string>
+
+    <string name="settings_launcher_version_icon_style_title">Sürüm İkon Stili</string>
+    <string name="settings_launcher_version_icon_style_current">Şu anki</string>
+    <string name="settings_launcher_version_icon_style_official">Resmi (Kare)</string>
+
+    <string name="version_group_vanilla">Vanilla</string>
+    <string name="version_group_snapshot">Snapshot</string>
+    <string name="version_group_april_fools">1 Nisan</string>
+    <string name="version_group_modloader">Mod Yükleyiciler</string>
+    <string name="version_group_modpack">Mod Paketleri</string>
 </resources>

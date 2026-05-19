@@ -49,6 +49,7 @@ import com.star1xr.treelauncher.components.UnpackTasksManager
 import com.star1xr.treelauncher.game.account.AccountsManager
 import com.star1xr.treelauncher.game.version.installed.Version
 import com.star1xr.treelauncher.game.version.installed.VersionsManager
+import com.star1xr.treelauncher.ui.screens.content.elements.VersionIconImage
 import com.star1xr.treelauncher.setting.AllSettings
 import com.star1xr.treelauncher.ui.base.BaseScreen
 import com.star1xr.treelauncher.ui.screens.NormalNavKey
@@ -425,7 +426,10 @@ private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, 
                             tonalElevation = 2.dp
                         ) {
                             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(painterResource(R.drawable.ic_java), null, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.primary)
+                                VersionIconImage(
+                                    version = version,
+                                    modifier = Modifier.size(32.dp).clip(MaterialTheme.shapes.extraSmall)
+                                )
                                 Spacer(Modifier.width(16.dp))
                                 Text(version.getVersionName(), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
                             }

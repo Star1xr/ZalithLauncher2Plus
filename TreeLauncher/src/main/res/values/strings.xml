@@ -1326,4 +1326,14 @@
     <string name="setup_version_finish">Finish</string>
     <string name="setup_debug_title">Debug Mode Active</string>
     <string name="setup_debug_next">Continue</string>
+
+    <string name="settings_launcher_version_icon_style_title">Version Icon Style</string>
+    <string name="settings_launcher_version_icon_style_current">Current</string>
+    <string name="settings_launcher_version_icon_style_official">Official (Square)</string>
+
+    <string name="version_group_vanilla">Vanilla</string>
+    <string name="version_group_snapshot">Snapshot</string>
+    <string name="version_group_april_fools">April Fools</string>
+    <string name="version_group_modloader">Mod Loaders</string>
+    <string name="version_group_modpack">Modpacks</string>
 </resources>

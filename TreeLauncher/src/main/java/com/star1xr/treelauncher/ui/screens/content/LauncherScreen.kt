@@ -101,6 +101,8 @@ import androidx.compose.ui.text.style.TextAlign
 import com.star1xr.treelauncher.coroutine.TaskSystem
 import com.star1xr.treelauncher.game.launch.LaunchGame
 import com.star1xr.treelauncher.game.version.download.DOWNLOADER_TAG
+import com.star1xr.treelauncher.game.version.installed.VersionCategory
+import com.star1xr.treelauncher.game.version.installed.VersionCategorizer
 
 @Composable
 fun LauncherScreen(
@@ -375,29 +377,39 @@ private fun VersionGrid(
         }
 
         if (unpinned.isNotEmpty()) {
-            val isExpanded = "all" !in collapsedGroups
-            item {
-                CategoryHeader(
-                    title = stringResource(R.string.generic_all),
-                    isExpanded = isExpanded,
-                    onExpandClick = {
-                        collapsedGroups = if (isExpanded) collapsedGroups + "all" else collapsedGroups - "all"
-                    }
-                )
-            }
-            if (isExpanded) {
-                item {
-                    androidx.compose.foundation.layout.FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        unpinned.forEach { version ->
-                            VersionGridItem(
-                                version = version,
-                                isSelected = version == currentVersion,
-                                onClick = { onVersionClick(version) }
-                            )
+            // Group unpinned by category
+            val categorized = unpinned.groupBy { VersionCategorizer.getCategory(it) }
+            val categories = VersionCategory.entries
+
+            categories.forEach { category ->
+                val versionsInCategory = categorized[category] ?: return@forEach
+                val groupId = "category_${category.name}"
+                val isExpanded = groupId !in collapsedGroups
+
+                item(key = groupId) {
+                    CategoryHeader(
+                        title = stringResource(category.textRes),
+                        isExpanded = isExpanded,
+                        onExpandClick = {
+                            collapsedGroups = if (isExpanded) collapsedGroups + groupId else collapsedGroups - groupId
+                        }
+                    )
+                }
+
+                if (isExpanded) {
+                    item {
+                        androidx.compose.foundation.layout.FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            versionsInCategory.forEach { version ->
+                                VersionGridItem(
+                                    version = version,
+                                    isSelected = version == currentVersion,
+                                    onClick = { onVersionClick(version) }
+                                )
+                            }
                         }
                     }
                 }
