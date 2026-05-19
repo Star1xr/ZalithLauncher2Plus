@@ -1321,7 +1321,7 @@
     <string name="sidebar_action_copy">复制</string>
     <string name="sidebar_action_create_shortcut">创建快捷方式</string>
     <string name="sidebar_action_export">导出</string>
-    <string name="sidebar_action_kill:">强制结束</string>
+    <string name="sidebar_action_kill">强制结束</string>
     <string name="sidebar_no_instance_selected">未选择实例</string>
     <string name="storage_permission_request_message">要将设置/账号导出到公共存储，我们需要存储权限。</string>
     <string name="storage_permission_request_title">需要存储权限</string>
