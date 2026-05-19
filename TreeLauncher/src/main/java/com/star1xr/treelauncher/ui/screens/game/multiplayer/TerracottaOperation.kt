@@ -157,6 +157,15 @@ fun TerracottaOperation(
                 onGuestCopyUrl = { state ->
                     viewModel.copyServerAddress(state)
                 },
+                onShareLink = { roomCode ->
+                    val inviteLink = "treelauncher://join?room=$roomCode"
+                    val shareText = context.getString(R.string.terracotta_share_invite_text, inviteLink)
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, shareText)
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.generic_share)))
+                },
                 onBack = {
                     Terracotta.setWaiting(true)
                 }

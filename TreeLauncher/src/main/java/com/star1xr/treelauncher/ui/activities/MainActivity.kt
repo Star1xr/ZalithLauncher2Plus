@@ -98,6 +98,14 @@ import java.util.Locale
 @AndroidEntryPoint
 class MainActivity : BaseAppCompatActivity() {
     /**
+     * 朋友系统 (Beta) 操作
+     */
+    sealed interface FriendOperation {
+        data object None : FriendOperation
+        data class JoinConfirm(val roomCode: String) : FriendOperation
+    }
+
+    /**
      * 屏幕堆栈管理ViewModel
      */
     private val screenBackStackModel: ScreenBackStackViewModel by viewModels()
@@ -128,6 +136,11 @@ class MainActivity : BaseAppCompatActivity() {
     val modpackImportViewModel: ModpackImportViewModel by viewModels()
 
     /**
+     * 朋友系统 (Beta) 操作
+     */
+    var friendJoinOperation by mutableStateOf<FriendOperation>(FriendOperation.None)
+
+    /**
      * 启动器更新状态 ViewModel
      */
     val launcherUpgradeViewModel: LauncherUpgradeViewModel by viewModels()
@@ -155,6 +168,7 @@ class MainActivity : BaseAppCompatActivity() {
 
         //处理外部导入
         val isImporting = handleImportIfNeeded(intent)
+        handleJoinIfNeeded(intent)
 
         //检查更新
         if (!isImporting && launcherUpgradeViewModel.operation == LauncherUpgradeOperation.None) {
@@ -284,6 +298,28 @@ class MainActivity : BaseAppCompatActivity() {
                             )
                         }
                     )
+
+                    // 朋友系统确认加入
+                    when (val op = friendJoinOperation) {
+                        is FriendOperation.None -> {}
+                        is FriendOperation.JoinConfirm -> {
+                            FriendJoinConfirmDialog(
+                                roomCode = op.roomCode,
+                                onConfirm = {
+                                    // 1. Enable Terracotta
+                                    AllSettings.enableTerracotta.save(true)
+                                    // 2. Initialized it and join
+                                    eventViewModel.sendEvent(EventViewModel.Event.Terracotta.JoinRoom(op.roomCode))
+                                    // 3. Navigate to Multiplayer screen
+                                    screenBackStackModel.mainScreen.navigateTo(NormalNavKey.Multiplayer)
+                                    friendJoinOperation = FriendOperation.None
+                                },
+                                onDismiss = {
+                                    friendJoinOperation = FriendOperation.None
+                                }
+                            )
+                        }
+                    }
                 }
 
                 //显示赞助支持的小弹窗
@@ -529,6 +565,13 @@ class MainActivity : BaseAppCompatActivity() {
         )
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleImportIfNeeded(intent)
+        handleJoinIfNeeded(intent)
+    }
+
     /**
      * 处理外部导入
      * @return 是否有导入任务正在进行中
@@ -546,6 +589,33 @@ class MainActivity : BaseAppCompatActivity() {
 
         intent.removeExtra(EXTRA_IMPORT_TYPE)
         return importing
+    }
+
+    private fun handleJoinIfNeeded(intent: Intent?) {
+        if (intent == null || !AllSettings.enableFriendSystemBeta.getValue()) return
+        val uri = intent.data ?: return
+        if (uri.scheme == "treelauncher" && uri.host == "join") {
+            val roomCode = uri.getQueryParameter("room")
+            if (roomCode != null) {
+                friendJoinOperation = FriendOperation.JoinConfirm(roomCode)
+            }
+        }
+    }
+
+    @Composable
+    private fun FriendJoinConfirmDialog(
+        roomCode: String,
+        onConfirm: () -> Unit,
+        onDismiss: () -> Unit
+    ) {
+        SimpleAlertDialog(
+            title = stringResource(R.string.terracotta_friend_join_title),
+            text = stringResource(R.string.terracotta_friend_join_desc, roomCode),
+            confirmText = stringResource(R.string.generic_confirm),
+            dismissText = stringResource(R.string.generic_cancel),
+            onConfirm = onConfirm,
+            onDismiss = onDismiss
+        )
     }
 
     /**

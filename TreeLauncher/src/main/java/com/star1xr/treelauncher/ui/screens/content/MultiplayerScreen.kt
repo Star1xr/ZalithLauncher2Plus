@@ -240,6 +240,17 @@ private fun MainMenu(
 
             val terracottaEnabled = AllSettings.enableTerracotta.state
 
+            // 朋友系统 Beta 切换
+            SwitchSettingsCard(
+                modifier = Modifier.fillMaxWidth(),
+                position = CardPosition.Middle,
+                unit = AllSettings.enableFriendSystemBeta,
+                title = stringResource(R.string.terracotta_share_invite_link), // Use the same string as button
+                summary = stringResource(R.string.terracotta_share_invite_link_desc),
+                verticalAlignment = Alignment.CenterVertically,
+                enabled = terracottaEnabled
+            )
+
             //分享联机核心日志
             SettingsCard(
                 modifier = Modifier.fillMaxWidth(),

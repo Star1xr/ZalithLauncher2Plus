@@ -70,6 +70,8 @@ class EventViewModel : ViewModel() {
             data class VPNUpdateState(val stringRes: Int): Terracotta
             /** 关停 VPN */
             data object StopVPN : Terracotta
+            /** 加入指定的房间 (Beta) */
+            data class JoinRoom(val roomCode: String) : Terracotta
         }
         /** 启动游戏相关的事件 */
         sealed interface Launch : Event {

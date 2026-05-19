@@ -521,6 +521,11 @@ object AllSettings : SettingsRegistry() {
     val enableTerracotta = boolSetting("enableTerracotta", false)
 
     /**
+     * 是否启用朋友系统 (Beta)
+     */
+    val enableFriendSystemBeta = boolSetting("enableFriendSystemBeta", false)
+
+    /**
      * 陶瓦联机公告版本号
      */
     val terracottaNoticeVer = intSetting("terracottaNoticeVer", -1)

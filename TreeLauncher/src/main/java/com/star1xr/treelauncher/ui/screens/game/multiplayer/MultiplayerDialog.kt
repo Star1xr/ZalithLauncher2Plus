@@ -109,6 +109,7 @@ fun MultiplayerDialog(
     onHostCopyCode: (TerracottaState.HostOK) -> Unit,
     onGuestPositive: (roomCode: String) -> Unit,
     onGuestCopyUrl: (TerracottaState.GuestOK) -> Unit,
+    onShareLink: (roomCode: String) -> Unit,
     onBack: () -> Unit
 ) {
     Dialog(
@@ -196,6 +197,9 @@ fun MultiplayerDialog(
                                         onCopy = {
                                             onHostCopyCode(dialogState)
                                         },
+                                        onShare = {
+                                            onShareLink(dialogState.code ?: "")
+                                        },
                                         onExit = onBack,
                                         okText = stringResource(R.string.terracotta_status_host_ok),
                                         codeLabel = stringResource(R.string.terracotta_status_host_ok_code),
@@ -226,6 +230,10 @@ fun MultiplayerDialog(
                                         profiles = profiles,
                                         onCopy = {
                                             onGuestCopyUrl(dialogState)
+                                        },
+                                        onShare = {
+                                            // Optional: Guests could share link too if we want, but room code might be needed.
+                                            // For now, only Host handles it easily because we have dialogState.code
                                         },
                                         onExit = onBack,
                                         okText = stringResource(R.string.terracotta_status_guest_ok),
@@ -435,6 +443,7 @@ private fun OkRoomUI(
     code: String,
     profiles: List<TerracottaProfile>,
     onCopy: () -> Unit,
+    onShare: () -> Unit,
     onExit: () -> Unit,
     okText: String,
     codeLabel: String,
@@ -474,6 +483,17 @@ private fun OkRoomUI(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
+                // Share Invite Link (Beta)
+                if (AllSettings.enableFriendSystemBeta.state) {
+                    SimpleRowButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = painterResource(R.drawable.ic_share),
+                        title = stringResource(R.string.terracotta_share_invite_link),
+                        description = stringResource(R.string.terracotta_share_invite_link_desc),
+                        onClick = onShare
+                    )
+                }
+
                 //复制按钮
                 SimpleRowButton(
                     modifier = Modifier.fillMaxWidth(),

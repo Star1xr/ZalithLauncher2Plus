@@ -99,7 +99,12 @@ class SplashActivity : BaseAppCompatActivity(refreshData = false) {
     }
 
     private fun swapToMain() {
-        startActivity(Intent(this, MainActivity::class.java)); finish()
+        val forward = Intent(this, MainActivity::class.java).apply {
+            if (intent.action == Intent.ACTION_VIEW && intent.scheme == "treelauncher") {
+                data = intent.data
+            }
+        }
+        startActivity(forward); finish()
     }
 
     private fun handleImportIntent(source: Intent): Boolean {
