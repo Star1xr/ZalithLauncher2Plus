@@ -1298,4 +1298,25 @@
     <string name="version_group_april_fools">1 Nisan</string>
     <string name="version_group_modloader">Mod Yükleyiciler</string>
     <string name="version_group_modpack">Mod Paketleri</string>
+    <string name="account_local_uuid">UUID</string>
+    <string name="download_state_finished">Yüklendi</string>
+    <string name="empty_holder">%s</string>
+    <string name="language_arabic">اَلْعَرَبِيَّةُ</string>
+    <string name="language_brazilian_portuguese">Português (Brasil)</string>
+    <string name="language_english">English</string>
+    <string name="language_filipino">Filipino</string>
+    <string name="language_indonesian">Indonesia</string>
+    <string name="language_italian">Italiano</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_portuguese">Português</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_simplified_chinese">简体中文</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_thai">ไทย</string>
+    <string name="language_traditional_chinese">繁體中文</string>
+    <string name="language_turkish">Türkçe</string>
+    <string name="language_uyghur">ۋىغرۇچە</string>
+    <string name="language_vietnamese">Tiếng Việt</string>
+    <string name="versions_manage_create_group">Grup Oluştur</string>
 </resources>
