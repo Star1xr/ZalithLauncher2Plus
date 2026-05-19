@@ -155,6 +155,7 @@ fun MainScreen(
         }
     }
 
+    /*
     val setupCompleted = AllSettings.setupCompleted.state
     val mainScreenKey = screenBackStackModel.mainScreen.currentKey
     LaunchedEffect(setupCompleted, mainScreenKey) {
@@ -162,6 +163,7 @@ fun MainScreen(
             screenBackStackModel.mainScreen.navigateTo(NormalNavKey.Setup)
         }
     }
+    */
 
     val isTaskMenuExpanded = AllSettings.launcherTaskMenuExpanded.state
 
