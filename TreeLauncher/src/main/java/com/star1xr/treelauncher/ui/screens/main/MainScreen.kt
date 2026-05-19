@@ -421,88 +421,84 @@ private fun <E: TitledNavKey> TopBar(
             }
 
             // Left Side: Prism Style Buttons
-            if (setupCompleted) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp), // Increased spacing
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Add Instance
-                    TopBarTextButton(
-                        icon = R.drawable.ic_add,
-                        text = stringResource(R.string.sidebar_action_add_instance),
-                        onClick = { toDownloadScreen(null) }
-                    )
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(6.dp), // Increased spacing
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Add Instance
+                TopBarTextButton(
+                    icon = R.drawable.ic_add,
+                    text = stringResource(R.string.sidebar_action_add_instance),
+                    onClick = { toDownloadScreen(null) }
+                )
 
-                    // Mods
-                    TopBarTextButton(
-                        icon = R.drawable.ic_extension_outlined,
-                        text = stringResource(R.string.topbar_mods),
-                        onClick = { toDownloadScreen(downloadModScreenKey) }
-                    )
+                // Mods
+                TopBarTextButton(
+                    icon = R.drawable.ic_extension_outlined,
+                    text = stringResource(R.string.topbar_mods),
+                    onClick = { toDownloadScreen(downloadModScreenKey) }
+                )
 
-                    // Versions
-                    TopBarTextButton(
-                        icon = R.drawable.ic_sort,
-                        text = stringResource(R.string.page_title_version_list),
-                        onClick = toVersionManageScreen
-                    )
+                // Versions
+                TopBarTextButton(
+                    icon = R.drawable.ic_sort,
+                    text = stringResource(R.string.page_title_version_list),
+                    onClick = toVersionManageScreen
+                )
 
-                    // Settings
-                    TopBarTextButton(
-                        icon = R.drawable.ic_settings_filled,
-                        text = stringResource(R.string.generic_setting),
-                        onClick = toSettingsScreen
-                    )
+                // Settings
+                TopBarTextButton(
+                    icon = R.drawable.ic_settings_filled,
+                    text = stringResource(R.string.generic_setting),
+                    onClick = toSettingsScreen
+                )
 
-                    // Shortcuts (Dropdown)
-                    var showShortcuts by remember { mutableStateOf<Boolean>(false) }
-                    Box {
-                        TopBarTextButton(
-                            icon = R.drawable.ic_build_filled,
-                            text = stringResource(R.string.shortcuts_title),
-                            onClick = { showShortcuts = true },
-                            hasDropdown = true
+                // Shortcuts (Dropdown)
+                var showShortcuts by remember { mutableStateOf<Boolean>(false) }
+                Box {
+                    TopBarTextButton(
+                        icon = R.drawable.ic_build_filled,
+                        text = stringResource(R.string.shortcuts_title),
+                        onClick = { showShortcuts = true },
+                        hasDropdown = true
+                    )
+                    DropdownMenu(
+                        expanded = showShortcuts,
+                        onDismissRequest = { showShortcuts = false },
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.settings_game_java_memory_title)) },
+                            leadingIcon = { Icon(painterResource(R.drawable.ic_build_filled), null, modifier = Modifier.size(20.dp)) },
+                            onClick = { 
+                                showShortcuts = false
+                                onQuickRamClick()
+                            }
                         )
-                        DropdownMenu(
-                            expanded = showShortcuts,
-                            onDismissRequest = { showShortcuts = false },
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.settings_game_java_memory_title)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_build_filled), null, modifier = Modifier.size(20.dp)) },
-                                onClick = { 
-                                    showShortcuts = false
-                                    onQuickRamClick()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.game_menu_option_switch_fps)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_video_settings), null, modifier = Modifier.size(20.dp)) },
-                                onClick = { 
-                                    showShortcuts = false
-                                    onQuickFpsClick()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.versions_overview_log)) },
-                                leadingIcon = { Icon(painterResource(R.drawable.ic_terminal_outlined), null, modifier = Modifier.size(20.dp)) },
-                                onClick = { 
-                                    showShortcuts = false
-                                    onLogViewerClick()
-                                }
-                            )
-                        }
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.game_menu_option_switch_fps)) },
+                            leadingIcon = { Icon(painterResource(R.drawable.ic_video_settings), null, modifier = Modifier.size(20.dp)) },
+                            onClick = { 
+                                showShortcuts = false
+                                onQuickFpsClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.versions_overview_log)) },
+                            leadingIcon = { Icon(painterResource(R.drawable.ic_terminal_outlined), null, modifier = Modifier.size(20.dp)) },
+                            onClick = { 
+                                showShortcuts = false
+                                onLogViewerClick()
+                            }
+                        )
                     }
                 }
-            } else {
-                Spacer(Modifier.weight(1f))
             }
 
             // Right Side: Accounts (Direct navigation as requested)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (setupCompleted && !isTasksExpanded && tasks.isNotEmpty()) {
+                if (!isTasksExpanded && tasks.isNotEmpty()) {
                     Row(
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.small)

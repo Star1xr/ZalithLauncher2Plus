@@ -56,6 +56,7 @@ import com.star1xr.treelauncher.setting.enums.VersionIconStyle
 import com.star1xr.treelauncher.ui.base.BaseScreen
 import com.star1xr.treelauncher.ui.screens.NormalNavKey
 import com.star1xr.treelauncher.ui.screens.navigateTo
+import com.star1xr.treelauncher.ui.screens.content.navigateToDownload
 import com.star1xr.treelauncher.viewmodel.ScreenBackStackViewModel
 import kotlinx.coroutines.delay
 
@@ -147,9 +148,6 @@ fun SetupScreen(
                         4 -> VersionStep(
                             versions = versions,
                             onDownloadVersion = { backStackViewModel.navigateToDownload() },
-                            onAddVersion = { 
-                                backStackViewModel.navigateToDownload(backStackViewModel.downloadModPackScreen)
-                            },
                             onFinish = {
                                 AllSettings.setupCompleted.save(true)
                                 onFinished()
@@ -514,7 +512,6 @@ private fun AccountStep(onCreateAccount: () -> Unit, onNext: () -> Unit) {
 private fun VersionStep(
     versions: List<Version>, 
     onDownloadVersion: () -> Unit, 
-    onAddVersion: () -> Unit,
     onFinish: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -573,18 +570,6 @@ private fun VersionStep(
             Icon(painterResource(R.drawable.ic_download_2_outlined), null)
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.setup_version_download), fontWeight = FontWeight.Bold)
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-
-        FilledTonalButton(
-            onClick = onAddVersion,
-            modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
-            shape = MaterialTheme.shapes.large
-        ) {
-            Icon(painterResource(R.drawable.ic_add), null)
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.setup_version_add), fontWeight = FontWeight.Bold)
         }
         
         Spacer(modifier = Modifier.height(16.dp))
