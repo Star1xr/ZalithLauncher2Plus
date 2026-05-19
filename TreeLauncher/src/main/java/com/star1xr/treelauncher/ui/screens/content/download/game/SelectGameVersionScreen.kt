@@ -71,6 +71,8 @@ import com.star1xr.treelauncher.R
 import com.star1xr.treelauncher.game.versioninfo.MinecraftVersion
 import com.star1xr.treelauncher.game.versioninfo.MinecraftVersions
 import com.star1xr.treelauncher.game.versioninfo.models.isType
+import com.star1xr.treelauncher.setting.AllSettings
+import com.star1xr.treelauncher.setting.enums.VersionIconStyle
 import com.star1xr.treelauncher.ui.base.BaseScreen
 import com.star1xr.treelauncher.ui.components.CheckChip
 import com.star1xr.treelauncher.ui.components.EdgeDirection
