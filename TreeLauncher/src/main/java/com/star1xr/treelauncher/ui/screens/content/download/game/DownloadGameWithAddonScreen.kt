@@ -746,7 +746,7 @@ private fun VersionIconPreview(
                 currentAddon.legacyFabricVersion.value != null -> R.drawable.img_loader_legacy_fabric
                 currentAddon.quiltVersion.value != null -> R.drawable.img_loader_quilt
                 currentAddon.cleanroomVersion.value != null -> R.drawable.img_loader_cleanroom
-                else -> R.drawable.img_version_vanilla
+                else -> R.drawable.img_minecraft
             }
         } else {
             when {

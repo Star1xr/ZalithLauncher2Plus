@@ -82,7 +82,7 @@ fun SetupScreen(
             if (!UnpackTasksManager.areAllTasksFinished()) -1
             else if (BuildConfig.DEBUG) 0
             else if (accounts.isEmpty()) 1
-            else 3
+            else 4 // Now it is 4 because we added IconStyleStep as step 3
         )
     }
 
@@ -141,9 +141,13 @@ fun SetupScreen(
                             },
                             onNext = { step = 3 }
                         )
-                        3 -> VersionStep(
+                        3 -> IconStyleStep { step = 4 }
+                        4 -> VersionStep(
                             versions = versions,
                             onDownloadVersion = { backStackViewModel.navigateToDownload() },
+                            onAddVersion = { 
+                                backStackViewModel.navigateToDownload(backStackViewModel.downloadModPackScreen)
+                            },
                             onFinish = {
                                 AllSettings.setupCompleted.save(true)
                                 onFinished()
@@ -152,6 +156,116 @@ fun SetupScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun IconStyleStep(onNext: () -> Unit) {
+    var selectedStyle by remember { mutableStateOf(AllSettings.versionIconStyle.state) }
+    
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            stringResource(R.string.setup_icon_style_title),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.setup_icon_style_subtitle),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.alpha(0.7f)
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            IconStyleCard(
+                modifier = Modifier.weight(1f),
+                title = stringResource(R.string.setup_icon_style_current),
+                iconRes = R.drawable.img_version_fabric,
+                selected = selectedStyle == VersionIconStyle.CURRENT,
+                onClick = {
+                    selectedStyle = VersionIconStyle.CURRENT
+                    AllSettings.versionIconStyle.save(VersionIconStyle.CURRENT)
+                }
+            )
+            IconStyleCard(
+                modifier = Modifier.weight(1f),
+                title = stringResource(R.string.setup_icon_style_official),
+                iconRes = R.drawable.img_loader_fabric,
+                selected = selectedStyle == VersionIconStyle.OFFICIAL,
+                onClick = {
+                    selectedStyle = VersionIconStyle.OFFICIAL
+                    AllSettings.versionIconStyle.save(VersionIconStyle.OFFICIAL)
+                }
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(48.dp))
+        Button(
+            onClick = onNext,
+            modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Text(stringResource(R.string.setup_debug_next), fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun IconStyleCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    iconRes: Int,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    OutlinedCard(
+        modifier = modifier,
+        onClick = onClick,
+        shape = MaterialTheme.shapes.large,
+        colors = if (selected) CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+            contentColor = MaterialTheme.colorScheme.primary
+        ) else CardDefaults.outlinedCardColors(),
+        border = CardDefaults.outlinedCardBorder(enabled = true).copy(
+            brush = if (selected) Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary))
+            else Brush.linearGradient(listOf(MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)))
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Surface(
+                modifier = Modifier.size(64.dp),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            RadioButton(
+                selected = selected,
+                onClick = null
+            )
         }
     }
 }
@@ -395,8 +509,13 @@ private fun AccountStep(onCreateAccount: () -> Unit, onNext: () -> Unit) {
 }
 
 @Composable
-private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, onFinish: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxHeight()) {
+private fun VersionStep(
+    versions: List<Version>, 
+    onDownloadVersion: () -> Unit, 
+    onAddVersion: () -> Unit,
+    onFinish: () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             stringResource(R.string.setup_version_title),
             style = MaterialTheme.typography.headlineMedium,
@@ -406,7 +525,7 @@ private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, 
 
         if (versions.isNotEmpty()) {
             Card(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
+                modifier = Modifier.heightIn(max = 300.dp).fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
                 shape = MaterialTheme.shapes.large
             ) {
@@ -433,11 +552,9 @@ private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, 
                     }
                 }
             }
-        } else {
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
-        Spacer(modifier = Modifier.height(32.dp))        
         Button(
             onClick = onDownloadVersion,
             modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
@@ -447,8 +564,18 @@ private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, 
         }
         
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         FilledTonalButton(
+            onClick = onAddVersion,
+            modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Text(stringResource(R.string.setup_version_add), fontWeight = FontWeight.Bold)
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        OutlinedButton(
             onClick = onFinish, 
             modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
             shape = MaterialTheme.shapes.large

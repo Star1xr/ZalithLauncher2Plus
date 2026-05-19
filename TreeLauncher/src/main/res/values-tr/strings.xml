@@ -1278,7 +1278,14 @@
     <string name="setup_account_skip">Atla</string>
     <string name="setup_version_title">Oyun İndirin</string>
     <string name="setup_version_download">Sürüm İndir</string>
+    <string name="setup_version_add">Sürüm Ekle</string>
     <string name="setup_version_finish">Bitir</string>
+
+    <string name="setup_icon_style_title">Sürüm İkon Stili</string>
+    <string name="setup_icon_style_subtitle">Minecraft sürümlerinin listede nasıl görüneceğini seçin.</string>
+    <string name="setup_icon_style_example">Örnek</string>
+    <string name="setup_icon_style_current">Geçerli</string>
+    <string name="setup_icon_style_official">Resmi</string>
     <string name="setup_debug_title">Debug Modu Aktif</string>
     <string name="setup_debug_next">Devam Et</string>
 

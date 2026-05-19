@@ -41,6 +41,8 @@ import com.star1xr.treelauncher.game.addons.modloader.forgelike.neoforge.NeoForg
 import com.star1xr.treelauncher.game.addons.modloader.modlike.ModVersion
 import com.star1xr.treelauncher.game.addons.modloader.optifine.OptiFineVersion
 import com.star1xr.treelauncher.game.version.installed.utils.isBiggerVer
+import com.star1xr.treelauncher.setting.AllSettings
+import com.star1xr.treelauncher.setting.enums.VersionIconStyle
 import com.star1xr.treelauncher.utils.logging.Logger.lError
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ResponseException
@@ -418,7 +420,7 @@ fun NeoForgeList(
         state = currentAddon.neoforgeState,
         title = ModLoader.NEOFORGE.displayName,
         error = error,
-        iconPainter = painterResource(R.drawable.img_version_neoforge),
+        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_neoforge else R.drawable.img_version_neoforge),
         items = addonList.neoforgeList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -452,7 +454,7 @@ fun FabricList(
         state = currentAddon.fabricState,
         title = ModLoader.FABRIC.displayName,
         error = error,
-        iconPainter = painterResource(R.drawable.img_version_fabric),
+        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_fabric else R.drawable.img_version_fabric),
         items = addonList.fabricList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -497,7 +499,7 @@ fun FabricAPIList(
         modifier = modifier,
         state = currentAddon.fabricAPIState,
         title = ModLoader.FABRIC_API.displayName,
-        iconPainter = painterResource(R.drawable.img_version_fabric),
+        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_fabric else R.drawable.img_version_fabric),
         items = addonList.fabricAPIList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -532,7 +534,7 @@ fun LegacyFabricList(
         state = currentAddon.legacyFabricState,
         title = ModLoader.LEGACY_FABRIC.displayName,
         error = error,
-        iconPainter = painterResource(R.drawable.img_version_fabric),
+        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_legacy_fabric else R.drawable.img_version_fabric),
         items = addonList.legacyFabricList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -577,7 +579,7 @@ fun LegacyFabricAPIList(
         modifier = modifier,
         state = currentAddon.legacyFabricAPIState,
         title = ModLoader.LEGACY_FABRIC_API.displayName,
-        iconPainter = painterResource(R.drawable.img_version_fabric),
+        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_legacy_fabric else R.drawable.img_version_fabric),
         items = addonList.legacyFabricAPIList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -612,7 +614,7 @@ fun QuiltList(
         state = currentAddon.quiltState,
         title = ModLoader.QUILT.displayName,
         error = error,
-        iconPainter = painterResource(R.drawable.img_version_quilt),
+        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_quilt else R.drawable.img_version_quilt),
         items = addonList.quiltList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -657,7 +659,7 @@ fun QuiltAPIList(
         modifier = modifier,
         state = currentAddon.quiltAPIState,
         title = ModLoader.QUILT_API.displayName,
-        iconPainter = painterResource(R.drawable.img_version_quilt),
+        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_quilt else R.drawable.img_version_quilt),
         items = addonList.quiltAPIList,
         current = version,
         incompatibleSet = incompatibleSet,

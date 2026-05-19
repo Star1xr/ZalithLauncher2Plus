@@ -1323,7 +1323,14 @@
     <string name="setup_account_skip">Skip</string>
     <string name="setup_version_title">Download Game</string>
     <string name="setup_version_download">Download Version</string>
+    <string name="setup_version_add">Add Version</string>
     <string name="setup_version_finish">Finish</string>
+
+    <string name="setup_icon_style_title">Version Icon Style</string>
+    <string name="setup_icon_style_subtitle">Choose how you want your Minecraft versions to look in the list.</string>
+    <string name="setup_icon_style_example">Example</string>
+    <string name="setup_icon_style_current">Current</string>
+    <string name="setup_icon_style_official">Official</string>
     <string name="setup_debug_title">Debug Mode Active</string>
     <string name="setup_debug_next">Continue</string>
 
