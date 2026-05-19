@@ -85,9 +85,4 @@
     <string name="terracotta_tutorial_guest_step_join_room">- After joining the room, go to Multiplayer in the main menu, refresh, and double-click to enter the Terracotta lobby</string>
     <string name="terracotta_tutorial_guest_step_alternate_server">- Offline accounts are not supported when joining via alternate server addresses; resolve this yourself</string>
     <string name="terracotta_tutorial_note_title">Notes:</string>
-    <string name="terracotta_share_invite_link">Share Invite Link (Beta)</string>
-    <string name="terracotta_share_invite_link_desc">Generate and share a link to your friend</string>
-    <string name="terracotta_share_invite_text">Join my Minecraft world! %s</string>
-    <string name="terracotta_friend_join_title">Join Friend?</string>
-    <string name="terracotta_friend_join_desc">Your friend invited you to join a room: %s. Do you want to connect now?</string>
 </resources>

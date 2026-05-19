@@ -279,31 +279,6 @@ class TerracottaViewModel(
                                 }
                             }
                         }
-                        is EventViewModel.Event.Terracotta.JoinRoom -> {
-                            val roomCode = event.roomCode
-                            viewModelScope.launch(Dispatchers.Main) {
-                                if (!Terracotta.initialized) initialize()
-                                
-                                isWaitingInteractive = false
-                                val userName = getUserName() ?: activity.getString(R.string.terracotta_player_anonymous)
-                                
-                                val nodes = fetchNodes()
-                                val nodeList = withContext(Dispatchers.Default) {
-                                    nodes.map { node -> node.toString() }
-                                }
-
-                                runCatching {
-                                    val success = Terracotta.setGuesting(roomCode, userName, nodeList)
-                                    isWaitingInteractive = false
-                                    if (!success) {
-                                        Toast.makeText(activity, activity.getString(R.string.terracotta_status_waiting_guest_prompt_invalid), Toast.LENGTH_SHORT).show()
-                                    }
-                                }.onFailure { e ->
-                                    lWarning("Auto-join error: ${e.message}")
-                                    isWaitingInteractive = true
-                                }
-                            }
-                        }
                     }
                 }
         }
