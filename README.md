@@ -55,6 +55,16 @@ This project is derived from the excellent work of the Zalith Launcher team:
 
 Soon.
 
+It only has 3 languages:
+- TR
+- EN 
+- ZH (2 TYPES)
+
+But why?
+Because i am (dev) Turkish,
+I have some chinese friends,
+English is a global language.
+
 ## 📦 Build Instructions (For Developers)
 
 ### Requirements
