@@ -85,13 +85,17 @@ class SplashActivity : BaseAppCompatActivity(refreshData = false) {
 
     private fun checkTasksToMain(): Boolean {
         if (!AllSettings.setupCompleted.getValue()) { swapToMain(); return true }
-        if (UnpackTasksManager.areAllTasksFinished()) {
-            if (isImportIntent(intent) && !isLauncherIntent(intent)) {
-                if (handleImportIntent(intent)) { finish(); return true }
-            }
-            swapToMain(); return true
+        
+        // If setup is done, always proceed to Main immediately.
+        // We start unpacking in background just in case, but WITHOUT showing UI.
+        if (!UnpackTasksManager.areAllTasksFinished()) {
+            UnpackTasksManager.startAllTask(lifecycleScope)
         }
-        return false
+
+        if (isImportIntent(intent) && !isLauncherIntent(intent)) {
+            if (handleImportIntent(intent)) { finish(); return true }
+        }
+        swapToMain(); return true
     }
 
     private fun swapToMain() {

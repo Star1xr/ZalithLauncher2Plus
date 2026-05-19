@@ -79,6 +79,7 @@ android {
         versionCode = launcherVersionCode
         versionName = launcherVersionName
         manifestPlaceholders["launcher_name"] = launcherAPPName
+        resourceConfigurations.addAll(listOf("en", "tr", "zh-rCN", "zh-rTW"))
     }
 
     buildTypes {
