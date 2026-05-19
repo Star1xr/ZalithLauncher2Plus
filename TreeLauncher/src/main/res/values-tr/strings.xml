@@ -1319,4 +1319,6 @@
     <string name="language_uyghur">ۋىغرۇچە</string>
     <string name="language_vietnamese">Tiếng Việt</string>
     <string name="versions_manage_create_group">Grup Oluştur</string>
+    <string name="setup_add_minecraft_account">Hesap Ekle</string>
+    <string name="setup_add_minecraft_account_desc">Oynamak için bir hesap ekleyin.</string>
 </resources>

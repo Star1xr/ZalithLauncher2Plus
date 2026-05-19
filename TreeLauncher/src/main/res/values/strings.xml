@@ -797,7 +797,7 @@
     <string name="saves_manage_quick_play_disabled">Quick Play (1.20+ only)</string>
     <string name="saves_manage_no_saves">No saves for this version</string>
     <string name="saves_manage_import_unpacking">Unpacking save: %s</string>
-    <string name="saves_manage_import_failed">An error occurred while importing the save</string>
+  <string name="saves_manage_import_failed">An error occurred while importing the save</string>
     <string name="resource_pack_manage">Resource Packs</string>
     <string name="resource_pack_manage_info">Resource Pack Information</string>
     <string name="resource_pack_manage_invalid">Invalid Resource Pack Format</string>
@@ -1073,7 +1073,7 @@
     <string name="control_manage_info_empty">No information displayed</string>
     <string name="control_manage_info_unsupport">This file is not supported</string>
     <string name="control_manage_info_description">Layout Description</string>
-    <string name="control_manage_info_description_empty">No description</string>
+  <string name="control_manage_info_description_empty">No description</string>
     <string name="control_manage_info_edit">Edit Control Layout</string>
     <string name="control_manage_import">Import control layout</string>
     <string name="control_manage_import_failed">Failed to import control layout file</string>
@@ -1343,4 +1343,6 @@
     <string name="version_group_april_fools">April Fools</string>
     <string name="version_group_modloader">Mod Loaders</string>
     <string name="version_group_modpack">Modpacks</string>
+    <string name="setup_add_minecraft_account">Add Account</string>
+    <string name="setup_add_minecraft_account_desc">Add an account to play.</string>
 </resources>
