@@ -23,39 +23,29 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.star1xr.treelauncher.BuildConfig
 import com.star1xr.treelauncher.R
 import com.star1xr.treelauncher.components.UnpackTasksManager
 import com.star1xr.treelauncher.game.account.AccountsManager
+import com.star1xr.treelauncher.game.version.installed.Version
 import com.star1xr.treelauncher.game.version.installed.VersionsManager
 import com.star1xr.treelauncher.setting.AllSettings
 import com.star1xr.treelauncher.ui.base.BaseScreen
@@ -134,6 +124,7 @@ fun SetupScreen(
                             onNext = { step = 3 }
                         )
                         3 -> VersionStep(
+                            versions = versions,
                             onDownloadVersion = { backStackViewModel.navigateToDownload() },
                             onFinish = {
                                 AllSettings.setupCompleted.save(true)
@@ -174,39 +165,75 @@ private fun RequiredFilesStep(progress: Float) {
 @Composable
 private fun DebugGreeting(onNext: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(painter = painterResource(R.drawable.ic_build_filled), contentDescription = null)
+        Icon(painter = painterResource(R.drawable.ic_build_filled), contentDescription = null, modifier = Modifier.size(64.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.launcher_version_debug_warning, "TreeLauncher"),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onNext) { Text("Devam Et") }
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(onClick = onNext) { Text(stringResource(R.string.setup_debug_next)) }
     }
 }
 
 @Composable
 private fun WelcomeStep(onNext: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("TreeLauncher'a Hoş Geldiniz", style = MaterialTheme.typography.headlineMedium)
-        Button(onClick = onNext) { Text("Başla") }
+        Text(stringResource(R.string.setup_welcome_title), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(onClick = onNext, modifier = Modifier.fillMaxWidth(0.6f)) { Text(stringResource(R.string.setup_welcome_button)) }
     }
 }
 
 @Composable
 private fun AccountStep(onCreateAccount: () -> Unit, onNext: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Hesap Oluşturun", style = MaterialTheme.typography.headlineMedium)
-        Button(onClick = onCreateAccount) { Text("Hesap Ekle") }
-        Button(onClick = onNext) { Text("Zaten Hesabım Var") }
+        Text(stringResource(R.string.setup_account_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(onClick = onCreateAccount, modifier = Modifier.fillMaxWidth(0.6f)) { Text(stringResource(R.string.setup_account_add)) }
+        Spacer(modifier = Modifier.height(12.dp))
+        TextButton(onClick = onNext) { Text(stringResource(R.string.setup_account_skip)) }
     }
 }
 
 @Composable
-private fun VersionStep(onDownloadVersion: () -> Unit, onFinish: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Oyun İndirin", style = MaterialTheme.typography.headlineMedium)
-        Button(onClick = onDownloadVersion) { Text("Sürüm İndir") }
-        Button(onClick = onFinish) { Text("Bitir") }
+private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, onFinish: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxHeight()) {
+        Text(stringResource(R.string.setup_version_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        if (versions.isEmpty()) {
+            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Text(stringResource(R.string.versions_manage_no_versions), alpha = 0.6f)
+            }
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                items(versions) { version ->
+                    Surface(
+                        modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ) {
+                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(painterResource(R.drawable.ic_sort), null, modifier = Modifier.size(24.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text(version.getVersionName(), fontWeight = FontWeight.Medium)
+                        }
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onDownloadVersion, modifier = Modifier.fillMaxWidth(0.6f)) { Text(stringResource(R.string.setup_version_download)) }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = onFinish, 
+            modifier = Modifier.fillMaxWidth(0.6f),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+        ) { 
+            Text(stringResource(R.string.setup_version_finish)) 
+        }
     }
 }

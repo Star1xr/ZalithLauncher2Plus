@@ -1237,4 +1237,14 @@
     <string name="festivals_christmas">圣诞节快乐！</string>
     <string name="setup_required_files_title">正在下载所需文件 %d%%</string>
     <string name="setup_required_files_subtitle">下载所需文件后，您可以继续安装。</string>
+    <string name="setup_welcome_title">欢迎使用 TreeLauncher</string>
+    <string name="setup_welcome_button">开始</string>
+    <string name="setup_account_title">创建账号</string>
+    <string name="setup_account_add">添加账号</string>
+    <string name="setup_account_skip">跳过</string>
+    <string name="setup_version_title">下载游戏</string>
+    <string name="setup_version_download">下载版本</string>
+    <string name="setup_version_finish">完成</string>
+    <string name="setup_debug_title">调试模式已激活</string>
+    <string name="setup_debug_next">继续</string>
 </resources>

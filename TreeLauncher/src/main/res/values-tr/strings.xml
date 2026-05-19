@@ -1271,4 +1271,14 @@
     <string name="versions_import_version_summary">Özel bir zip dosyasından bir sürümü içe aktarın</string>
     <string name="setup_required_files_title">Gereken dosyalar indiriliyor %%%d</string>
     <string name="setup_required_files_subtitle">Gereken dosyalar inince kuruluma devam edebilirsiniz.</string>
+    <string name="setup_welcome_title">TreeLauncher\'a Hoş Geldiniz</string>
+    <string name="setup_welcome_button">Başla</string>
+    <string name="setup_account_title">Hesap Oluşturun</string>
+    <string name="setup_account_add">Hesap Ekle</string>
+    <string name="setup_account_skip">Atla</string>
+    <string name="setup_version_title">Oyun İndirin</string>
+    <string name="setup_version_download">Sürüm İndir</string>
+    <string name="setup_version_finish">Bitir</string>
+    <string name="setup_debug_title">Debug Modu Aktif</string>
+    <string name="setup_debug_next">Devam Et</string>
 </resources>

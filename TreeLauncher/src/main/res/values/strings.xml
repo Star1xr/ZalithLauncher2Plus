@@ -1316,4 +1316,14 @@
     <string name="versions_import_version_summary">Import a version from a specialized zip file</string>
     <string name="setup_required_files_title">Required files are being downloaded %d%%</string>
     <string name="setup_required_files_subtitle">You can continue the installation once the required files are downloaded.</string>
+    <string name="setup_welcome_title">Welcome to TreeLauncher</string>
+    <string name="setup_welcome_button">Start</string>
+    <string name="setup_account_title">Create an Account</string>
+    <string name="setup_account_add">Add Account</string>
+    <string name="setup_account_skip">Skip</string>
+    <string name="setup_version_title">Download Game</string>
+    <string name="setup_version_download">Download Version</string>
+    <string name="setup_version_finish">Finish</string>
+    <string name="setup_debug_title">Debug Mode Active</string>
+    <string name="setup_debug_next">Continue</string>
 </resources>
