@@ -268,6 +268,19 @@ abstract class Launcher(
         args.add("-Xms${ramAllocationString}M")
         args.add("-Xmx${ramAllocationString}M")
 
+        // Performance optimizations
+        args.add("-XX:+UseG1GC")
+        args.add("-XX:MaxGCPauseMillis=50")
+        args.add("-XX:G1HeapRegionSize=32M")
+        args.add("-XX:+UnlockExperimentalVMOptions")
+        args.add("-XX:+UseFastUnorderedTimeStamps")
+        args.add("-XX:+UseStringDeduplication")
+        args.add("-XX:G1NewSizePercent=20")
+        args.add("-XX:G1MaxNewSizePercent=60")
+        args.add("-XX:G1ReservePercent=15")
+        args.add("-XX:ParallelGCThreads=${java.lang.Runtime.getRuntime().availableProcessors()}")
+        args.add("-XX:ConcGCThreads=${(java.lang.Runtime.getRuntime().availableProcessors() + 3) / 4}")
+
         // Force LWJGL to use the Freetype library intended for it, instead of using the one
         // that we ship with Java (since it may be older than what's needed)
         args.add("-Dorg.lwjgl.freetype.libname=${PathManager.DIR_NATIVE_LIB}/libfreetype.so")
