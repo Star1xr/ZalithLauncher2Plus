@@ -184,9 +184,26 @@ abstract class Launcher(
 
             put("net.minecraft.clientmodname", InfoDistributor.LAUNCHER_NAME)
 
+            // GPU Specific Optimizations
+            if (AllSettings.rendererOptimization.state) {
+                val gpu = AllSettings.gpuArchitecture.state.lowercase()
+                if (gpu == "mali" || (gpu == "auto" && Build.HARDWARE.lowercase().contains("mt"))) {
+                    // Mali GPU specific (MediaTek/Exynos)
+                    put("MALI_DEBUG", "force_linear_filtering")
+                    put("vulkan.disable_robustness", "true")
+                } else if (gpu == "adreno" || (gpu == "auto" && Build.HARDWARE.lowercase().contains("qcom"))) {
+                    // Adreno GPU specific (Snapdragon)
+                    put("ZINK_DESCRIPTORS", "lazy")
+                    put("TU_DEBUG", "sysmem") // Force sysmem if gmem is slow
+                }
+                
+                // Universal Zink/Vulkan optimizations
+                put("ZINK_DEBUG", "compact")
+                put("MESA_VK_WSI_PRESENT_MODE", "mailbox") // Reduces input lag
+            }
+
             // fml
-            put("fml.earlyprogresswindow", "false")
-            put("fml.ignoreInvalidMinecraftCertificates", "true")
+            put("fml.earlyprogresswindow", "false")            put("fml.ignoreInvalidMinecraftCertificates", "true")
             put("fml.ignorePatchDiscrepancies", "true")
 
             put("loader.disable_forked_guis", "true")

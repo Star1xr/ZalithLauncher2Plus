@@ -96,9 +96,14 @@ object AllSettings : SettingsRegistry() {
     val bigCoreAffinity = boolSetting("bigCoreAffinity", false)
 
     /**
-     * 启用着色器日志输出
+     * 渲染器性能优化预设
      */
-    val dumpShaders = boolSetting("dumpShaders", false)
+    val rendererOptimization = boolSetting("rendererOptimization", true)
+
+    /**
+     * GPU 架构 (用于性能优化)
+     */
+    val gpuArchitecture = stringSetting("gpuArchitecture", "auto")
 
     //Game
     /**
