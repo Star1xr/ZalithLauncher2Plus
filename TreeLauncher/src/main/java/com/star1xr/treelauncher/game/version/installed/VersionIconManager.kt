@@ -43,7 +43,7 @@ object VersionIconManager {
                 ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
                 ModLoader.LEGACY_FABRIC -> R.drawable.img_loader_legacy_fabric
                 ModLoader.PACK -> R.drawable.img_chest
-                else -> R.drawable.img_minecraft // Official Vanilla logo/icon
+                else -> R.drawable.img_version_vanilla // Official Vanilla logo/icon
             }
         } else {
             // Current style (Stylized icons)

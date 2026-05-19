@@ -384,8 +384,12 @@ private fun AccountStep(onCreateAccount: () -> Unit, onNext: () -> Unit) {
             Text(stringResource(R.string.setup_account_add), fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        TextButton(onClick = onNext) {
-            Text(stringResource(R.string.setup_account_skip), modifier = Modifier.alpha(0.6f))
+        FilledTonalButton(
+            onClick = onNext,
+            modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Text(stringResource(R.string.setup_account_skip), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -399,21 +403,13 @@ private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, 
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(24.dp))
-        
-        Card(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-            shape = MaterialTheme.shapes.large
-        ) {
-            if (versions.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.versions_manage_no_versions),
-                        modifier = Modifier.alpha(0.6f),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-            } else {
+
+        if (versions.isNotEmpty()) {
+            Card(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                shape = MaterialTheme.shapes.large
+            ) {
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -437,10 +433,11 @@ private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, 
                     }
                 }
             }
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
         }
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        
+
+        Spacer(modifier = Modifier.height(32.dp))        
         Button(
             onClick = onDownloadVersion,
             modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),

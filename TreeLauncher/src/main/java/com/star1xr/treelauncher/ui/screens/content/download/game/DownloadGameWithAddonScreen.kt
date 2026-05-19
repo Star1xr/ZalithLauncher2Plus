@@ -77,6 +77,8 @@ import com.star1xr.treelauncher.game.download.game.GameDownloadInfo
 import com.star1xr.treelauncher.game.version.installed.Version
 import com.star1xr.treelauncher.game.version.installed.VersionsManager
 import com.star1xr.treelauncher.game.version.installed.VersionsManager.isVersionExists
+import com.star1xr.treelauncher.setting.AllSettings
+import com.star1xr.treelauncher.setting.enums.VersionIconStyle
 import com.star1xr.treelauncher.ui.base.BaseScreen
 import com.star1xr.treelauncher.ui.components.AnimatedColumn
 import com.star1xr.treelauncher.ui.components.SimpleTextInputField
@@ -733,17 +735,31 @@ private fun VersionIconPreview(
     currentAddon: CurrentAddon,
     refreshIcon: Any? = null
 ) {
-    val iconRes = remember(refreshIcon) {
-        when {
-            currentAddon.optifineVersion.value != null && currentAddon.forgeVersion.value != null -> R.drawable.img_version_forge //OptiFine & Forge 同时选择
-            currentAddon.optifineVersion.value != null -> R.drawable.img_loader_optifine
-            currentAddon.forgeVersion.value != null -> R.drawable.img_version_forge
-            currentAddon.neoforgeVersion.value != null -> R.drawable.img_version_neoforge
-            currentAddon.fabricVersion.value != null -> R.drawable.img_version_fabric
-            currentAddon.legacyFabricVersion.value != null -> R.drawable.img_version_fabric
-            currentAddon.quiltVersion.value != null -> R.drawable.img_version_quilt
-            currentAddon.cleanroomVersion.value != null -> R.drawable.img_loader_cleanroom
-            else -> R.drawable.img_version_vanilla
+    val style = AllSettings.versionIconStyle.state
+    val iconRes = remember(refreshIcon, style) {
+        if (style == VersionIconStyle.OFFICIAL) {
+            when {
+                currentAddon.optifineVersion.value != null -> R.drawable.img_loader_optifine
+                currentAddon.forgeVersion.value != null -> R.drawable.img_version_forge // Fallback
+                currentAddon.neoforgeVersion.value != null -> R.drawable.img_loader_neoforge
+                currentAddon.fabricVersion.value != null -> R.drawable.img_loader_fabric
+                currentAddon.legacyFabricVersion.value != null -> R.drawable.img_loader_legacy_fabric
+                currentAddon.quiltVersion.value != null -> R.drawable.img_loader_quilt
+                currentAddon.cleanroomVersion.value != null -> R.drawable.img_loader_cleanroom
+                else -> R.drawable.img_version_vanilla
+            }
+        } else {
+            when {
+                currentAddon.optifineVersion.value != null && currentAddon.forgeVersion.value != null -> R.drawable.img_version_forge //OptiFine & Forge 同时选择
+                currentAddon.optifineVersion.value != null -> R.drawable.img_loader_optifine
+                currentAddon.forgeVersion.value != null -> R.drawable.img_version_forge
+                currentAddon.neoforgeVersion.value != null -> R.drawable.img_version_neoforge
+                currentAddon.fabricVersion.value != null -> R.drawable.img_version_fabric
+                currentAddon.legacyFabricVersion.value != null -> R.drawable.img_version_fabric
+                currentAddon.quiltVersion.value != null -> R.drawable.img_version_quilt
+                currentAddon.cleanroomVersion.value != null -> R.drawable.img_loader_cleanroom
+                else -> R.drawable.img_version_vanilla
+            }
         }
     }
 

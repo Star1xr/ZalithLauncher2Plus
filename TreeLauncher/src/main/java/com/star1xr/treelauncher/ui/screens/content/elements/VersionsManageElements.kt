@@ -341,6 +341,35 @@ fun VersionCategoryItem(
 }
 
 @Composable
+fun VersionGroupItem(
+    modifier: Modifier = Modifier,
+    name: String,
+    selected: Boolean,
+    shape: Shape = MaterialTheme.shapes.large,
+    selectedContentColor: Color = MaterialTheme.colorScheme.onSurface,
+    unselectedContentColor: Color = MaterialTheme.colorScheme.onSurface,
+    style: TextStyle = MaterialTheme.typography.labelMedium,
+    enabled: Boolean = true,
+    onClick: () -> Unit = {}
+) {
+    TextRailItem(
+        modifier = modifier,
+        text = {
+            Text(
+                text = name,
+                style = style
+            )
+        },
+        onClick = onClick,
+        selected = selected,
+        shape = shape,
+        selectedContentColor = selectedContentColor,
+        unselectedContentColor = unselectedContentColor,
+        enabled = enabled
+    )
+}
+
+@Composable
 private fun NameEditPathDialog(
     initValue: String = "",
     onDismissRequest: () -> Unit = {},
@@ -478,7 +507,7 @@ fun ChangeGroupDialog(
     var showCreateDialog by remember { mutableStateOf(false) }
     val groups = remember {
         VersionsManager.versions
-            .map { it.getVersionConfig().group }
+            .map { it.getVersionConfig().group.ifBlank { it.getVersionInfo()?.minecraftVersion ?: "" } }
             .filter { it.isNotEmpty() }
             .distinct()
             .sorted()
@@ -511,9 +540,18 @@ fun ChangeGroupDialog(
                     .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // "Hiçbiri" seçeneği
+                // "Follow Version" option (empty group in config)
                 NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.generic_none)) },
+                    label = {
+                        Column {
+                            Text(stringResource(R.string.generic_none))
+                            Text(
+                                text = "(${version.getVersionInfo()?.minecraftVersion ?: ""})",
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.alpha(0.6f)
+                            )
+                        }
+                    },
                     selected = version.getVersionConfig().group.isEmpty(),
                     onClick = { onConfirm("") },
                     modifier = Modifier.fillMaxWidth()
@@ -522,7 +560,7 @@ fun ChangeGroupDialog(
                 groups.forEach { group ->
                     NavigationDrawerItem(
                         label = { Text(group) },
-                        selected = version.getVersionConfig().group == group,
+                        selected = version.getVersionConfig().group == group || (version.getVersionConfig().group.isEmpty() && (version.getVersionInfo()?.minecraftVersion ?: "") == group),
                         onClick = { onConfirm(group) },
                         modifier = Modifier.fillMaxWidth()
                     )

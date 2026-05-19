@@ -79,6 +79,7 @@ import com.star1xr.treelauncher.ui.screens.content.elements.GamePathItemLayout
 import com.star1xr.treelauncher.ui.screens.content.elements.GamePathOperation
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionCategory
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionCategoryItem
+import com.star1xr.treelauncher.ui.screens.content.elements.VersionGroupItem
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionItemLayout
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionsOperation
 import com.star1xr.treelauncher.utils.animation.swapAnimateDpAsState
@@ -160,10 +161,12 @@ private class VersionsScreenViewModel : ViewModel() {
                     VersionCategory.MODLOADER -> modloaderVersions
                 }
 
-                val allGroups = currentVersions.mapNotNull { it.getVersionConfig().group.takeIf { g -> g.isNotEmpty() } }.distinct().sorted()
+                val allGroups = currentVersions.map {
+                    it.getVersionConfig().group.ifBlank { it.getVersionInfo()?.minecraftVersion ?: "" }
+                }.filter { it.isNotEmpty() }.distinct().sorted()
 
                 val groupFiltered = if (selectedGroup != null) {
-                    typeFiltered.filter { it.getVersionConfig().group == selectedGroup }
+                    typeFiltered.filter { (it.getVersionConfig().group.ifBlank { it.getVersionInfo()?.minecraftVersion ?: "" }) == selectedGroup }
                 } else {
                     typeFiltered
                 }
@@ -576,6 +579,14 @@ private fun VersionsLayout(
                             selected = versionCategory == VersionCategory.MODLOADER,
                             onClick = { onCategoryChange(VersionCategory.MODLOADER) }
                         )
+
+                        groups.forEach { group ->
+                            VersionGroupItem(
+                                name = group,
+                                selected = selectedGroup == group,
+                                onClick = { onGroupChange(if (selectedGroup == group) null else group) }
+                            )
+                        }
                     }
                 }
 
