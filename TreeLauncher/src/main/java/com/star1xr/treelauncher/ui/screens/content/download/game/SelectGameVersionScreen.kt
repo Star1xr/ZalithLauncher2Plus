@@ -563,11 +563,12 @@ private fun getVersionComponents(
     val vmVer = version.version
     val summary = version.summary?.let { stringResource(it) }
     val urlSuffix = version.urlSuffix ?: vmVer.id
+    val iconStyle = AllSettings.versionIconStyle.state
 
     return when (version.type) {
         MinecraftVersion.Type.Release -> {
             Quadruple(
-                painterResource(R.drawable.img_version_vanilla),
+                painterResource(if (iconStyle == VersionIconStyle.OFFICIAL) R.drawable.img_minecraft else R.drawable.img_version_vanilla),
                 stringResource(R.string.download_game_type_release),
                 stringResource(R.string.url_wiki_minecraft_game_release, urlSuffix),
                 summary

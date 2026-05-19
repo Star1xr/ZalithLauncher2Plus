@@ -521,59 +521,39 @@ private fun VersionStep(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
-        Spacer(modifier = Modifier.height(24.dp))
-
-        if (versions.isNotEmpty()) {
-            Card(
-                modifier = Modifier.heightIn(max = 300.dp).fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-                shape = MaterialTheme.shapes.large
-            ) {
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(versions) { version ->
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium,
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                            tonalElevation = 2.dp
-                        ) {
-                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                VersionIconImage(
-                                    version = version,
-                                    modifier = Modifier.size(32.dp).clip(MaterialTheme.shapes.extraSmall)
-                                )
-                                Spacer(Modifier.width(16.dp))
-                                Text(version.getVersionName(), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-                            }
-                        }
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(32.dp))
-        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.setup_icon_style_subtitle),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.alpha(0.7f)
+        )
+        
+        Spacer(modifier = Modifier.height(48.dp))
 
         Button(
             onClick = onDownloadVersion,
             modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
             shape = MaterialTheme.shapes.large
         ) {
+            Icon(painterResource(R.drawable.ic_download_2_outlined), null)
+            Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.setup_version_download), fontWeight = FontWeight.Bold)
         }
         
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         FilledTonalButton(
             onClick = onAddVersion,
             modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
             shape = MaterialTheme.shapes.large
         ) {
+            Icon(painterResource(R.drawable.ic_add), null)
+            Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.setup_version_add), fontWeight = FontWeight.Bold)
         }
         
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         
         OutlinedButton(
             onClick = onFinish, 
