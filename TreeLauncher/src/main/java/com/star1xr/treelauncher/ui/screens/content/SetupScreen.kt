@@ -205,7 +205,10 @@ private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, 
         
         if (versions.isEmpty()) {
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.versions_manage_no_versions), alpha = 0.6f)
+                Text(
+                    text = stringResource(R.string.versions_manage_no_versions),
+                    modifier = Modifier.alpha(0.6f)
+                )
             }
         } else {
             LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
