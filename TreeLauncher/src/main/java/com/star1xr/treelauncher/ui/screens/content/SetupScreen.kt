@@ -175,7 +175,12 @@ private fun RequiredFilesStep(progress: Float) {
 private fun DebugGreeting(onNext: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(painter = painterResource(R.drawable.ic_build_filled), contentDescription = null)
-        Text("Debug Modu Aktif", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            text = stringResource(R.string.launcher_version_debug_warning, "TreeLauncher"),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onNext) { Text("Devam Et") }
     }
 }
