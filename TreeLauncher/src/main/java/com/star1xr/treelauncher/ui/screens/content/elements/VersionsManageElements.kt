@@ -541,18 +541,19 @@ fun ChangeGroupDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // "Follow Version" option (empty group in config)
+                val mcVersion = version.getVersionInfo()?.minecraftVersion ?: ""
                 NavigationDrawerItem(
                     label = {
                         Column {
                             Text(stringResource(R.string.generic_none))
                             Text(
-                                text = "(${version.getVersionInfo()?.minecraftVersion ?: ""})",
+                                text = "($mcVersion)",
                                 style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.alpha(0.6f)
                             )
                         }
                     },
-                    selected = version.getVersionConfig().group.isEmpty(),
+                    selected = version.getVersionConfig().group.isEmpty() && !groups.contains(mcVersion),
                     onClick = { onConfirm("") },
                     modifier = Modifier.fillMaxWidth()
                 )

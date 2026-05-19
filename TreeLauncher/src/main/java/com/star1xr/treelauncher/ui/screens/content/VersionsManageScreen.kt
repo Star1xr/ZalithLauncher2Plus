@@ -175,6 +175,17 @@ private class VersionsScreenViewModel : ViewModel() {
             }
 
             _groups.update { groups }
+
+            if (selectedGroup == null && groups.isNotEmpty()) {
+                val currentVer = VersionsManager.currentVersion.value
+                val defaultGroup = currentVer?.let { it.getVersionConfig().group.ifBlank { it.getVersionInfo()?.minecraftVersion ?: "" } }
+                if (defaultGroup != null && groups.contains(defaultGroup)) {
+                    selectedGroup = defaultGroup
+                    refreshVersions(currentVersions, false)
+                    return@withContext
+                }
+            }
+
             _versions.update {
                 filteredVersions.sortedWith(VersionComparator)
             }

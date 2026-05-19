@@ -185,8 +185,8 @@ abstract class Launcher(
             put("net.minecraft.clientmodname", InfoDistributor.LAUNCHER_NAME)
 
             // GPU Specific Optimizations
-            if (AllSettings.rendererOptimization.state) {
-                val gpu = AllSettings.gpuArchitecture.state.lowercase()
+            if (AllSettings.rendererOptimization.getValue()) {
+                val gpu = AllSettings.gpuArchitecture.getValue().lowercase()
                 if (gpu == "mali" || (gpu == "auto" && Build.HARDWARE.lowercase().contains("mt"))) {
                     // Mali GPU specific (MediaTek/Exynos)
                     put("MALI_DEBUG", "force_linear_filtering")
@@ -203,7 +203,8 @@ abstract class Launcher(
             }
 
             // fml
-            put("fml.earlyprogresswindow", "false")            put("fml.ignoreInvalidMinecraftCertificates", "true")
+            put("fml.earlyprogresswindow", "false")
+            put("fml.ignoreInvalidMinecraftCertificates", "true")
             put("fml.ignorePatchDiscrepancies", "true")
 
             put("loader.disable_forked_guis", "true")
