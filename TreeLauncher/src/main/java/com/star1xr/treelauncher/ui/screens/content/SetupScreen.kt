@@ -21,6 +21,7 @@ package com.star1xr.treelauncher.ui.screens.content
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -51,6 +52,7 @@ import com.star1xr.treelauncher.game.version.installed.Version
 import com.star1xr.treelauncher.game.version.installed.VersionsManager
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionIconImage
 import com.star1xr.treelauncher.setting.AllSettings
+import com.star1xr.treelauncher.setting.enums.VersionIconStyle
 import com.star1xr.treelauncher.ui.base.BaseScreen
 import com.star1xr.treelauncher.ui.screens.NormalNavKey
 import com.star1xr.treelauncher.ui.screens.navigateTo
@@ -523,12 +525,44 @@ private fun VersionStep(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            stringResource(R.string.setup_icon_style_subtitle),
+            "Install a Minecraft version or add an existing one to finish setup.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.alpha(0.7f)
         )
         
+        if (versions.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Card(
+                modifier = Modifier.heightIn(max = 200.dp).fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                shape = MaterialTheme.shapes.large
+            ) {
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(versions) { version ->
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                            tonalElevation = 2.dp
+                        ) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                VersionIconImage(
+                                    version = version,
+                                    modifier = Modifier.size(24.dp).clip(MaterialTheme.shapes.extraSmall)
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text(version.getVersionName(), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(48.dp))
 
         Button(
