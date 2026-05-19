@@ -18,22 +18,22 @@
 
 package com.star1xr.treelauncher.ui.screens.content
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.star1xr.treelauncher.BuildConfig
 import com.star1xr.treelauncher.R
+import com.star1xr.treelauncher.components.InstallableItem
 import com.star1xr.treelauncher.components.UnpackTasksManager
 import com.star1xr.treelauncher.game.account.AccountsManager
 import com.star1xr.treelauncher.game.version.installed.Version
@@ -53,6 +54,7 @@ import com.star1xr.treelauncher.ui.base.BaseScreen
 import com.star1xr.treelauncher.ui.screens.NormalNavKey
 import com.star1xr.treelauncher.ui.screens.navigateTo
 import com.star1xr.treelauncher.viewmodel.ScreenBackStackViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun SetupScreen(
@@ -72,6 +74,7 @@ fun SetupScreen(
     val accounts by AccountsManager.accountsFlow.collectAsStateWithLifecycle()
     val versions by VersionsManager.versionsFlow.collectAsStateWithLifecycle()
     val unpackProgress by UnpackTasksManager.progress.collectAsStateWithLifecycle()
+    val unpackItems = UnpackTasksManager.unpackItems
 
     var step by rememberSaveable {
         mutableIntStateOf(
@@ -84,6 +87,7 @@ fun SetupScreen(
 
     LaunchedEffect(unpackProgress) {
         if (step == -1 && UnpackTasksManager.areAllTasksFinished()) {
+            delay(1000) // Give a moment to see the completion
             step = if (BuildConfig.DEBUG) 0 else 1
         }
     }
@@ -98,24 +102,36 @@ fun SetupScreen(
         screenKey = NormalNavKey.Setup,
         currentKey = backStackViewModel.mainScreen.currentKey
     ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background.copy(alpha = 0.8f)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
         ) {
             AnimatedContent(
                 targetState = step,
                 transitionSpec = {
-                    fadeIn(animationSpec = tween(500)) togetherWith fadeOut(animationSpec = tween(500))
+                    (fadeIn(animationSpec = tween(600)) + scaleIn(initialScale = 0.92f)) togetherWith
+                            (fadeOut(animationSpec = tween(600)) + scaleOut(targetScale = 0.92f))
                 },
+                modifier = Modifier.fillMaxSize(),
                 label = "SetupSteps"
             ) { targetStep ->
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(32.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp, vertical = 32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     when (targetStep) {
-                        -1 -> RequiredFilesStep(unpackProgress)
+                        -1 -> RequiredFilesStep(unpackProgress, unpackItems)
                         0 -> DebugGreeting { step = 1 }
                         1 -> WelcomeStep { step = 2 }
                         2 -> AccountStep(
@@ -140,104 +156,303 @@ fun SetupScreen(
 }
 
 @Composable
-private fun RequiredFilesStep(progress: Float) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun RequiredFilesStep(progress: Float, items: List<InstallableItem>) {
+    val animatedProgress by animateFloatAsState(targetValue = progress, label = "ProgressAnimation")
+    
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
             text = stringResource(R.string.setup_required_files_title, (progress * 100).toInt()),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary
         )
-        Spacer(modifier = Modifier.height(24.dp))
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier.fillMaxWidth().height(8.dp),
-            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(120.dp)) {
+            CircularProgressIndicator(
+                progress = { animatedProgress },
+                modifier = Modifier.fillMaxSize(),
+                strokeWidth = 12.dp,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+            Text(
+                text = "${(progress * 100).toInt()}%",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
         Text(
             text = stringResource(R.string.setup_required_files_subtitle),
             style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.alpha(0.7f)
         )
+        
+        Spacer(modifier = Modifier.height(48.dp))
+        
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = false),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            )
+        ) {
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(items) { item ->
+                    UnpackItemRow(item)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UnpackItemRow(item: InstallableItem) {
+    val state by item.state.collectAsStateWithLifecycle()
+    
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(
+                    when (state) {
+                        InstallableItem.State.FINISHED -> MaterialTheme.colorScheme.primaryContainer
+                        InstallableItem.State.RUNNING -> MaterialTheme.colorScheme.secondaryContainer
+                        InstallableItem.State.NOT_EXISTS -> MaterialTheme.colorScheme.errorContainer
+                        else -> MaterialTheme.colorScheme.surfaceVariant
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            when (state) {
+                InstallableItem.State.FINISHED -> Icon(
+                    painter = painterResource(R.drawable.ic_check),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                InstallableItem.State.RUNNING -> CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                InstallableItem.State.NOT_EXISTS -> Icon(
+                    painter = painterResource(R.drawable.ic_warning_outlined),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+                else -> Icon(
+                    painter = painterResource(R.drawable.ic_schedule_outlined),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.width(16.dp))
+        
+        Column {
+            Text(
+                text = item.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            if (item.summary != null) {
+                Text(
+                    text = item.summary,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.alpha(0.6f)
+                )
+            }
+        }
     }
 }
 
 @Composable
 private fun DebugGreeting(onNext: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(painter = painterResource(R.drawable.ic_build_filled), contentDescription = null, modifier = Modifier.size(64.dp))
+        Surface(
+            modifier = Modifier.size(100.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_build_filled),
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = stringResource(R.string.setup_debug_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.launcher_version_debug_warning, "TreeLauncher"),
             style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp).alpha(0.8f)
         )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = onNext) { Text(stringResource(R.string.setup_debug_next)) }
+        Spacer(modifier = Modifier.height(48.dp))
+        Button(
+            onClick = onNext,
+            modifier = Modifier.fillMaxWidth(0.6f).height(56.dp),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Text(stringResource(R.string.setup_debug_next), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
 @Composable
 private fun WelcomeStep(onNext: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(stringResource(R.string.setup_welcome_title), style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onNext, modifier = Modifier.fillMaxWidth(0.6f)) { Text(stringResource(R.string.setup_welcome_button)) }
+        Icon(
+            painter = painterResource(R.drawable.ic_launcher_foreground),
+            contentDescription = null,
+            modifier = Modifier.size(120.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            stringResource(R.string.setup_welcome_title),
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(48.dp))
+        Button(
+            onClick = onNext,
+            modifier = Modifier.fillMaxWidth(0.7f).height(64.dp),
+            shape = MaterialTheme.shapes.extraLarge,
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+        ) {
+            Text(stringResource(R.string.setup_welcome_button), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
 @Composable
 private fun AccountStep(onCreateAccount: () -> Unit, onNext: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(stringResource(R.string.setup_account_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onCreateAccount, modifier = Modifier.fillMaxWidth(0.6f)) { Text(stringResource(R.string.setup_account_add)) }
-        Spacer(modifier = Modifier.height(12.dp))
-        TextButton(onClick = onNext) { Text(stringResource(R.string.setup_account_skip)) }
+        Text(
+            stringResource(R.string.setup_account_title),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            "Add your Minecraft account to start playing.",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.alpha(0.7f)
+        )
+        Spacer(modifier = Modifier.height(48.dp))
+        Button(
+            onClick = onCreateAccount,
+            modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Icon(painterResource(R.drawable.ic_person_outlined), null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.setup_account_add), fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        TextButton(onClick = onNext) {
+            Text(stringResource(R.string.setup_account_skip), modifier = Modifier.alpha(0.6f))
+        }
     }
 }
 
 @Composable
 private fun VersionStep(versions: List<Version>, onDownloadVersion: () -> Unit, onFinish: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxHeight()) {
-        Text(stringResource(R.string.setup_version_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.setup_version_title),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(24.dp))
         
-        if (versions.isEmpty()) {
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.versions_manage_no_versions),
-                    modifier = Modifier.alpha(0.6f)
-                )
-            }
-        } else {
-            LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                items(versions) { version ->
-                    Surface(
-                        modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    ) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(painterResource(R.drawable.ic_sort), null, modifier = Modifier.size(24.dp))
-                            Spacer(Modifier.width(12.dp))
-                            Text(version.getVersionName(), fontWeight = FontWeight.Medium)
+        Card(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+            shape = MaterialTheme.shapes.large
+        ) {
+            if (versions.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.versions_manage_no_versions),
+                        modifier = Modifier.alpha(0.6f),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(versions) { version ->
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                            tonalElevation = 2.dp
+                        ) {
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(painterResource(R.drawable.ic_java), null, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.primary)
+                                Spacer(Modifier.width(16.dp))
+                                Text(version.getVersionName(), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
+                            }
                         }
                     }
                 }
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onDownloadVersion, modifier = Modifier.fillMaxWidth(0.6f)) { Text(stringResource(R.string.setup_version_download)) }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(32.dp))
+        
         Button(
+            onClick = onDownloadVersion,
+            modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Text(stringResource(R.string.setup_version_download), fontWeight = FontWeight.Bold)
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        FilledTonalButton(
             onClick = onFinish, 
-            modifier = Modifier.fillMaxWidth(0.6f),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            modifier = Modifier.fillMaxWidth(0.7f).height(56.dp),
+            shape = MaterialTheme.shapes.large
         ) { 
-            Text(stringResource(R.string.setup_version_finish)) 
+            Text(stringResource(R.string.setup_version_finish), fontWeight = FontWeight.Bold) 
         }
     }
 }
