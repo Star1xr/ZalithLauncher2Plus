@@ -476,8 +476,7 @@ private fun AccountStep(onCreateAccount: () -> Unit, onNext: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            Text(
-            text = stringResource(id = R.string.setup_add_minecraft_account), 
+            stringResource(R.string.setup_add_minecraft_account), 
             style = MaterialTheme.typography.bodyLarge, 
             modifier = Modifier.alpha(0.7f)
         )
@@ -516,7 +515,7 @@ private fun VersionStep(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(id = R.string.setup_add_minecraft_account_desc),
+            stringResource(R.string.setup_add_minecraft_account_desc),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.alpha(0.7f)
