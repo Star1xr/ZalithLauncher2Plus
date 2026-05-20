@@ -77,6 +77,7 @@ import com.star1xr.treelauncher.game.download.game.GameDownloadInfo
 import com.star1xr.treelauncher.game.version.installed.Version
 import com.star1xr.treelauncher.game.version.installed.VersionsManager
 import com.star1xr.treelauncher.game.version.installed.VersionsManager.isVersionExists
+import com.star1xr.treelauncher.game.version.installed.VersionIconManager
 import com.star1xr.treelauncher.setting.AllSettings
 import com.star1xr.treelauncher.setting.enums.VersionIconStyle
 import com.star1xr.treelauncher.ui.base.BaseScreen
@@ -737,30 +738,22 @@ private fun VersionIconPreview(
 ) {
     val style = AllSettings.versionIconStyle.state
     val iconRes = remember(refreshIcon, style) {
-        if (style == VersionIconStyle.OFFICIAL) {
-            when {
-                currentAddon.optifineVersion.value != null -> R.drawable.img_loader_optifine
-                currentAddon.forgeVersion.value != null -> R.drawable.img_loader_forge
-                currentAddon.neoforgeVersion.value != null -> R.drawable.img_loader_neoforge
-                currentAddon.fabricVersion.value != null -> R.drawable.img_loader_fabric
-                currentAddon.legacyFabricVersion.value != null -> R.drawable.img_loader_legacy_fabric
-                currentAddon.quiltVersion.value != null -> R.drawable.img_loader_quilt
-                currentAddon.cleanroomVersion.value != null -> R.drawable.img_loader_cleanroom
-                else -> R.drawable.img_version_vanilla
+        val loader = when {
+            currentAddon.optifineVersion.value != null && currentAddon.forgeVersion.value != null -> {
+                // Special case for stylized view: OptiFine & Forge combined icon
+                if (style != VersionIconStyle.OFFICIAL) return@remember R.drawable.img_version_forge
+                ModLoader.FORGE
             }
-        } else {
-            when {
-                currentAddon.optifineVersion.value != null && currentAddon.forgeVersion.value != null -> R.drawable.img_version_forge //OptiFine & Forge 同时选择
-                currentAddon.optifineVersion.value != null -> R.drawable.img_loader_optifine
-                currentAddon.forgeVersion.value != null -> R.drawable.img_version_forge
-                currentAddon.neoforgeVersion.value != null -> R.drawable.img_version_neoforge
-                currentAddon.fabricVersion.value != null -> R.drawable.img_version_fabric
-                currentAddon.legacyFabricVersion.value != null -> R.drawable.img_version_fabric
-                currentAddon.quiltVersion.value != null -> R.drawable.img_version_quilt
-                currentAddon.cleanroomVersion.value != null -> R.drawable.img_loader_cleanroom
-                else -> R.drawable.img_version_vanilla
-            }
+            currentAddon.optifineVersion.value != null -> ModLoader.OPTIFINE
+            currentAddon.forgeVersion.value != null -> ModLoader.FORGE
+            currentAddon.neoforgeVersion.value != null -> ModLoader.NEOFORGE
+            currentAddon.fabricVersion.value != null -> ModLoader.FABRIC
+            currentAddon.legacyFabricVersion.value != null -> ModLoader.LEGACY_FABRIC
+            currentAddon.quiltVersion.value != null -> ModLoader.QUILT
+            currentAddon.cleanroomVersion.value != null -> ModLoader.CLEANROOM
+            else -> null
         }
+        VersionIconManager.getLoaderIconRes(loader, style)
     }
 
     Image(
