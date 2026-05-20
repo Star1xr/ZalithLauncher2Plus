@@ -18,7 +18,6 @@
 
 package com.star1xr.treelauncher.ui.screens.content
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,15 +30,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,8 +43,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -151,81 +145,42 @@ private fun TabMenu(
         modifier = modifier
             .fadeEdge(scrollState)
             .width(IntrinsicSize.Min)
-            .padding(horizontal = 8.dp)
+            .padding(start = 8.dp)
             .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
             .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.Start
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        
+        Spacer(modifier = Modifier.height(12.dp))
         settingItems.forEach { item ->
             if (item.division) {
-                Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(
                     modifier = Modifier
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                        .fillMaxWidth(0.6f)
-                        .alpha(0.2f),
+                        .padding(vertical = 12.dp)
+                        .fillMaxWidth(0.4f)
+                        .alpha(0.4f),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
 
-            SettingsSidebarItem(
+            NavigationRailItem(
                 selected = settingsScreenKey == item.key,
-                onClick = { navigateTo(item.key) },
-                icon = item.icon,
-                label = stringResource(item.textRes)
+                onClick = {
+                    navigateTo(item.key)
+                },
+                icon = {
+                    item.icon()
+                },
+                label = {
+                    Text(
+                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                        text = stringResource(item.textRes),
+                        maxLines = 1,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
             )
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
 
-@Composable
-private fun SettingsSidebarItem(
-    selected: Boolean,
-    onClick: () -> Unit,
-    icon: @Composable () -> Unit,
-    label: String
-) {
-    val containerColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) else Color.Transparent,
-        label = "containerColor"
-    )
-    val contentColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-        label = "contentColor"
-    )
-
-    Surface(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp)
-            .padding(vertical = 2.dp),
-        shape = RoundedCornerShape(26.dp), // Fully rounded pill
-        color = containerColor,
-        contentColor = contentColor
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        ) {
-            Box(modifier = Modifier.size(22.dp)) {
-                icon()
-            }
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                maxLines = 1,
-                modifier = Modifier.basicMarquee(),
-                fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.Bold else null
-            )
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

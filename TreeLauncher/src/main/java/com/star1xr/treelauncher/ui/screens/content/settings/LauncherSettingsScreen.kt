@@ -27,9 +27,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -136,11 +134,10 @@ fun LauncherSettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(state = rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 24.dp),
+                .padding(all = 12.dp),
             isVisible = isVisible
         ) { scope ->
             AnimatedItem(scope) { yOffset ->
-                SettingsSectionHeader(stringResource(R.string.settings_tab_launcher))
                 val importLauncher = rememberLauncherForActivityResult(
                     contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
                 ) { uri ->
@@ -234,11 +231,10 @@ fun LauncherSettingsScreen(
             }
 
             AnimatedItem(scope) { yOffset ->
-                Spacer(modifier = Modifier.height(24.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_launcher_section_appearance))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(top = 12.dp)
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
                 ) {
                     var customColorOperation by remember { mutableStateOf<CustomColorOperation>(CustomColorOperation.None) }
@@ -327,8 +323,6 @@ fun LauncherSettingsScreen(
             //启动器背景设置板块
             LocalBackgroundViewModel.current?.let { backgroundViewModel ->
                 AnimatedItem(scope) { yOffset ->
-                    Spacer(modifier = Modifier.height(24.dp))
-                    SettingsSectionHeader(stringResource(R.string.settings_launcher_section_background))
                     SettingsCardColumn(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -375,8 +369,6 @@ fun LauncherSettingsScreen(
 
 
             AnimatedItem(scope) { yOffset ->
-                Spacer(modifier = Modifier.height(24.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_launcher_section_network))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -469,17 +461,6 @@ fun LauncherSettingsScreen(
             }
         }
     }
-}
-
-@Composable
-private fun SettingsSectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 8.dp, bottom = 12.dp),
-        fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold
-    )
 }
 
 @Composable

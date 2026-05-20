@@ -33,29 +33,25 @@ object VersionIconManager {
         val info = version.getVersionInfo() ?: return R.drawable.img_version_vanilla
         val loader = info.loaderInfo?.loader
         
-        return getLoaderIconRes(loader, style)
-    }
-
-    fun getLoaderIconRes(loader: ModLoader?, style: VersionIconStyle): Int {
         if (style == VersionIconStyle.OFFICIAL) {
             return when (loader) {
-                ModLoader.FABRIC, ModLoader.FABRIC_API -> R.drawable.img_loader_fabric
+                ModLoader.FABRIC -> R.drawable.img_loader_fabric
                 ModLoader.NEOFORGE -> R.drawable.img_loader_neoforge
                 ModLoader.FORGE -> R.drawable.img_loader_forge
-                ModLoader.QUILT, ModLoader.QUILT_API -> R.drawable.img_loader_quilt
+                ModLoader.QUILT -> R.drawable.img_loader_quilt
                 ModLoader.CLEANROOM -> R.drawable.img_loader_cleanroom
                 ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
-                ModLoader.LEGACY_FABRIC, ModLoader.LEGACY_FABRIC_API -> R.drawable.img_loader_legacy_fabric
+                ModLoader.LEGACY_FABRIC -> R.drawable.img_loader_legacy_fabric
                 ModLoader.PACK -> R.drawable.img_chest
                 else -> R.drawable.img_version_vanilla
             }
         } else {
             // Current style (Stylized icons)
             return when (loader) {
-                ModLoader.FABRIC, ModLoader.FABRIC_API -> R.drawable.img_version_fabric
+                ModLoader.FABRIC -> R.drawable.img_version_fabric
                 ModLoader.NEOFORGE -> R.drawable.img_version_neoforge
                 ModLoader.FORGE -> R.drawable.img_version_forge
-                ModLoader.QUILT, ModLoader.QUILT_API -> R.drawable.img_version_quilt
+                ModLoader.QUILT -> R.drawable.img_version_quilt
                 ModLoader.PACK -> R.drawable.img_chest
                 else -> R.drawable.img_version_vanilla
             }

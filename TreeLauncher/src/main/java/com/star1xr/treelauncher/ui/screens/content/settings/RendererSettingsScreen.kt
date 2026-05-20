@@ -19,12 +19,10 @@
 package com.star1xr.treelauncher.ui.screens.content.settings
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -93,11 +91,10 @@ fun RendererSettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(state = rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 24.dp),
+                .padding(all = 12.dp),
             isVisible = isVisible
         ) { columnScope ->
             AnimatedItem(columnScope) { yOffset ->
-                SettingsSectionHeader(stringResource(R.string.settings_tab_renderer))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -220,8 +217,6 @@ fun RendererSettingsScreen(
             }
 
             AnimatedItem(columnScope) { yOffset ->
-                Spacer(modifier = Modifier.height(24.dp))
-                SettingsSectionHeader(stringResource(R.string.settings_renderer_section_advanced))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -300,17 +295,6 @@ fun RendererSettingsScreen(
             }
         }
     }
-}
-
-@Composable
-private fun SettingsSectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 8.dp, bottom = 12.dp),
-        fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold
-    )
 }
 
 @Composable
