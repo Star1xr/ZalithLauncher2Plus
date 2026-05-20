@@ -41,6 +41,7 @@ import com.star1xr.treelauncher.game.addons.modloader.forgelike.neoforge.NeoForg
 import com.star1xr.treelauncher.game.addons.modloader.modlike.ModVersion
 import com.star1xr.treelauncher.game.addons.modloader.optifine.OptiFineVersion
 import com.star1xr.treelauncher.game.version.installed.utils.isBiggerVer
+import com.star1xr.treelauncher.game.version.installed.VersionIconManager
 import com.star1xr.treelauncher.setting.AllSettings
 import com.star1xr.treelauncher.setting.enums.VersionIconStyle
 import com.star1xr.treelauncher.utils.logging.Logger.lError
@@ -337,12 +338,13 @@ fun OptiFineList(
         }
     }
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.optifineState,
         title = ModLoader.OPTIFINE.displayName,
         error = error,
-        iconPainter = painterResource(R.drawable.img_loader_optifine),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.OPTIFINE, style)),
         items = items,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -380,11 +382,12 @@ fun ForgeList(
         } ?: true
     }
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.forgeState,
         title = ModLoader.FORGE.displayName,
-        iconPainter = painterResource(R.drawable.img_version_forge),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.FORGE, style)),
         items = items,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -415,12 +418,13 @@ fun NeoForgeList(
     var version by currentAddon.neoforgeVersion
     val incompatibleSet by currentAddon.incompatibleWithNeoForge
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.neoforgeState,
         title = ModLoader.NEOFORGE.displayName,
         error = error,
-        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_neoforge else R.drawable.img_version_neoforge),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.NEOFORGE, style)),
         items = addonList.neoforgeList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -449,12 +453,13 @@ fun FabricList(
     var version by currentAddon.fabricVersion
     val incompatibleSet by currentAddon.incompatibleWithFabric
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.fabricState,
         title = ModLoader.FABRIC.displayName,
         error = error,
-        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_fabric else R.drawable.img_version_fabric),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.FABRIC, style)),
         items = addonList.fabricList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -495,11 +500,12 @@ fun FabricAPIList(
         }
     }
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.fabricAPIState,
         title = ModLoader.FABRIC_API.displayName,
-        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_fabric else R.drawable.img_version_fabric),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.FABRIC_API, style)),
         items = addonList.fabricAPIList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -529,12 +535,13 @@ fun LegacyFabricList(
     var version by currentAddon.legacyFabricVersion
     val incompatibleSet by currentAddon.incompatibleWithLegacyFabric
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.legacyFabricState,
         title = ModLoader.LEGACY_FABRIC.displayName,
         error = error,
-        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_legacy_fabric else R.drawable.img_version_fabric),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.LEGACY_FABRIC, style)),
         items = addonList.legacyFabricList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -575,11 +582,12 @@ fun LegacyFabricAPIList(
         }
     }
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.legacyFabricAPIState,
         title = ModLoader.LEGACY_FABRIC_API.displayName,
-        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_legacy_fabric else R.drawable.img_version_fabric),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.LEGACY_FABRIC_API, style)),
         items = addonList.legacyFabricAPIList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -609,12 +617,13 @@ fun QuiltList(
     var version by currentAddon.quiltVersion
     val incompatibleSet by currentAddon.incompatibleWithQuilt
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.quiltState,
         title = ModLoader.QUILT.displayName,
         error = error,
-        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_quilt else R.drawable.img_version_quilt),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.QUILT, style)),
         items = addonList.quiltList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -655,11 +664,12 @@ fun QuiltAPIList(
         }
     }
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.quiltAPIState,
         title = ModLoader.QUILT_API.displayName,
-        iconPainter = painterResource(if (AllSettings.versionIconStyle.state == VersionIconStyle.OFFICIAL) R.drawable.img_loader_quilt else R.drawable.img_version_quilt),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.QUILT_API, style)),
         items = addonList.quiltAPIList,
         current = version,
         incompatibleSet = incompatibleSet,
@@ -689,12 +699,13 @@ fun CleanroomList(
     var version by currentAddon.cleanroomVersion
     val incompatibleSet by currentAddon.incompatibleWithCleanroom
 
+    val style = AllSettings.versionIconStyle.state
     AddonListLayout(
         modifier = modifier,
         state = currentAddon.cleanroomState,
         title = ModLoader.CLEANROOM.displayName,
         error = error,
-        iconPainter = painterResource(R.drawable.img_loader_cleanroom),
+        iconPainter = painterResource(VersionIconManager.getLoaderIconRes(ModLoader.CLEANROOM, style)),
         items = addonList.cleanroomList,
         current = version,
         incompatibleSet = incompatibleSet,
