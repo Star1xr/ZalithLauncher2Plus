@@ -2,6 +2,8 @@
 
 [English](README.md) 
 
+Bu proje alpha sürecinde. Test ettiğiniz için teşekkürler.
+
 > **⚠️ YENIDEN YAPIM**
 >
 > Bu proje bir topluluk tarafından yapılan yeniden yapımdır. Yukarı kaynak kısa sürede güncellenecek ve bu fork'a kapatılacaktır, TreeLauncher hazır olana kadar ZL2+ sürümünden devam edeceğiz.
