@@ -6,7 +6,7 @@ Bu proje alpha sürecinde. Test ettiğiniz için teşekkürler.
 
 > **⚠️ YENIDEN YAPIM**
 >
-> Bu proje bir topluluk tarafından yapılan yeniden yapımdır. Yukarı kaynak kısa sürede güncellenecek ve bu fork'a kapatılacaktır, TreeLauncher hazır olana kadar ZL2+ sürümünden devam edeceğiz.
+> Bu proje bir topluluk tarafından yapılan yeniden yapımdır. 
 > 
 > Bu, [Zalith Launcher 2](https://github.com/ZalithLauncher/ZalithLauncher2)'nin resmi olmayan bir topluluk yeniden yapımıdır. Bu proje **resmi Zalith Launcher projesiyle ilişkili değildir ve onaylanmamıştır**.
 
@@ -22,10 +22,11 @@ Bu fork, orijinal Zalith Launcher 2 deneyimini geliştirmeyi ve özelleştirmeyi
 - [x] Chroma (animasyonlu) isimler entegre edildi
 - [ ] Yeni indirme arayüzleri
 
-### 🎮 Oyun İçi Özellikler
+### 🎮 Oyun İçi Özellikler & Performans
 - [x] Özel bir pelerin (cape) sistemi uygulandı
 - [x] Çevrimdışı hesaplar için destek eklendi
 - [x] Uygulama içi Turnip sürücü indiricisi entegre edildi
+- [x] Büyük bir performans güncellemesi
 
 ### 📁 Yönetim & Taşınabilirlik
 - [x] Ayarları içeri ve dışarı aktarma seçenekleri eklendi
@@ -42,11 +43,11 @@ Bu fork, orijinal Zalith Launcher 2 deneyimini geliştirmeyi ve özelleştirmeyi
 
 ### 🚀 Yakında Gelecek Özellikler
 - [ ] Entegre arkadaş sistemi
-- [ ] İlk kez gerçekleştirilen büyük bir performans güncellemesi
 
 
 
-## 🔗 Yukarı Kaynak Projesi
+
+## 🔗 Yukar Kaynak Projesi
 
 Bu proje, Zalith Launcher ekibinin mükemmel çalışmalarından türemiştir:
 - **Orijinal Proje:** [ZalithLauncher2](https://github.com/ZalithLauncher/ZalithLauncher2)
