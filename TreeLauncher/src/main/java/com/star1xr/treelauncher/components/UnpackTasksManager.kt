@@ -58,16 +58,18 @@ object UnpackTasksManager {
     fun startAllTask(scope: CoroutineScope, onFinished: () -> Unit = {}) {
         if (areAllTasksFinished()) { onFinished(); return }
         scope.launch {
-            _unpackItems.filter { it.state.value == InstallableItem.State.NOT_STARTED || it.state.value == InstallableItem.State.PENDING }
-                .map { item ->
-                    launch(Dispatchers.IO) {
-                        item.updateState(InstallableItem.State.RUNNING)
-                        runCatching { item.task.run() }
-                        _finishedTaskCount.incrementAndGet()
-                        item.updateState(InstallableItem.State.FINISHED)
-                        updateProgress()
+            _unpackItems.filter { it.state.value == InstallableItem.State.NOT_STARTED || it.state.value == InstallableItem.State.PENDING || it.state.value == InstallableItem.State.NOT_EXISTS }
+                .forEach { item ->
+                    item.updateState(InstallableItem.State.RUNNING)
+                    kotlin.runCatching {
+                        kotlinx.coroutines.withContext(Dispatchers.IO) {
+                            item.task.run()
+                        }
                     }
-                }.joinAll()
+                    _finishedTaskCount.incrementAndGet()
+                    item.updateState(InstallableItem.State.FINISHED)
+                    updateProgress()
+                }
             AllSettings.javaRuntime.apply { if (getValue().isEmpty()) save(Jre.JRE_8.jreName) }
             onFinished()
         }
