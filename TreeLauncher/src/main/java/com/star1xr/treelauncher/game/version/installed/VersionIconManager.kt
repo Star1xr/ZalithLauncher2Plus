@@ -37,13 +37,13 @@ object VersionIconManager {
             return when (loader) {
                 ModLoader.FABRIC -> R.drawable.img_loader_fabric
                 ModLoader.NEOFORGE -> R.drawable.img_loader_neoforge
-                ModLoader.FORGE -> R.drawable.img_version_forge // Fallback as we don't have img_loader_forge
+                ModLoader.FORGE -> R.drawable.img_loader_forge
                 ModLoader.QUILT -> R.drawable.img_loader_quilt
                 ModLoader.CLEANROOM -> R.drawable.img_loader_cleanroom
                 ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
                 ModLoader.LEGACY_FABRIC -> R.drawable.img_loader_legacy_fabric
                 ModLoader.PACK -> R.drawable.img_chest
-                else -> R.drawable.img_version_vanilla // Use stylized icon for Vanilla even in OFFICIAL style
+                else -> R.drawable.img_version_vanilla
             }
         } else {
             // Current style (Stylized icons)
