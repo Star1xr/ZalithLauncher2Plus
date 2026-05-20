@@ -570,7 +570,7 @@ private fun getVersionComponents(
     return when (version.type) {
         MinecraftVersion.Type.Release -> {
             Quadruple(
-                painterResource(R.drawable.img_minecraft),
+                painterResource(R.drawable.img_version_vanilla),
                 stringResource(R.string.download_game_type_release),
                 stringResource(R.string.url_wiki_minecraft_game_release, urlSuffix),
                 summary
