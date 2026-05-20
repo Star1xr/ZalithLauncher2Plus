@@ -3,6 +3,8 @@
 
 [Türkçe](TREELAUNCHER_TR.md)
 
+This peoject is in alpha state. Thanks for testing!
+
 > **⚠️ REMAKE**
 >
 > This project is a community remake. The upstream updates are closed.
