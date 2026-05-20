@@ -554,12 +554,6 @@ private fun RightActionSidebar(
                 contentColor = MaterialTheme.colorScheme.error,
                 enabled = isSelected
             )
-            SidebarActionItem(
-                icon = R.drawable.ic_add,
-                label = stringResource(R.string.sidebar_action_create_shortcut),
-                onClick = { },
-                enabled = isSelected
-            )
         }
     }
 }
