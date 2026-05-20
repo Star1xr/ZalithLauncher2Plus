@@ -83,10 +83,15 @@ fun SetupScreen(
     var step by rememberSaveable {
         mutableIntStateOf(
             if (!UnpackTasksManager.areAllTasksFinished()) -1
+            else if (AllSettings.setupStep.state != -2 && AllSettings.setupStep.state != -1) AllSettings.setupStep.state
             else if (BuildConfig.DEBUG) 0
             else if (accounts.isEmpty()) 1
             else 4 // Now it is 4 because we added IconStyleStep as step 3
         )
+    }
+
+    LaunchedEffect(step) {
+        AllSettings.setupStep.save(step)
     }
 
     LaunchedEffect(unpackProgress) {
@@ -142,6 +147,7 @@ fun SetupScreen(
                             versions = versions,
                             onDownloadVersion = { backStackViewModel.navigateToDownload() },
                             onFinish = {
+                                AllSettings.setupStep.save(-2)
                                 AllSettings.setupCompleted.save(true)
                                 onFinished()
                             }

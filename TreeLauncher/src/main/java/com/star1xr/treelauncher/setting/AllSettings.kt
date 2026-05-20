@@ -587,6 +587,11 @@ object AllSettings : SettingsRegistry() {
     val setupCompleted = boolSetting("setupCompleted", false)
 
     /**
+     * 初始化引导当前步骤
+     */
+    val setupStep = intSetting("setupStep", -2)
+
+    /**
      * 上次检查更新的时间戳
      */
     val lastUpgradeCheck = longSetting("lastUpgradeCheck", 0L)
