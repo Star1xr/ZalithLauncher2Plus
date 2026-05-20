@@ -21,7 +21,7 @@ This fork aims to enhance and customize the original Zalith Launcher 2 experienc
 - [x] Redesigned with a brand new UI and reworked top bar navigation
 - [x] Updated with new, modern icons
 - [x] Integrated Chroma (animated) names
-- [x] Remake UI for downloads
+- [ ] Remake UI for downloads
 
 ### 🎮 In-Game Features & Performance
 - [x] Implemented a custom cape system
@@ -36,7 +36,7 @@ This fork aims to enhance and customize the original Zalith Launcher 2 experienc
 - [x] Added functional groups and instance cloning
 - [x] Improved the instance grouping system
 - [x] Added quick shortcuts to the main screen
-- [x] First login setup to make things easier
+- [ ] First login setup to make things easier
 
 ### 🛠️ Codebase & Stability
 - [x] Rewritten with a completely new codebase
