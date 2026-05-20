@@ -740,7 +740,7 @@ private fun VersionIconPreview(
         if (style == VersionIconStyle.OFFICIAL) {
             when {
                 currentAddon.optifineVersion.value != null -> R.drawable.img_loader_optifine
-                currentAddon.forgeVersion.value != null -> R.drawable.img_version_forge // Fallback
+                currentAddon.forgeVersion.value != null -> R.drawable.img_loader_forge
                 currentAddon.neoforgeVersion.value != null -> R.drawable.img_loader_neoforge
                 currentAddon.fabricVersion.value != null -> R.drawable.img_loader_fabric
                 currentAddon.legacyFabricVersion.value != null -> R.drawable.img_loader_legacy_fabric
