@@ -79,7 +79,6 @@ import com.star1xr.treelauncher.ui.screens.content.elements.GamePathItemLayout
 import com.star1xr.treelauncher.ui.screens.content.elements.GamePathOperation
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionCategory
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionCategoryItem
-import com.star1xr.treelauncher.ui.screens.content.elements.VersionGroupItem
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionItemLayout
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionsOperation
 import com.star1xr.treelauncher.utils.animation.swapAnimateDpAsState
@@ -103,18 +102,11 @@ private class VersionsScreenViewModel : ViewModel() {
     var versionCategory by mutableStateOf(VersionCategory.ALL)
         private set
 
-    /** 当前选择的分组 */
-    var selectedGroup by mutableStateOf<String?>(null)
-        private set
-
     /** 游戏路径相关操作 */
     var gamePathOperation by mutableStateOf<GamePathOperation>(GamePathOperation.None)
 
     private val _versions = MutableStateFlow<List<Version>>(emptyList())
     val versions = _versions.asStateFlow()
-
-    private val _groups = MutableStateFlow<List<String>>(emptyList())
-    val groups = _groups.asStateFlow()
 
     /** 全部版本的数量 */
     var allVersionsCount by mutableIntStateOf(0)
@@ -145,7 +137,7 @@ private class VersionsScreenViewModel : ViewModel() {
                 _versions.update { emptyList() }
             }
 
-            val (filteredVersions, groups) = withContext(Dispatchers.Default) {
+            val filteredVersions = withContext(Dispatchers.Default) {
                 allVersionsCount = currentVersions.size
 
                 val vanillaVersions = currentVersions
@@ -155,34 +147,10 @@ private class VersionsScreenViewModel : ViewModel() {
                     .filter { ver -> ver.versionType == VersionType.MODLOADERS }
                     .also { modloaderVersionsCount = it.size }
 
-                val typeFiltered = when (versionCategory) {
+                when (versionCategory) {
                     VersionCategory.ALL -> currentVersions
                     VersionCategory.VANILLA -> vanillaVersions
                     VersionCategory.MODLOADER -> modloaderVersions
-                }
-
-                val allGroups = currentVersions.map {
-                    it.getVersionConfig().group.ifBlank { it.getVersionInfo()?.minecraftVersion ?: "" }
-                }.filter { it.isNotEmpty() }.distinct().sorted()
-
-                val groupFiltered = if (selectedGroup != null) {
-                    typeFiltered.filter { (it.getVersionConfig().group.ifBlank { it.getVersionInfo()?.minecraftVersion ?: "" }) == selectedGroup }
-                } else {
-                    typeFiltered
-                }
-
-                Pair(groupFiltered, allGroups)
-            }
-
-            _groups.update { groups }
-
-            if (selectedGroup == null && groups.isNotEmpty()) {
-                val currentVer = VersionsManager.currentVersion.value
-                val defaultGroup = currentVer?.let { it.getVersionConfig().group.ifBlank { it.getVersionInfo()?.minecraftVersion ?: "" } }
-                if (defaultGroup != null && groups.contains(defaultGroup)) {
-                    selectedGroup = defaultGroup
-                    refreshVersions(currentVersions, false)
-                    return@withContext
                 }
             }
 
@@ -203,19 +171,6 @@ private class VersionsScreenViewModel : ViewModel() {
         currentJob = viewModelScope.launch {
             mutex.withLock {
                 this@VersionsScreenViewModel.versionCategory = category
-                refreshVersions(VersionsManager.versions, false)
-            }
-        }
-    }
-
-    /**
-     * 变更当前选择的分组
-     */
-    fun changeGroup(group: String?) {
-        currentJob?.cancel()
-        currentJob = viewModelScope.launch {
-            mutex.withLock {
-                this@VersionsScreenViewModel.selectedGroup = group
                 refreshVersions(VersionsManager.versions, false)
             }
         }
@@ -352,9 +307,6 @@ fun VersionsManageScreen(
                 isVisible = isVisible,
                 isRefreshing = isRefreshing,
                 versions = versions,
-                groups = viewModel.groups.collectAsStateWithLifecycle().value,
-                selectedGroup = viewModel.selectedGroup,
-                onGroupChange = { viewModel.changeGroup(it) },
                 currentVersion = currentVersion,
                 versionCategory = viewModel.versionCategory,
                 onCategoryChange = { viewModel.changeCategory(it) },
@@ -503,9 +455,6 @@ private fun VersionsLayout(
     isVisible: Boolean,
     isRefreshing: Boolean,
     versions: List<Version>,
-    groups: List<String>,
-    selectedGroup: String?,
-    onGroupChange: (String?) -> Unit,
     currentVersion: Version?,
     versionCategory: VersionCategory,
     onCategoryChange: (VersionCategory) -> Unit,
@@ -590,14 +539,6 @@ private fun VersionsLayout(
                             selected = versionCategory == VersionCategory.MODLOADER,
                             onClick = { onCategoryChange(VersionCategory.MODLOADER) }
                         )
-
-                        groups.forEach { group ->
-                            VersionGroupItem(
-                                name = group,
-                                selected = selectedGroup == group,
-                                onClick = { onGroupChange(if (selectedGroup == group) null else group) }
-                            )
-                        }
                     }
                 }
 
@@ -631,7 +572,6 @@ private fun VersionsLayout(
                                 },
                                 onRenameClick = { versionsOperation = VersionsOperation.Rename(version) },
                                 onCopyClick = { versionsOperation = VersionsOperation.Copy(version) },
-                                onChangeGroupClick = { versionsOperation = VersionsOperation.ChangeGroup(version) },
                                 onExportClick = { navigateToExport(version) },
                                 onDeleteClick = { versionsOperation = VersionsOperation.Delete(version) },
                                 onPinned = onVersionPinned

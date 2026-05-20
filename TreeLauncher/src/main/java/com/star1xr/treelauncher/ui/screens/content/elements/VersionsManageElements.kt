@@ -116,7 +116,6 @@ sealed interface VersionsOperation {
     data class Rename(val version: Version): VersionsOperation
     data class Copy(val version: Version): VersionsOperation
     data class Export(val version: Version): VersionsOperation
-    data class ChangeGroup(val version: Version): VersionsOperation
     data class Delete(val version: Version, val text: String? = null): VersionsOperation
     data class InvalidDelete(val version: Version): VersionsOperation
     data class RunTask(val title: Int, val task: suspend () -> Unit): VersionsOperation
@@ -341,35 +340,6 @@ fun VersionCategoryItem(
 }
 
 @Composable
-fun VersionGroupItem(
-    modifier: Modifier = Modifier,
-    name: String,
-    selected: Boolean,
-    shape: Shape = MaterialTheme.shapes.large,
-    selectedContentColor: Color = MaterialTheme.colorScheme.onSurface,
-    unselectedContentColor: Color = MaterialTheme.colorScheme.onSurface,
-    style: TextStyle = MaterialTheme.typography.labelMedium,
-    enabled: Boolean = true,
-    onClick: () -> Unit = {}
-) {
-    TextRailItem(
-        modifier = modifier,
-        text = {
-            Text(
-                text = name,
-                style = style
-            )
-        },
-        onClick = onClick,
-        selected = selected,
-        shape = shape,
-        selectedContentColor = selectedContentColor,
-        unselectedContentColor = unselectedContentColor,
-        enabled = enabled
-    )
-}
-
-@Composable
 private fun NameEditPathDialog(
     initValue: String = "",
     onDismissRequest: () -> Unit = {},
@@ -432,26 +402,6 @@ fun VersionsOperation(
                 }
             )
         }
-        is VersionsOperation.ChangeGroup -> {
-            ChangeGroupDialog(
-                version = versionsOperation.version,
-                onDismissRequest = { updateVersionsOperation(VersionsOperation.None) },
-                onConfirm = { group ->
-                    updateVersionsOperation(
-                        VersionsOperation.RunTask(
-                            title = R.string.generic_setting,
-                            task = {
-                                versionsOperation.version.getVersionConfig().apply {
-                                    this.group = group
-                                    saveWithThrowable()
-                                }
-                                VersionsManager.refresh("VersionsOperation.ChangeGroup")
-                            }
-                        )
-                    )
-                }
-            )
-        }
         is VersionsOperation.InvalidDelete -> {
             updateVersionsOperation(
                 VersionsOperation.Delete(
@@ -496,89 +446,6 @@ fun VersionsOperation(
             )
         }
     }
-}
-
-@Composable
-fun ChangeGroupDialog(
-    version: Version,
-    onDismissRequest: () -> Unit = {},
-    onConfirm: (value: String) -> Unit = {}
-) {
-    var showCreateDialog by remember { mutableStateOf(false) }
-    val groups = remember {
-        VersionsManager.versions
-            .map { it.getVersionConfig().group.ifBlank { it.getVersionInfo()?.minecraftVersion ?: "" } }
-            .filter { it.isNotEmpty() }
-            .distinct()
-            .sorted()
-    }
-
-    if (showCreateDialog) {
-        var newGroup by remember { mutableStateOf("") }
-        SimpleEditDialog(
-            title = stringResource(R.string.versions_manage_change_group),
-            value = newGroup,
-            onValueChange = { newGroup = it },
-            label = { Text(text = stringResource(R.string.versions_manage_group_label)) },
-            singleLine = true,
-            onDismissRequest = { showCreateDialog = false },
-            onConfirm = {
-                onConfirm(newGroup.trim())
-                showCreateDialog = false
-            }
-        )
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(stringResource(R.string.versions_manage_change_group)) },
-        text = {
-            val scrollState = rememberScrollState()
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(scrollState),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // "Follow Version" option (empty group in config)
-                val mcVersion = version.getVersionInfo()?.minecraftVersion ?: ""
-                NavigationDrawerItem(
-                    label = {
-                        Column {
-                            Text(stringResource(R.string.generic_none))
-                            Text(
-                                text = "($mcVersion)",
-                                style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.alpha(0.6f)
-                            )
-                        }
-                    },
-                    selected = version.getVersionConfig().group.isEmpty() && !groups.contains(mcVersion),
-                    onClick = { onConfirm("") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                groups.forEach { group ->
-                    NavigationDrawerItem(
-                        label = { Text(group) },
-                        selected = version.getVersionConfig().group == group || (version.getVersionConfig().group.isEmpty() && (version.getVersionInfo()?.minecraftVersion ?: "") == group),
-                        onClick = { onConfirm(group) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = { showCreateDialog = true }) {
-                Text(stringResource(R.string.versions_manage_create_group))
-            }
-        },
-        dismissButton = {
-            androidx.compose.material3.TextButton(onClick = onDismissRequest) {
-                Text(stringResource(R.string.generic_cancel))
-            }
-        }
-    )
 }
 
 @Composable
@@ -812,7 +679,6 @@ fun VersionItemLayout(
     onSettingsClick: () -> Unit = {},
     onRenameClick: () -> Unit = {},
     onCopyClick: () -> Unit = {},
-    onChangeGroupClick: () -> Unit = {},
     onExportClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
     onPinned: () -> Unit = {}
@@ -944,20 +810,6 @@ fun VersionItemLayout(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(text = stringResource(R.string.versions_manage_change_group)) },
-                        leadingIcon = {
-                            Icon(
-                                modifier = Modifier.size(20.dp),
-                                painter = painterResource(R.drawable.ic_sort),
-                                contentDescription = stringResource(R.string.versions_manage_change_group)
-                            )
-                        },
-                        onClick = {
-                            onChangeGroupClick()
-                            menuExpanded = false
-                        }
-                    )
-                    DropdownMenuItem(
                         text = { Text(text = stringResource(R.string.versions_export)) },
                         leadingIcon = {
                             Icon(
@@ -1000,7 +852,6 @@ fun CommonVersionInfoLayout(
     val versionName = remember(version) { version.getVersionName() }
     val isSummaryValid = remember(version) { version.isSummaryValid() }
     val versionInfo = remember(version) { version.getVersionInfo() }
-    val group = remember(version) { version.getVersionConfig().group }
 
     Row(modifier = modifier) {
         VersionIconImage(
@@ -1014,18 +865,12 @@ fun CommonVersionInfoLayout(
             modifier = Modifier.weight(1f)
         ) {
             //版本名称
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                    maxLines = 1,
-                    text = versionName,
-                    style = MaterialTheme.typography.labelLarge
-                )
-                if (group.isNotEmpty()) {
-                    Spacer(Modifier.width(8.dp))
-                    LittleTextLabel(text = group)
-                }
-            }
+            Text(
+                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                maxLines = 1,
+                text = versionName,
+                style = MaterialTheme.typography.labelLarge
+            )
             //版本描述
             if (isValid && isSummaryValid) {
                 val versionSummary = remember(version) {

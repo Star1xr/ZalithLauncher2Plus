@@ -75,8 +75,6 @@ import com.star1xr.treelauncher.ui.screens.content.elements.MemoryPreview
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionIconImage
 import com.star1xr.treelauncher.ui.screens.content.elements.VersionsOperation
 import com.star1xr.treelauncher.ui.screens.content.elements.CopyVersionDialog
-import com.star1xr.treelauncher.ui.screens.content.elements.ChangeGroupDialog
-import com.star1xr.treelauncher.ui.components.LittleTextLabel
 import com.star1xr.treelauncher.ui.components.SimpleTaskDialog
 import com.star1xr.treelauncher.ui.screens.content.settings.layouts.CardPosition
 import com.star1xr.treelauncher.ui.screens.content.settings.layouts.SettingsCardColumn
@@ -143,24 +141,6 @@ fun LauncherScreen(
                     )
                 },
                 onDismissRequest = { versionsOperation = VersionsOperation.None }
-            )
-        }
-
-        is VersionsOperation.ChangeGroup -> {
-            ChangeGroupDialog(
-                version = operation.version,
-                onDismissRequest = { versionsOperation = VersionsOperation.None },
-                onConfirm = { group ->
-                    versionsOperation = VersionsOperation.RunTask(
-                        title = R.string.generic_setting,
-                        task = {
-                            operation.version.getVersionConfig().apply {
-                                this.group = group
-                                saveWithThrowable()
-                            }
-                        }
-                    )
-                }
             )
         }
 
@@ -274,9 +254,6 @@ fun LauncherScreen(
                 },
                 onCopyClick = {
                     currentVersion?.let { versionsOperation = VersionsOperation.Copy(it) }
-                },
-                onChangeGroupClick = {
-                    currentVersion?.let { versionsOperation = VersionsOperation.ChangeGroup(it) }
                 },
                 onExportClick = {
                     currentVersion?.let { versionsOperation = VersionsOperation.Export(it) }
@@ -424,7 +401,6 @@ private fun VersionGridItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val group = version.getVersionConfig().group
     val backgroundColor = Color.Black.copy(alpha = 0.2f)
     val selectionColor = Color(0xFF3DAEE9)
 
@@ -476,13 +452,6 @@ private fun VersionGridItem(
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
                 )
-                if (group.isNotEmpty()) {
-                    Spacer(modifier = Modifier.width(4.dp))
-                    LittleTextLabel(
-                        text = group,
-                        textStyle = MaterialTheme.typography.labelSmall.copy(fontSize = MaterialTheme.typography.labelSmall.fontSize * 0.8f)
-                    )
-                }
             }
         }
     }
@@ -495,7 +464,6 @@ private fun RightActionSidebar(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onCopyClick: () -> Unit,
-    onChangeGroupClick: () -> Unit,
     onExportClick: () -> Unit,
     onModsClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -559,12 +527,6 @@ private fun RightActionSidebar(
                 icon = R.drawable.ic_edit_filled,
                 label = stringResource(R.string.versions_manage_settings),
                 onClick = onEdit,
-                enabled = isSelected
-            )
-            SidebarActionItem(
-                icon = R.drawable.ic_sort,
-                label = stringResource(R.string.sidebar_action_change_group),
-                onClick = onChangeGroupClick,
                 enabled = isSelected
             )
             SidebarActionItem(
