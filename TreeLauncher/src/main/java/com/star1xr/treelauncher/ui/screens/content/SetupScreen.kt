@@ -70,6 +70,9 @@ fun SetupScreen(
     
     LaunchedEffect(Unit) {
         UnpackTasksManager.initUnpackItems(context)
+        if (!UnpackTasksManager.areAllTasksFinished()) {
+            UnpackTasksManager.startAllTask(scope)
+        }
     }
 
     val accounts by AccountsManager.accountsFlow.collectAsStateWithLifecycle()
@@ -79,7 +82,8 @@ fun SetupScreen(
 
     var step by rememberSaveable {
         mutableIntStateOf(
-            if (AllSettings.setupStep.state != -2) AllSettings.setupStep.state
+            if (!UnpackTasksManager.areAllTasksFinished()) -1
+            else if (AllSettings.setupStep.state != -2 && AllSettings.setupStep.state != -1) AllSettings.setupStep.state
             else if (BuildConfig.DEBUG) 0
             else if (accounts.isEmpty()) 1
             else 4 // Now it is 4 because we added IconStyleStep as step 3
@@ -88,6 +92,15 @@ fun SetupScreen(
 
     LaunchedEffect(step) {
         AllSettings.setupStep.save(step)
+    }
+
+    LaunchedEffect(unpackProgress) {
+        if (step == -1 && UnpackTasksManager.areAllTasksFinished()) {
+            delay(1000) // Give a moment to see the completion
+            step = if (AllSettings.setupStep.state != -2 && AllSettings.setupStep.state != -1) AllSettings.setupStep.state
+            else if (BuildConfig.DEBUG) 0
+            else 1
+        }
     }
 
     LaunchedEffect(accounts) {

@@ -84,11 +84,19 @@ class SplashActivity : BaseAppCompatActivity(refreshData = false) {
     }
 
     private fun checkTasksToMain(): Boolean {
+        if (!AllSettings.setupCompleted.getValue()) {
+            swapToMain()
+            return true
+        }
+
         if (UnpackTasksManager.areAllTasksFinished()) {
             if (isImportIntent(intent) && !isLauncherIntent(intent)) {
                 if (handleImportIntent(intent)) { finish(); return true }
             }
             swapToMain(); return true
+        } else {
+            // Background task start for already set up users
+            UnpackTasksManager.startAllTask(lifecycleScope)
         }
         return false
     }
