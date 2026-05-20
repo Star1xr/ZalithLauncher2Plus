@@ -151,38 +151,26 @@ private fun TabMenu(
         modifier = modifier
             .fadeEdge(scrollState)
             .width(IntrinsicSize.Min)
-            .padding(start = 8.dp, end = 8.dp)
+            .padding(horizontal = 8.dp)
             .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.Start
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         
-        // Grouping items
-        SidebarSection(stringResource(R.string.settings_category_general))
-        settingItems.take(5).forEach { item ->
-            SettingsSidebarItem(
-                selected = settingsScreenKey == item.key,
-                onClick = { navigateTo(item.key) },
-                icon = item.icon,
-                label = stringResource(item.textRes)
-            )
-        }
+        settingItems.forEach { item ->
+            if (item.division) {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .fillMaxWidth(0.6f)
+                        .alpha(0.2f),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        SidebarSection(stringResource(R.string.settings_category_tools))
-        settingItems.slice(5..6).forEach { item ->
-            SettingsSidebarItem(
-                selected = settingsScreenKey == item.key,
-                onClick = { navigateTo(item.key) },
-                icon = item.icon,
-                label = stringResource(item.textRes)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        SidebarSection(stringResource(R.string.settings_category_about))
-        settingItems.last().let { item ->
             SettingsSidebarItem(
                 selected = settingsScreenKey == item.key,
                 onClick = { navigateTo(item.key) },
@@ -191,19 +179,8 @@ private fun TabMenu(
             )
         }
         
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
     }
-}
-
-@Composable
-private fun SidebarSection(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 12.dp, bottom = 8.dp, top = 8.dp),
-        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-    )
 }
 
 @Composable
@@ -214,43 +191,29 @@ private fun SettingsSidebarItem(
     label: String
 ) {
     val containerColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent,
+        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) else Color.Transparent,
         label = "containerColor"
     )
     val contentColor by androidx.compose.animation.animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "contentColor"
-    )
-    val indicatorWidth by androidx.compose.animation.core.animateDpAsState(
-        targetValue = if (selected) 4.dp else 0.dp,
-        label = "indicatorWidth"
     )
 
     Surface(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(52.dp)
             .padding(vertical = 2.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(26.dp), // Fully rounded pill
         color = containerColor,
         contentColor = contentColor
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 12.dp)
+            modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .width(indicatorWidth)
-                    .height(24.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(MaterialTheme.colorScheme.primary)
-            )
-            
-            Spacer(modifier = Modifier.width(if (selected) 8.dp else 0.dp))
-            
-            Box(modifier = Modifier.size(24.dp)) {
+            Box(modifier = Modifier.size(22.dp)) {
                 icon()
             }
             
@@ -260,7 +223,8 @@ private fun SettingsSidebarItem(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                modifier = Modifier.basicMarquee(),
+                fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.Bold else null
             )
         }
     }

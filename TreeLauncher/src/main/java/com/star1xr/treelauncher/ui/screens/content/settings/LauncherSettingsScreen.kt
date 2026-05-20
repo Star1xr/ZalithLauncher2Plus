@@ -136,11 +136,11 @@ fun LauncherSettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(state = rememberScrollState())
-                .padding(all = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 24.dp),
             isVisible = isVisible
         ) { scope ->
             AnimatedItem(scope) { yOffset ->
-                SettingsSectionTitle(stringResource(R.string.settings_launcher_section_transfer))
+                SettingsSectionHeader(stringResource(R.string.settings_tab_launcher))
                 val importLauncher = rememberLauncherForActivityResult(
                     contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
                 ) { uri ->
@@ -234,8 +234,8 @@ fun LauncherSettingsScreen(
             }
 
             AnimatedItem(scope) { yOffset ->
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionTitle(stringResource(R.string.settings_launcher_section_appearance))
+                Spacer(modifier = Modifier.height(24.dp))
+                SettingsSectionHeader(stringResource(R.string.settings_launcher_section_appearance))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -327,8 +327,8 @@ fun LauncherSettingsScreen(
             //启动器背景设置板块
             LocalBackgroundViewModel.current?.let { backgroundViewModel ->
                 AnimatedItem(scope) { yOffset ->
-                    Spacer(modifier = Modifier.height(16.dp))
-                    SettingsSectionTitle(stringResource(R.string.settings_launcher_section_background))
+                    Spacer(modifier = Modifier.height(24.dp))
+                    SettingsSectionHeader(stringResource(R.string.settings_launcher_section_background))
                     SettingsCardColumn(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -375,8 +375,8 @@ fun LauncherSettingsScreen(
 
 
             AnimatedItem(scope) { yOffset ->
-                Spacer(modifier = Modifier.height(16.dp))
-                SettingsSectionTitle(stringResource(R.string.settings_launcher_section_network))
+                Spacer(modifier = Modifier.height(24.dp))
+                SettingsSectionHeader(stringResource(R.string.settings_launcher_section_network))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -472,13 +472,13 @@ fun LauncherSettingsScreen(
 }
 
 @Composable
-private fun SettingsSectionTitle(title: String) {
+private fun SettingsSectionHeader(title: String) {
     Text(
         text = title,
-        style = MaterialTheme.typography.titleSmall,
+        style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 8.dp, bottom = 8.dp, top = 8.dp),
-        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+        modifier = Modifier.padding(start = 8.dp, bottom = 12.dp),
+        fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold
     )
 }
 
