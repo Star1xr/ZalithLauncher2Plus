@@ -23,10 +23,11 @@ This fork aims to enhance and customize the original Zalith Launcher 2 experienc
 - [x] Integrated Chroma (animated) names
 - [ ] Remake UI for downloads
 
-### 🎮 In-Game Features
+### 🎮 In-Game Features & Performance
 - [x] Implemented a custom cape system
 - [x] Added support for offline accounts
 - [x] Integrated an in-app Turnip driver downloader
+- [x] First-ever major performance update (yes!!)
 
 ### 📁 Management & Portability
 - [x] Added options to import and export settings
@@ -43,7 +44,7 @@ This fork aims to enhance and customize the original Zalith Launcher 2 experienc
 
 ### 🚀 Upcoming Features
 - [ ] Integrated friend system
-- [ ] First-ever major performance update
+
 
 
 
