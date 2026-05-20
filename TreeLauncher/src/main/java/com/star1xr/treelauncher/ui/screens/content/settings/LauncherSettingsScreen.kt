@@ -134,10 +134,11 @@ fun LauncherSettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(state = rememberScrollState())
-                .padding(all = 12.dp),
+                .padding(all = 16.dp),
             isVisible = isVisible
         ) { scope ->
             AnimatedItem(scope) { yOffset ->
+                SettingsSectionTitle(stringResource(R.string.settings_launcher_section_transfer))
                 val importLauncher = rememberLauncherForActivityResult(
                     contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
                 ) { uri ->
@@ -231,10 +232,11 @@ fun LauncherSettingsScreen(
             }
 
             AnimatedItem(scope) { yOffset ->
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsSectionTitle(stringResource(R.string.settings_launcher_section_appearance))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 12.dp)
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
                 ) {
                     var customColorOperation by remember { mutableStateOf<CustomColorOperation>(CustomColorOperation.None) }
@@ -323,6 +325,8 @@ fun LauncherSettingsScreen(
             //启动器背景设置板块
             LocalBackgroundViewModel.current?.let { backgroundViewModel ->
                 AnimatedItem(scope) { yOffset ->
+                    Spacer(modifier = Modifier.height(16.dp))
+                    SettingsSectionTitle(stringResource(R.string.settings_launcher_section_background))
                     SettingsCardColumn(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -369,6 +373,8 @@ fun LauncherSettingsScreen(
 
 
             AnimatedItem(scope) { yOffset ->
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsSectionTitle(stringResource(R.string.settings_launcher_section_network))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -461,6 +467,17 @@ fun LauncherSettingsScreen(
             }
         }
     }
+}
+
+@Composable
+private fun SettingsSectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 8.dp, bottom = 8.dp, top = 8.dp),
+        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+    )
 }
 
 @Composable

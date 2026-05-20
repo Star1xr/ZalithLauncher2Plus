@@ -18,6 +18,7 @@
 
 package com.star1xr.treelauncher.ui.screens.content
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,12 +31,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +47,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -145,42 +151,117 @@ private fun TabMenu(
         modifier = modifier
             .fadeEdge(scrollState)
             .width(IntrinsicSize.Min)
-            .padding(start = 8.dp)
+            .padding(start = 8.dp, end = 8.dp)
             .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
             .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.Start
     ) {
         Spacer(modifier = Modifier.height(12.dp))
-        settingItems.forEach { item ->
-            if (item.division) {
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .fillMaxWidth(0.4f)
-                        .alpha(0.4f),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            NavigationRailItem(
+        
+        // Grouping items
+        SidebarSection(stringResource(R.string.settings_category_general))
+        settingItems.take(5).forEach { item ->
+            SettingsSidebarItem(
                 selected = settingsScreenKey == item.key,
-                onClick = {
-                    navigateTo(item.key)
-                },
-                icon = {
-                    item.icon()
-                },
-                label = {
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        text = stringResource(item.textRes),
-                        maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
+                onClick = { navigateTo(item.key) },
+                icon = item.icon,
+                label = stringResource(item.textRes)
             )
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+        SidebarSection(stringResource(R.string.settings_category_tools))
+        settingItems.slice(5..6).forEach { item ->
+            SettingsSidebarItem(
+                selected = settingsScreenKey == item.key,
+                onClick = { navigateTo(item.key) },
+                icon = item.icon,
+                label = stringResource(item.textRes)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        SidebarSection(stringResource(R.string.settings_category_about))
+        settingItems.last().let { item ->
+            SettingsSidebarItem(
+                selected = settingsScreenKey == item.key,
+                onClick = { navigateTo(item.key) },
+                icon = item.icon,
+                label = stringResource(item.textRes)
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Composable
+private fun SidebarSection(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 12.dp, bottom = 8.dp, top = 8.dp),
+        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+    )
+}
+
+@Composable
+private fun SettingsSidebarItem(
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: @Composable () -> Unit,
+    label: String
+) {
+    val containerColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent,
+        label = "containerColor"
+    )
+    val contentColor by androidx.compose.animation.animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "contentColor"
+    )
+    val indicatorWidth by androidx.compose.animation.core.animateDpAsState(
+        targetValue = if (selected) 4.dp else 0.dp,
+        label = "indicatorWidth"
+    )
+
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .padding(vertical = 2.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = containerColor,
+        contentColor = contentColor
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(indicatorWidth)
+                    .height(24.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+            
+            Spacer(modifier = Modifier.width(if (selected) 8.dp else 0.dp))
+            
+            Box(modifier = Modifier.size(24.dp)) {
+                icon()
+            }
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                modifier = Modifier.basicMarquee()
+            )
         }
     }
 }

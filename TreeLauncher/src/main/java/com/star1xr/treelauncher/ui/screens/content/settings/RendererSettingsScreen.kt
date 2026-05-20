@@ -91,10 +91,11 @@ fun RendererSettingsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(state = rememberScrollState())
-                .padding(all = 12.dp),
+                .padding(all = 16.dp),
             isVisible = isVisible
         ) { columnScope ->
             AnimatedItem(columnScope) { yOffset ->
+                SettingsSectionTitle(stringResource(R.string.settings_renderer_section_core))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -217,6 +218,8 @@ fun RendererSettingsScreen(
             }
 
             AnimatedItem(columnScope) { yOffset ->
+                Spacer(modifier = Modifier.height(16.dp))
+                SettingsSectionTitle(stringResource(R.string.settings_renderer_section_advanced))
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -295,6 +298,17 @@ fun RendererSettingsScreen(
             }
         }
     }
+}
+
+@Composable
+private fun SettingsSectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(start = 8.dp, bottom = 8.dp, top = 8.dp),
+        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+    )
 }
 
 @Composable
