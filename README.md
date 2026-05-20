@@ -5,7 +5,7 @@
 
 > **⚠️ REMAKE**
 >
-> This project is a community remake. The upstream updates soon will be closed in this fork, until TreeLauncher is ready, we will continue from ZL2+.
+> This project is a community remake. The upstream updates are closed.
 > 
 > This is an unofficial community remake of [Zalith Launcher 2](https://github.com/ZalithLauncher/ZalithLauncher2). This project is **not affiliated with or endorsed by the official Zalith Launcher project**.
 
