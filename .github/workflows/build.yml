@@ -45,7 +45,7 @@ jobs:
           java-version: "17"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           add-job-summary: "on-failure"
 
@@ -57,7 +57,7 @@ jobs:
       - name: Upload Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release apk (${{ matrix.arch }})
           path: ZalithLauncher/build/outputs/apk/release/*.apk
@@ -65,7 +65,7 @@ jobs:
       - name: Upload Debug APK for ${{ matrix.arch }}
         if: inputs.variant == 'Debug'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: debug apk (${{ matrix.arch }})
           path: ZalithLauncher/build/outputs/apk/debug/*.apk
