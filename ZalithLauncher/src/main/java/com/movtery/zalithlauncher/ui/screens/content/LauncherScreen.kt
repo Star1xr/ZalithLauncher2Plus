@@ -112,10 +112,17 @@ fun LauncherScreen(
                     .padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
                 isVisible = isVisible,
                 onInfoClick = {
-                    backStackViewModel.mainScreen.navigateTo(NestedNavKey.Settings(NormalNavKey.Settings.AboutInfo))
+                    backStackViewModel.settingsScreen.backStack.clearWith(NormalNavKey.Settings.AboutInfo)
+                    backStackViewModel.mainScreen.removeAndNavigateTo(
+                        removes = backStackViewModel.clearBeforeNavKeys,
+                        screenKey = backStackViewModel.settingsScreen
+                    )
                 },
                 onVersionsClick = {
-                    backStackViewModel.mainScreen.navigateTo(NormalNavKey.VersionsManager)
+                    backStackViewModel.mainScreen.removeAndNavigateTo(
+                        remove = NestedNavKey.VersionSettings::class,
+                        screenKey = NormalNavKey.VersionsManager
+                    )
                 }
             )
 
