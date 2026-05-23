@@ -407,6 +407,11 @@ private fun NavigationUI(
                         versionsScreenKey = versionsScreenKey,
                         version = version,
                         backToMainScreen = backToMainScreen,
+                        onCheckVulkan = {
+                            eventViewModel.sendEvent(
+                                EventViewModel.Event.VulkanCheck
+                            )
+                        },
                         submitError = submitError
                     )
                 }

@@ -45,7 +45,7 @@
 EGLConfig config;
 struct PotatoBridge potatoBridge;
 
-void* loadTurnipVulkan();
+void* loadTurnipVulkan(const char* driver_path, const char* native_dir, const char* cache_dir);
 void calculateFPS();
 
 EXTERNAL_API void pojavTerminate() {
@@ -99,7 +99,10 @@ void load_vulkan() {
     int deviceApiLevel = android_get_device_api_level();
     if (zinkPreferSystemDriver == NULL && deviceApiLevel >= 28) {
 #ifdef ADRENO_POSSIBLE
-        void* result = loadTurnipVulkan();
+        const char* native_dir = getenv("DRIVER_PATH");
+        const char* cache_dir = getenv("TMPDIR");
+
+        void* result = loadTurnipVulkan(NULL, native_dir, cache_dir);
         if (result != NULL)
         {
             printf("AdrenoSupp: Loaded Turnip, loader address: %p\n", result);

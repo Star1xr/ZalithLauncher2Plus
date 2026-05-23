@@ -32,9 +32,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
@@ -47,9 +44,10 @@ import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.control.ControlManager
+import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.notification.NotificationManager
-import com.movtery.zalithlauncher.path.URL_ORIGINAL_PROJECT
+import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.path.URL_SUPPORT
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
@@ -65,9 +63,12 @@ import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenuOperatio
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.ShareLinkOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
 import com.movtery.zalithlauncher.ui.theme.feativals.FestivalEffects
+import com.movtery.zalithlauncher.ui.vulkan_checker.VCOperation
+import com.movtery.zalithlauncher.ui.vulkan_checker.VulkanChecker
 import com.movtery.zalithlauncher.upgrade.TooFrequentOperationException
 import com.movtery.zalithlauncher.utils.compareLangTag
 import com.movtery.zalithlauncher.utils.copyText
+import com.movtery.zalithlauncher.utils.device.VulkanChecker
 import com.movtery.zalithlauncher.utils.festival.getTodayFestivals
 import com.movtery.zalithlauncher.utils.file.shareFile
 import com.movtery.zalithlauncher.utils.isChinese
@@ -92,10 +93,12 @@ import com.movtery.zalithlauncher.viewmodel.ModpackImportOperation
 import com.movtery.zalithlauncher.viewmodel.ModpackImportViewModel
 import com.movtery.zalithlauncher.viewmodel.ModpackVersionNameOperation
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
+import com.movtery.zalithlauncher.viewmodel.VulkanCheckerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.Locale
 
 @AndroidEntryPoint
@@ -149,6 +152,11 @@ class MainActivity : BaseAppCompatActivity() {
      * 游戏日志上传 ViewModel
      */
     private val logsUploadViewModel: LogsUploadViewModel by viewModels()
+
+    /**
+     * Vulkan检测状态 ViewModel
+     */
+    private val vulkanCheckerViewModel: VulkanCheckerViewModel by viewModels()
 
     /**
      * 是否开启捕获按键模式
@@ -213,8 +221,8 @@ class MainActivity : BaseAppCompatActivity() {
                     is EventViewModel.Event.DownloadPlugins -> {
                         showDownloadPlugins(event.link)
                     }
-                    is EventViewModel.Event.Launch.Main -> {
-                        launchGameViewModel.tryLaunch()
+                    is EventViewModel.Event.Launch.Game -> {
+                        launchGameViewModel.tryLaunch(event.version)
                     }
                     is EventViewModel.Event.Launch.PlayServer -> {
                         launchGameViewModel.quickPlayServer(event.version, event.address)
@@ -245,6 +253,9 @@ class MainActivity : BaseAppCompatActivity() {
                     is EventViewModel.Event.HomePage.Event -> {
                         val event0 = event.event
                         handleHomePageEvent(event0.key, event0.data)
+                    }
+                    is EventViewModel.Event.VulkanCheck -> {
+                        checkVulkan()
                     }
                     else -> {
                         //忽略
@@ -298,6 +309,7 @@ class MainActivity : BaseAppCompatActivity() {
                         exitActivity = {
                             this@MainActivity.finish()
                         },
+                        waitForVulkanChecker = vulkanCheckerViewModel::waitForVulkanChecker,
                         submitError = {
                             errorViewModel.showError(it)
                         },
@@ -428,26 +440,20 @@ class MainActivity : BaseAppCompatActivity() {
                     onLinkClick = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it)) }
                 )
 
-                // 非官方版本声明
-                var showDisclaimer by rememberSaveable {
-                    mutableStateOf(!AllSettings.disclaimerAccepted.getValue())
-                }
-                if (showDisclaimer) {
-                    SimpleAlertDialog(
-                        title = stringResource(R.string.disclaimer_title),
-                        text = stringResource(R.string.disclaimer_content),
-                        confirmText = stringResource(R.string.generic_confirm),
-                        dismissText = stringResource(R.string.disclaimer_original_repo),
-                        onConfirm = {
-                            AllSettings.disclaimerAccepted.save(true)
-                            showDisclaimer = false
-                        },
-                        onDismiss = {
-                            openLink(URL_ORIGINAL_PROJECT)
-                        },
-                        dismissByDialog = false
-                    )
-                }
+                val vcOperation by vulkanCheckerViewModel.vcOperation.collectAsStateWithLifecycle()
+                VulkanChecker(
+                    operation = vcOperation,
+                    onChange = {
+                        vulkanCheckerViewModel.changeOperation(it)
+                    },
+                    startCheck = {
+                        eventViewModel.sendEvent(EventViewModel.Event.VulkanCheck)
+                    },
+                    confirmResult = {
+                        vulkanCheckerViewModel.resumeCont()
+                        AllSettings.autoVulkanChecker.save(false)
+                    }
+                )
             }
         }
     }
@@ -455,6 +461,24 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleImportIfNeeded(intent)
+    }
+
+    /**
+     * 检查设备 Vulkan 支持情况
+     */
+    private suspend fun checkVulkan() {
+        val driver = DriverPluginManager.getDriver()
+        val useTurnip = !(AllSettings.zinkPreferSystemDriver.getValue() || driver.isLauncher)
+
+        withContext(Dispatchers.Main) {
+            val result = if (useTurnip) {
+                val tempDir = File(PathManager.DIR_CACHE, "vulkan_temp")
+                VulkanChecker.checkCapabilities(null, driver.path, tempDir.absolutePath)
+            } else {
+                VulkanChecker.checkCapabilities(null, null, null)
+            }
+            vulkanCheckerViewModel.changeOperation(VCOperation.Result(result, useTurnip))
+        }
     }
 
     /**

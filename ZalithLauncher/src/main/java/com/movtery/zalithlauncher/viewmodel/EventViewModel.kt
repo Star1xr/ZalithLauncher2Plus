@@ -75,7 +75,7 @@ class EventViewModel : ViewModel() {
         /** 启动游戏相关的事件 */
         sealed interface Launch : Event {
             /** 主菜单的启动游戏 */
-            data object Main : Launch
+            data class Game(val version: Version?) : Launch
             /** 快速启动游戏并进入服务器 */
             data class PlayServer(val version: Version, val address: String): Launch
             /** 快速启动游戏并进入存档 */
@@ -118,6 +118,8 @@ class EventViewModel : ViewModel() {
             /** 主页触发的事件 */
             data class Event(val event: MarkdownBlock.Button.Event): HomePage
         }
+        /** 设备 Vulkan 检查 */
+        data object VulkanCheck: Event
     }
 }
 

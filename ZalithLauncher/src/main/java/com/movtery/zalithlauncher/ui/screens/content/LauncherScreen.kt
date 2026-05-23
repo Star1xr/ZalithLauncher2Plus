@@ -19,7 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,20 +30,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -51,18 +50,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableIntStateOf
-import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
-import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -73,9 +74,6 @@ import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.info.InfoDistributor
-import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.setting.unit.floatRange
-import com.movtery.zalithlauncher.setting.unit.getOrMin
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -84,45 +82,23 @@ import com.movtery.zalithlauncher.ui.components.defaultRichTextStyle
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountAvatar
-import com.movtery.zalithlauncher.ui.screens.content.elements.MemoryPreview
+import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
-import com.movtery.zalithlauncher.ui.screens.content.navigateToLogView
-import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
-import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.ToggleableIntSliderSettingsCard
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.MarkdownBlock
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.customHomePage
-import com.movtery.zalithlauncher.ui.theme.cardColor
-import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
-import com.movtery.zalithlauncher.utils.platform.getMaxMemoryForSettings
 import com.movtery.zalithlauncher.viewmodel.HomePageState
 import com.movtery.zalithlauncher.viewmodel.LocalHomePageViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
-import java.io.File
 
 @Composable
 fun LauncherScreen(
     backStackViewModel: ScreenBackStackViewModel,
     navigateToVersions: (Version) -> Unit,
-    onLaunchGame: () -> Unit,
+    onLaunchGame: (Version?) -> Unit,
     onOpenLink: (String) -> Unit,
     onHomePageEvent: (MarkdownBlock.Button.Event) -> Unit,
 ) {
-    var showQuickRamDialog by remember { mutableStateOf(false) }
-    var showQuickFpsDialog by remember { mutableStateOf(false) }
-
-    if (showQuickRamDialog) {
-        QuickRamDialog(
-            onDismissRequest = { showQuickRamDialog = false }
-        )
-    }
-
-    if (showQuickFpsDialog) {
-        QuickFpsDialog(
-            onDismissRequest = { showQuickFpsDialog = false }
-        )
-    }
-
     BaseScreen(
         screenKey = NormalNavKey.LauncherMain,
         currentKey = backStackViewModel.mainScreen.currentKey
@@ -170,170 +146,8 @@ fun LauncherScreen(
                 onLaunchGame = onLaunchGame,
                 toAccountManageScreen = toAccountManageScreen,
                 toVersionManageScreen = toVersionManageScreen,
-                toVersionSettingsScreen = toVersionSettingsScreen,
-                onQuickRamClick = { showQuickRamDialog = true },
-                onQuickFpsClick = { showQuickFpsDialog = true },
-                onLogViewerClick = {
-                    VersionsManager.currentVersion.value?.let { version ->
-                        val logFile = File(version.getGameDir(), "logs/latest.log")
-                        if (logFile.exists()) {
-                            backStackViewModel.mainScreen.backStack.navigateToLogView(logFile.absolutePath)
-                        }
-                    }
-                },
-                onModsFolderClick = {
-                    backStackViewModel.mainScreen.navigateTo(NormalNavKey.Versions.ModsManager)
-                }
+                toVersionSettingsScreen = toVersionSettingsScreen
             )
-        }
-    }
-}
-
-@Composable
-private fun QuickFpsDialog(
-    onDismissRequest: () -> Unit
-) {
-    val showFps = AllSettings.showFPS.state
-    val resolutionRatio = AllSettings.resolutionRatio.state
-    var tempResolutionRatio by remember { mutableIntStateOf(resolutionRatio) }
-
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismissRequest) {
-        Surface(
-            modifier = Modifier
-                .padding(all = 16.dp)
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            shape = MaterialTheme.shapes.extraLarge,
-            color = cardColor(false),
-            contentColor = onCardColor(),
-            shadowElevation = 6.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.game_menu_option_switch_fps),
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                SettingsCardColumn {
-                    SwitchSettingsCard(
-                        position = CardPosition.Top,
-                        title = stringResource(R.string.game_menu_option_switch_fps),
-                        checked = showFps,
-                        onCheckedChange = { AllSettings.showFPS.save(it) }
-                    )
-                    SwitchSettingsCard(
-                        position = CardPosition.Middle,
-                        title = stringResource(R.string.settings_renderer_force_big_core_title),
-                        summary = stringResource(R.string.settings_renderer_force_big_core_summary),
-                        checked = AllSettings.bigCoreAffinity.state,
-                        onCheckedChange = { AllSettings.bigCoreAffinity.save(it) }
-                    )
-                    SwitchSettingsCard(
-                        position = CardPosition.Middle,
-                        title = stringResource(R.string.settings_renderer_sustained_performance_title),
-                        summary = stringResource(R.string.settings_renderer_sustained_performance_summary),
-                        checked = AllSettings.sustainedPerformance.state,
-                        onCheckedChange = { AllSettings.sustainedPerformance.save(it) }
-                    )
-                    ToggleableIntSliderSettingsCard(
-                        position = CardPosition.Bottom,
-                        currentValue = tempResolutionRatio,
-                        valueRange = AllSettings.resolutionRatio.floatRange,
-                        defaultValue = AllSettings.resolutionRatio.defaultValue,
-                        title = stringResource(R.string.settings_renderer_resolution_scale_title),
-                        summary = stringResource(R.string.settings_renderer_resolution_scale_summary),
-                        suffix = "%",
-                        onValueChange = {
-                            tempResolutionRatio = it
-                        },
-                        onValueChangeFinished = {
-                            AllSettings.resolutionRatio.save(tempResolutionRatio)
-                        }
-                    )
-                }
-
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onDismissRequest
-                ) {
-                    Text(text = stringResource(R.string.generic_confirm))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun QuickRamDialog(
-    onDismissRequest: () -> Unit
-) {
-    val context = LocalContext.current
-    val globalRamAllocation = AllSettings.ramAllocation.state
-    var tempRamAllocation by remember { mutableStateOf(globalRamAllocation) }
-
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismissRequest) {
-        Surface(
-            modifier = Modifier
-                .padding(all = 16.dp)
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            shape = MaterialTheme.shapes.extraLarge,
-            color = cardColor(false),
-            contentColor = onCardColor(),
-            shadowElevation = 6.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_game_java_memory_title),
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                ToggleableIntSliderSettingsCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    position = CardPosition.Single,
-                    currentValue = tempRamAllocation ?: 0,
-                    valueRange = AllSettings.ramAllocation.floatRange.start..getMaxMemoryForSettings(context).toFloat(),
-                    defaultValue = AllSettings.ramAllocation.getOrMin(),
-                    title = stringResource(R.string.settings_game_java_memory_title),
-                    summary = stringResource(R.string.settings_game_java_memory_summary),
-                    suffix = "MB",
-                    onValueChange = {
-                        tempRamAllocation = it
-                    },
-                    onValueChangeFinished = {
-                        AllSettings.ramAllocation.save(tempRamAllocation)
-                    },
-                    previewContent = {
-                        MemoryPreview(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 2.dp, end = 8.dp),
-                            preview = tempRamAllocation?.toDouble(),
-                            usedText = { usedMemory: Double, totalMemory: Double ->
-                                stringResource(R.string.settings_game_java_memory_used_text, usedMemory.toInt(), totalMemory.toInt())
-                            },
-                            previewText = { preview: Double ->
-                                stringResource(R.string.settings_game_java_memory_allocation_text, preview.toInt())
-                            }
-                        )
-                    }
-                )
-
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onDismissRequest
-                ) {
-                    Text(text = stringResource(R.string.generic_confirm))
-                }
-            }
         }
     }
 }
@@ -424,17 +238,14 @@ private fun ContentMenu(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RightMenuContent(
     modifier: Modifier = Modifier,
-    onLaunchGame: () -> Unit,
+    onLaunchGame: (Version?) -> Unit,
     toAccountManageScreen: () -> Unit,
     toVersionManageScreen: () -> Unit,
     toVersionSettingsScreen: () -> Unit,
-    onQuickRamClick: () -> Unit,
-    onQuickFpsClick: () -> Unit,
-    onLogViewerClick: () -> Unit,
-    onModsFolderClick: () -> Unit,
     launchButton: @Composable (
         innerModifier: Modifier,
         onClick: () -> Unit,
@@ -448,13 +259,13 @@ private fun RightMenuContent(
     ConstraintLayout(
         modifier = modifier
     ) {
-        val (accountAvatar, shortcutsGrid, versionManagerLayout, launchButton) = createRefs()
+        val (accountAvatar, versionManagerLayout, launchButton) = createRefs()
 
         AccountAvatar(
             modifier = Modifier
                 .constrainAs(accountAvatar) {
                     top.linkTo(parent.top)
-                    bottom.linkTo(shortcutsGrid.top)
+                    bottom.linkTo(launchButton.top, margin = 32.dp)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 },
@@ -462,68 +273,93 @@ private fun RightMenuContent(
             onClick = toAccountManageScreen
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp)
-                .constrainAs(shortcutsGrid) {
-                    bottom.linkTo(versionManagerLayout.top, margin = 8.dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                },
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ShortcutButton(
-                modifier = Modifier.weight(1f),
-                icon = R.drawable.ic_sort,
-                onClick = toVersionManageScreen,
-                contentDescription = stringResource(R.string.page_title_version_list)
-            )
-            ShortcutButton(
-                modifier = Modifier.weight(1f),
-                icon = R.drawable.ic_build_filled,
-                onClick = onQuickRamClick,
-                contentDescription = stringResource(R.string.settings_game_java_memory_title)
-            )
-            ShortcutButton(
-                modifier = Modifier.weight(1f),
-                icon = R.drawable.ic_video_settings,
-                onClick = onQuickFpsClick,
-                contentDescription = stringResource(R.string.game_menu_option_switch_fps)
-            )
-            ShortcutButton(
-                modifier = Modifier.weight(1f),
-                icon = R.drawable.ic_terminal_outlined,
-                onClick = onLogViewerClick,
-                contentDescription = stringResource(R.string.versions_overview_log)
-            )
-        }
-
-        Row(
+        var showList by remember { mutableStateOf(false) }
+        var versionManagerRow by remember { mutableStateOf<LayoutCoordinates?>(null) }
+        Box(
             modifier = Modifier.constrainAs(versionManagerLayout) {
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
                 bottom.linkTo(launchButton.top)
             },
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            VersionManagerLayout(
-                isRefreshing = isRefreshing,
-                version = version,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(8.dp),
-                swapToVersionManage = toVersionManageScreen
-            )
-            version?.takeIf { !isRefreshing && it.isValid() }?.let {
-                IconButton(
-                    modifier = Modifier.padding(end = 8.dp),
-                    onClick = toVersionSettingsScreen
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .onGloballyPositioned { coordinates ->
+                            versionManagerRow = coordinates
+                        }
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_settings_filled),
-                        contentDescription = stringResource(R.string.versions_manage_settings)
+                    VersionManagerLayout(
+                        isRefreshing = isRefreshing,
+                        version = version,
+                        modifier = Modifier.padding(8.dp),
+                        swapToVersionManage = toVersionManageScreen,
+                        openListMenu = { showList = true },
+                    )
+                }
+                version?.takeIf { !isRefreshing && it.isValid() }?.let {
+                    IconButton(
+                        modifier = Modifier.padding(end = 8.dp),
+                        onClick = toVersionSettingsScreen
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings_filled),
+                            contentDescription = stringResource(R.string.versions_manage_settings)
+                        )
+                    }
+                }
+            }
+
+            val menuAnchor = versionManagerRow
+            val menuAnchorBounds = menuAnchor?.boundsInParent()
+            val menuAnchorX = menuAnchorBounds?.left ?: 0f
+            val menuAnchorHeight = menuAnchorBounds?.height ?: 0f
+
+            DropdownMenu(
+                expanded = showList && menuAnchor != null,
+                onDismissRequest = { showList = false },
+                modifier = Modifier.width(260.dp),
+                offset = DpOffset(
+                    x = with(LocalDensity.current) { menuAnchorX.toDp() },
+                    y = with(LocalDensity.current) { (-menuAnchorHeight).toDp() } - 8.dp
+                ),
+                shape = MaterialTheme.shapes.extraLarge
+            ) {
+                VersionsManager.versions.forEach { version0 ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CommonVersionInfoLayout(
+                                    modifier = Modifier.weight(1f),
+                                    version = version0,
+                                    iconSize = 28.dp
+                                )
+                                IconButton(
+                                    onClick = {
+                                        onLaunchGame(version0)
+                                        showList = false
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_play_arrow_filled),
+                                        contentDescription = stringResource(R.string.main_launch_game),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        },
+                        onClick = {
+                            if (version == version0) return@DropdownMenuItem
+                            VersionsManager.saveVersion(version0)
+                            showList = false
+                        }
                     )
                 }
             }
@@ -537,7 +373,7 @@ private fun RightMenuContent(
                 }
                 .padding(PaddingValues(horizontal = 12.dp)),
             {
-                onLaunchGame()
+                onLaunchGame(null)
             },
             {
                 MarqueeText(text = stringResource(R.string.main_launch_game))
@@ -547,41 +383,13 @@ private fun RightMenuContent(
 }
 
 @Composable
-private fun ShortcutButton(
-    icon: Int,
-    onClick: () -> Unit,
-    contentDescription: String,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier.height(42.dp),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        onClick = onClick
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Icon(
-                modifier = Modifier.size(24.dp),
-                painter = painterResource(icon),
-                contentDescription = contentDescription
-            )
-        }
-    }
-}
-
-@Composable
 private fun RightMenu(
     isVisible: Boolean,
-    onLaunchGame: () -> Unit,
+    onLaunchGame: (Version?) -> Unit,
     modifier: Modifier = Modifier,
     toAccountManageScreen: () -> Unit = {},
     toVersionManageScreen: () -> Unit = {},
-    toVersionSettingsScreen: () -> Unit = {},
-    onQuickRamClick: () -> Unit = {},
-    onQuickFpsClick: () -> Unit = {},
-    onLogViewerClick: () -> Unit = {},
-    onModsFolderClick: () -> Unit = {}
+    toVersionSettingsScreen: () -> Unit = {}
 ) {
     val xOffset by swapAnimateDpAsState(
         targetValue = 40.dp,
@@ -598,11 +406,7 @@ private fun RightMenu(
             onLaunchGame = onLaunchGame,
             toAccountManageScreen = toAccountManageScreen,
             toVersionManageScreen = toVersionManageScreen,
-            toVersionSettingsScreen = toVersionSettingsScreen,
-            onQuickRamClick = onQuickRamClick,
-            onQuickFpsClick = onQuickFpsClick,
-            onLogViewerClick = onLogViewerClick,
-            onModsFolderClick = onModsFolderClick
+            toVersionSettingsScreen = toVersionSettingsScreen
         ) { innerModifier, onClick, text ->
             ScalingActionButton(
                 modifier = innerModifier,
@@ -618,13 +422,18 @@ private fun RightMenu(
 private fun VersionManagerLayout(
     isRefreshing: Boolean,
     version: Version?,
+    swapToVersionManage: () -> Unit,
+    openListMenu: () -> Unit,
     modifier: Modifier = Modifier,
-    swapToVersionManage: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .clip(shape = MaterialTheme.shapes.large)
-            .clickable(onClick = swapToVersionManage)
+            .combinedClickable(
+                role = Role.Button,
+                onClick = swapToVersionManage,
+                onLongClick = openListMenu
+            )
             .padding(PaddingValues(all = 8.dp))
     ) {
         if (isRefreshing) {
