@@ -213,7 +213,7 @@ class MainActivity : BaseAppCompatActivity() {
                     is EventViewModel.Event.OpenWeb -> {
                         val url = event.url
                         withContext(Dispatchers.Main) {
-                            screenBackStackModel.mainScreen.navigateToWeb(url)
+                            screenBackStackModel.mainScreen.backStack.navigateToWeb(url)
                         }
                     }
                     is EventViewModel.Event.CheckUpdate -> {
