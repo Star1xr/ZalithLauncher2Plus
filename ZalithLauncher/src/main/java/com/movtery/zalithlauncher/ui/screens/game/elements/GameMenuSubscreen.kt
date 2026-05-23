@@ -88,6 +88,8 @@ fun GameMenuSubscreen(
     closeScreen: () -> Unit,
     onForceClose: () -> Unit,
     onSwitchLog: () -> Unit,
+    onOpenPerformanceFps: () -> Unit,
+    onOpenPerformanceRam: () -> Unit,
     enableTerracotta: Boolean,
     onOpenTerracottaMenu: () -> Unit,
     onRefreshWindowSize: () -> Unit,
@@ -174,6 +176,8 @@ fun GameMenuSubscreen(
                 modifier = Modifier.weight(1f),
                 onForceClose = onForceClose,
                 onSwitchLog = onSwitchLog,
+                onOpenPerformanceFps = onOpenPerformanceFps,
+                onOpenPerformanceRam = onOpenPerformanceRam,
                 enableTerracotta = enableTerracotta,
                 onOpenTerracottaMenu = onOpenTerracottaMenu,
                 onRefreshWindowSize = onRefreshWindowSize
@@ -186,6 +190,8 @@ fun GameMenuSubscreen(
 private fun GameActionContent(
     onForceClose: () -> Unit,
     onSwitchLog: () -> Unit,
+    onOpenPerformanceFps: () -> Unit,
+    onOpenPerformanceRam: () -> Unit,
     enableTerracotta: Boolean,
     onOpenTerracottaMenu: () -> Unit,
     onRefreshWindowSize: () -> Unit,
@@ -285,11 +291,10 @@ private fun GameActionContent(
         }
         //帧率显示
         item {
-            MenuSwitchButton(
+            MenuTextButton(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.game_menu_option_switch_fps),
-                switch = AllSettings.showFPS.state,
-                onSwitch = { AllSettings.showFPS.save(it) },
+                text = stringResource(R.string.game_menu_option_fps_settings),
+                onClick = onOpenPerformanceFps,
                 color = color,
                 contentColor = contentColor,
                 enabled = AllSettings.showMenuBall.state
@@ -297,11 +302,10 @@ private fun GameActionContent(
         }
         //内存显示
         item {
-            MenuSwitchButton(
+            MenuTextButton(
                 modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.game_menu_option_switch_memory),
-                switch = AllSettings.showMemory.state,
-                onSwitch = { AllSettings.showMemory.save(it) },
+                text = stringResource(R.string.game_menu_option_ram_settings),
+                onClick = onOpenPerformanceRam,
                 color = color,
                 contentColor = contentColor,
                 enabled = AllSettings.showMenuBall.state

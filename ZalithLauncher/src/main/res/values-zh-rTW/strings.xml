@@ -358,6 +358,8 @@
     <string name="game_menu_option_input_method">切換輸入法</string>
     <string name="game_menu_option_switch_fps">幀率顯示</string>
     <string name="game_menu_option_switch_memory">記憶體顯示</string>
+    <string name="game_menu_option_fps_settings">幀率設定</string>
+    <string name="game_menu_option_ram_settings">記憶體設定</string>
     <string name="game_menu_option_menu_ball_opacity">選單懸浮窗不透明度</string>
     <string name="game_menu_option_send_keycode">發送鍵值</string>
     <string name="game_menu_option_replacement_control">更換控制佈局</string>

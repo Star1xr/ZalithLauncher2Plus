@@ -714,6 +714,8 @@
     <string name="game_menu_option_input_method">Klavye\'yi Aç</string>
     <string name="game_menu_option_switch_fps">Fps Göstergesi</string>
     <string name="game_menu_option_switch_memory">Ram Göstergesi</string>
+    <string name="game_menu_option_fps_settings">FPS Ayarları</string>
+    <string name="game_menu_option_ram_settings">RAM Ayarları</string>
     <string name="game_menu_option_menu_ball_opacity">Menü Şeffaflığı</string>
     <string name="game_menu_option_send_keycode">Tuş Gönder</string>
     <string name="game_menu_option_replacement_control">Kontrol Düzenini Değiştir</string>
