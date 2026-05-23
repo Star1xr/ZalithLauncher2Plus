@@ -1,6 +1,8 @@
 
 # TREELAUNCHER
 
+I decided to close the project; however, it can be revived through codebase forks.
+
 [Türkçe](TREELAUNCHER_TR.md)
 
 This peoject is in alpha state. Thanks for testing!
