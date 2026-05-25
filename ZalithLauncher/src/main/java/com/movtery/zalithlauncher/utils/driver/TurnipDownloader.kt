@@ -43,10 +43,10 @@ object TurnipDownloader {
 
     fun downloadLatest(context: Context) {
         val task = Task.runTask(
-            id = "download_turnip_driver",
+            id = "download_latest_turnip_driver",
             task = { it ->
                 it.updateMessage(R.string.settings_renderer_turnip_downloading)
-                
+
                 val repoUrl = "https://api.github.com/repos/K11MCH1/AdrenoToolsDrivers/releases/latest"
                 val request = Request.Builder().url(repoUrl).build()
                 val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
@@ -112,5 +112,69 @@ object TurnipDownloader {
             }
         )
         TaskSystem.submitTask(task)
+    }
+    
+    fun downloadUrl(context: Context, downloadUrl: String) {
+        val task = Task.runTask(
+            id = "download_turnip_driver",
+            task = { it ->
+                it.updateMessage(R.string.settings_renderer_turnip_downloading)
+                
+                val zipName = downloadUrl.substringAfterLast("/").substringBeforeLast("?")
+                
+                val downloadFile = File(PathManager.DIR_CACHE, zipName)
+                val downloadRequest = Request.Builder().url(downloadUrl).build()
+                
+                withContext(Dispatchers.IO) {
+                    client.newCall(downloadRequest).execute().use { downloadResponse ->
+                        if (!downloadResponse.isSuccessful) throw Exception("Failed to download driver")
+                        val source = downloadResponse.body?.source() ?: throw Exception("Empty download body")
+                        val totalSize = downloadResponse.body?.contentLength() ?: -1L
+                        
+                        downloadFile.sink().buffer().use { sink ->
+                            val buffer = ByteArray(8192)
+                            var bytesRead: Long = 0
+                            var read: Int
+                            while (source.read(buffer).also { read = it } != -1) {
+                                sink.write(buffer, 0, read)
+                                bytesRead += read
+                                if (totalSize > 0) {
+                                    it.updateProgress(bytesRead.toFloat() / totalSize)
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                it.updateMessage(R.string.settings_renderer_turnip_extracting)
+                it.updateProgress(-1f)
+                
+                val extractDir = File(PathManager.DIR_DRIVERS, zipName.removeSuffix(".zip"))
+                if (extractDir.exists()) {
+                    extractDir.deleteRecursively()
+                }
+                extractDir.mkdirs()
+                
+                withContext(Dispatchers.IO) {
+                    ZipFile(downloadFile).use { zip ->
+                        zip.extractFromZip("", extractDir)
+                    }
+                }
+                
+                downloadFile.delete()
+                
+                withContext(Dispatchers.Main) {
+                    DriverPluginManager.scanExternalDrivers(context)
+                    Toast.makeText(context, R.string.settings_renderer_turnip_success, Toast.LENGTH_SHORT).show()
+                }
+             },
+             onError = { th ->
+                lError("Failed to download Turnip driver", th)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Failed: ${th.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+         )
+         TaskSystem.submitTask(task)
     }
 }
