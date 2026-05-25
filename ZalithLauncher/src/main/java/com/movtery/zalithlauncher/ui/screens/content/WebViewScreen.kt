@@ -24,6 +24,7 @@ import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebResourceRequest
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,6 +56,7 @@ import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
+import com.movtery.zalithlauncher.utils.driver.TurnipDownloader
 import org.apache.commons.io.FileUtils
 
 /**
@@ -142,6 +144,16 @@ fun WebViewScreen(
                                     super.onPageStarted(view, url, favicon)
                                     webUrl = url ?: ""
                                     isWebLoading = true
+                                }
+                                
+                                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                                    val currentUrl = request?.url?.toString() ?: return false
+                                    if ( currentUrl.startsWith("https://github.com/K11MCH1/AdrenoToolsDrivers/releases/download/") && currentUrl.endsWith(".zip")
+                                    ) {
+                                    TurnipDownloader.downloadUrl( context, currentUrl )
+                                    return true
+                                    }
+                                    return false
                                 }
                             }
 
