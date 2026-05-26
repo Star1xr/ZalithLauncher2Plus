@@ -23,9 +23,9 @@ import com.movtery.zalithlauncher.database.AppDatabase
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings.currentGamePathId
-import com.movtery.zalithlauncher.utils.checkStoragePermissions
-import com.movtery.zalithlauncher.utils.logging.Logger.lError
-import com.movtery.zalithlauncher.utils.logging.Logger.lInfo
+import com.movtery.zalithlauncher.utils.canHandlePermission
+import com.movtery.zalithlauncher.utils.hasStoragePermission
+import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,7 +91,7 @@ object GamePathManager {
 
                 _gamePathData.update { newValue }
 
-                if (!checkStoragePermissions()) {
+                if (canHandlePermission &&  !hasStoragePermission) {
                     _currentPath.update { defaultGamePath }
                     saveDefaultPath(false)
                 } else {
@@ -174,7 +174,7 @@ object GamePathManager {
      * @throws IllegalArgumentException 未找到匹配项
      */
     fun saveCurrentPath(id: String, reloadVersions: Boolean = true) {
-        if (!checkStoragePermissions()) throw IllegalStateException("Storage permissions are not granted")
+        if (canHandlePermission && !hasStoragePermission) throw IllegalStateException("Storage permissions are not granted")
         if (!containsId(id)) throw IllegalArgumentException("No match found!")
         saveCurrentPathUncheck(id, reloadVersions)
     }

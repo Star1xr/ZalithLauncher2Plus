@@ -48,9 +48,11 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.VideoPlayer
 import com.movtery.zalithlauncher.ui.screens.content.FirstLoginMenu
+import com.movtery.zalithlauncher.utils.canHandlePermission
 import com.movtery.zalithlauncher.utils.checkStoragePermissions
 import com.movtery.zalithlauncher.utils.file.InvalidFilenameException
 import com.movtery.zalithlauncher.utils.file.checkFilenameValidity
+import com.movtery.zalithlauncher.utils.hasStoragePermission
 import com.movtery.zalithlauncher.utils.string.isBiggerTo
 import com.movtery.zalithlauncher.utils.string.isLowerTo
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
@@ -259,8 +261,9 @@ fun LaunchGameOperation(
                 }
 
                 //为可配置的渲染器检查文件管理权限
+                //前提：系统支持这个设置
                 if (
-                    !checkStoragePermissions() &&
+                    canHandlePermission &&  !hasStoragePermission &&
                     RendererPluginManager.isConfigurablePlugin(version.getRenderer())
                 ) {
                     updateOperation(LaunchGameOperation.RendererNoStoragePermission(currentRenderer, version, quickPlay))
