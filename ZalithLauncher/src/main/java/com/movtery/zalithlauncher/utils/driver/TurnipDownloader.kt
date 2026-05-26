@@ -43,7 +43,7 @@ object TurnipDownloader {
 
     fun downloadLatest(context: Context) {
         val task = Task.runTask(
-            id = "download_latest_turnip_driver",
+            id = "download_turnip_driver",
             task = { it ->
                 it.updateMessage(R.string.settings_renderer_turnip_downloading)
 
@@ -149,7 +149,13 @@ object TurnipDownloader {
                 it.updateMessage(R.string.settings_renderer_turnip_extracting)
                 it.updateProgress(-1f)
                 
-                val extractDir = File(PathManager.DIR_DRIVERS, zipName.removeSuffix(".zip"))
+                val currentDir = PathManager.DIR_DRIVERS
+                val prefix = "unnamed-driver-"
+                val canonicalZipName = zipName.substringBeforeLast(".zip")
+                val safeDirName = if ( canonicalZipName.isEmpty() || canonicalZipName == "." || canonicalZipName == ".." ) { "$prefix${(currentDir.listFiles()?.map {it.name}?.filter {it.startsWith(prefix)}?.mapNotNull {it.substring(prefix.length).toIntOrNull() }?.maxOrNull() ?:0) +1}" } else {
+                                                     canonicalZipName.replace(Regex("[/\\\\]+"), "_")}
+                
+                val extractDir = File(PathManager.DIR_DRIVERS, safeDirName)
                 if (extractDir.exists()) {
                     extractDir.deleteRecursively()
                 }
@@ -157,7 +163,9 @@ object TurnipDownloader {
                 
                 withContext(Dispatchers.IO) {
                     ZipFile(downloadFile).use { zip ->
-                        zip.extractFromZip("", extractDir)
+                        if (!downloadFile.extension.equals("zip", ignoreCase = true)) {
+                            throw IllegalStateException("Driver file is not a zip: ${downloadFile.name}")
+                        } else { zip.extractFromZip("", extractDir) }
                     }
                 }
                 
