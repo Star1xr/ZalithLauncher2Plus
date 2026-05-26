@@ -25,6 +25,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebResourceRequest
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -148,9 +149,11 @@ fun WebViewScreen(
                                 
                                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                                     val currentUrl = request?.url?.toString() ?: return false
-                                    if ( currentUrl.startsWith("https://github.com/K11MCH1/AdrenoToolsDrivers/releases/download/") && currentUrl.endsWith(".zip")
+                                    val uri = Uri.parse(currentUrl)
+                                    val FileName = uri.lastPathSegment
+                                    if ( currentUrl?.startsWith("https://github.com/K11MCH1/AdrenoToolsDrivers/releases/download/") && (FileName?.endsWith(".zip", ignoreCase = true) ?: false)
                                     ) {
-                                    TurnipDownloader.downloadUrl( context, currentUrl )
+                                    TurnipDownloader.downloadUrl( context.applicationContext, currentUrl )
                                     return true
                                     }
                                     return false
