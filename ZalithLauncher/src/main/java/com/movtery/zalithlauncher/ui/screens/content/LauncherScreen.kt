@@ -338,7 +338,9 @@ private fun RightMenuContent(
                     VersionManagerLayout(
                         isRefreshing = isRefreshing,
                         version = version,
-                        modifier = Modifier.padding(8.dp),
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxWidth(),
                         swapToVersionManage = toVersionManageScreen,
                         openListMenu = { showList = true },
                     )
@@ -474,7 +476,9 @@ private fun VersionManagerLayout(
             .combinedClickable(
                 role = Role.Button,
                 onClick = swapToVersionManage,
-                onLongClick = openListMenu
+                onLongClick = {
+                    if (version != null) openListMenu()
+                }
             )
             .padding(PaddingValues(all = 8.dp))
     ) {

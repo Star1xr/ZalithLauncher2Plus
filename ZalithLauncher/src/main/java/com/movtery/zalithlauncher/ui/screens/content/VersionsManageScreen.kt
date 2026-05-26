@@ -80,6 +80,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.VersionCategoryIte
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionItemLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionsOperation
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
+import com.movtery.zalithlauncher.utils.canHandlePermission
 import com.movtery.zalithlauncher.utils.checkStoragePermissions
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
@@ -387,6 +388,7 @@ private fun LeftMenu(
                 GamePathItemLayout(
                     item = pathItem,
                     selected = currentPath == pathItem.path,
+                    enabled = canHandlePermission,
                     onClick = {
                         if (!isRefreshing) { //避免频繁刷新，防止currentGameInfo意外重置
                             if (pathItem.id == GamePathManager.DEFAULT_ID) {
@@ -431,7 +433,8 @@ private fun LeftMenu(
                         }
                     )
                 }
-            }
+            },
+            enabled = canHandlePermission
         ) {
             MarqueeText(text = stringResource(R.string.versions_manage_game_path_add_new))
         }
