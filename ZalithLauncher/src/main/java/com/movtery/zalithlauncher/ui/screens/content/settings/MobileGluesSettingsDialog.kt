@@ -75,8 +75,6 @@ fun MobileGluesSettingsDialog(onDismissRequest: () -> Unit) {
     var multidrawMode by remember { mutableIntStateOf(config.multidrawMode) }
     var angleDepthClearFixMode by remember { mutableIntStateOf(config.angleDepthClearFixMode) }
     var customGLVersion by remember { mutableIntStateOf(config.customGLVersion) }
-    var fsr1Setting by remember { mutableStateOf(config.fsr1Setting == 1) }
-
     val glVersions = listOf(
         0 to "Disabled", 32 to "OpenGL 3.2", 33 to "OpenGL 3.3",
         40 to "OpenGL 4.0", 41 to "OpenGL 4.1", 42 to "OpenGL 4.2",
@@ -160,15 +158,7 @@ fun MobileGluesSettingsDialog(onDismissRequest: () -> Unit) {
                     onCheckedChange = { enableExtDirectStateAccess = it }
                 )
 
-                SettingsSwitchRow(
-                    title = "FSR1 Upscaling",
-                    summary = "Enable FSR1 upscaling",
-                    checked = fsr1Setting,
-                    onCheckedChange = { fsr1Setting = it }
-                )
-
                 HorizontalDivider()
-
                 SectionHeader("Cache")
 
                 OutlinedTextField(
@@ -195,7 +185,6 @@ fun MobileGluesSettingsDialog(onDismissRequest: () -> Unit) {
                         config.multidrawMode = multidrawMode
                         config.angleDepthClearFixMode = angleDepthClearFixMode
                         config.customGLVersion = customGLVersion
-                        config.fsr1Setting = if (fsr1Setting) 1 else 0
                         config.save()
                         onDismissRequest()
                     }

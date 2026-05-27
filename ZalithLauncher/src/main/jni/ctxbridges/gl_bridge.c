@@ -214,6 +214,10 @@ void gl_swap_buffers() {
     }
 
     if (currentBundle->surface != NULL)
+    {
+        void (*fsr_apply)(void) = dlsym(RTLD_DEFAULT, "fsr_apply");
+        if (fsr_apply) fsr_apply();
+
         if (!eglSwapBuffers_p(g_EglDisplay, currentBundle->surface) && eglGetError_p() == EGL_BAD_SURFACE)
         {
             eglMakeCurrent_p(g_EglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -222,6 +226,7 @@ void gl_swap_buffers() {
             eglMakeCurrent_p(g_EglDisplay, currentBundle->surface, currentBundle->surface, currentBundle->context);
             __android_log_print(ANDROID_LOG_INFO, g_LogTag, "The window has died, awaiting window change");
         }
+    }
 
 }
 

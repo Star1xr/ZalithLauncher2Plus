@@ -73,6 +73,7 @@ class MobileGluesConfig private constructor(private var isInitializing: Boolean)
             if (field != value) { field = value; saveIfReady() }
         }
 
+    // FSR1: kept for MG config sync; managed globally in AllSettings
     var fsr1Setting: Int = 0
         set(value) {
             if (field != value) { field = value; saveIfReady() }
@@ -138,6 +139,13 @@ class MobileGluesConfig private constructor(private var isInitializing: Boolean)
             angleDepthClearFixMode = obj.int("angleDepthClearFixMode", 0)
             customGLVersion = obj.int("customGLVersion", 0)
             fsr1Setting = obj.int("fsr1Setting", 0)
+        }
+
+        fun syncGlobalFsrToMgConfig() {
+            if (CONFIG_FILE_PATH.isEmpty()) return
+            val config = load() ?: MobileGluesConfig()
+            config.fsr1Setting = if (com.movtery.zalithlauncher.setting.AllSettings.fsrEnabled.getValue()) 1 else 0
+            config.save()
         }
     }
 }
