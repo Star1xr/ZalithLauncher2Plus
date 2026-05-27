@@ -1,6 +1,8 @@
 import com.android.build.api.variant.FilterConfiguration.FilterType.ABI
 import com.android.build.gradle.tasks.MergeSourceSetFolders
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.net.URL
+import java.util.zip.ZipFile
 
 plugins {
     alias(libs.plugins.android.application)
@@ -165,22 +167,13 @@ androidComponents {
 
 
 val mobileGluesLibs by tasks.registering {
-    val abis = mapOf(
-        "arm64-v8a" to "arm64-v8a",
-        "armeabi-v7a" to "armeabi-v7a"
-    )
+    val abis = setOf("arm64-v8a", "armeabi-v7a")
     doLast {
         val jniLibsDir = file("src/main/jniLibs")
-        var needsDownload = false
-        abis.forEach { (abi, _) ->
-            val libFile = file("$jniLibsDir/$abi/libMobileGlues.so")
-            if (!libFile.exists()) {
-                needsDownload = true
-            }
-        }
-        if (!needsDownload) return@doLast
+        val allExist = abis.all { file("$jniLibsDir/$it/libMobileGlues.so").exists() }
+        if (allExist) return@doLast
 
-        val apiUrl = java.net.URI("https://api.github.com/repos/MobileGL-Dev/MobileGlues-release/releases/latest").toURL()
+        val apiUrl = URL("https://api.github.com/repos/MobileGL-Dev/MobileGlues-release/releases/latest")
         val conn = apiUrl.openConnection() as java.net.HttpURLConnection
         conn.setRequestProperty("Accept", "application/json")
         val releaseJson = conn.inputStream.readAllBytes().decodeToString()
@@ -189,19 +182,18 @@ val mobileGluesLibs by tasks.registering {
         val assetUrl = Regex("\"browser_download_url\":\"([^\"]+\\.apk)\"").find(releaseJson)?.groupValues?.get(1)
             ?: throw GradleException("No APK asset found in latest MobileGlues release")
 
-        val apkFile = file("$buildDir/tmp/mobileglues.apk")
+        val apkFile = layout.buildDirectory.file("tmp/mobileglues.apk").get().asFile
         apkFile.parentFile.mkdirs()
 
         logger.lifecycle("Downloading MobileGlues from $assetUrl")
-        val downloadConn = java.net.URI(assetUrl).toURL().openConnection()
-        downloadConn.getInputStream().use { input ->
+        URL(assetUrl).openStream().use { input ->
             apkFile.outputStream().use { output ->
                 input.copyTo(output)
             }
         }
 
-        java.util.zip.ZipFile(apkFile).use { zip ->
-            abis.forEach { (abi, _) ->
+        ZipFile(apkFile).use { zip ->
+            abis.forEach { abi ->
                 val entryName = "lib/$abi/libMobileGlues.so"
                 val entry = zip.getEntry(entryName)
                 if (entry != null) {

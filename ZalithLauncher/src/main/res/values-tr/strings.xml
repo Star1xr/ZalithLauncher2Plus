@@ -1245,4 +1245,11 @@
     <string name="settings_export_failed">Dışa aktarma başarısız!</string>
     <string name="storage_permission_request_title">Depolama İzni Gerekli</string>
     <string name="storage_permission_request_message">Ayarları/Hesapları genel depolama alanına aktarmak için depolama iznine ihtiyacımız var.</string>
+    <string name="settings_renderer_download_turnip">Turnip Sürücüsünü İndir</string>
+    <string name="settings_renderer_download_turnip_summary">Bir Turnip sürücü sürümü seç ve GitHub\'dan indir</string>
+    <string name="settings_renderer_turnip_downloading">Turnip Sürücüsü İndiriliyor...</string>
+    <string name="settings_renderer_turnip_extracting">Turnip Sürücüsü Çıkarılıyor...</string>
+    <string name="settings_renderer_turnip_success">Turnip Sürücüsü başarıyla yüklendi</string>
+    <string name="settings_renderer_turnip_release_format">%1$s (%2$d sürücü)</string>
+    <string name="settings_renderer_turnip_asset_format">%1$s (%2$d MB)</string>
 </resources>

@@ -104,7 +104,7 @@ fun RendererSettingsScreen(
                 title = stringResource(R.string.settings_renderer_download_turnip),
                 items = releases!!,
                 itemTextProvider = { release ->
-                    "${release.tagName} (${release.assets.size} drivers)"
+                    stringResource(R.string.settings_renderer_turnip_release_format, release.tagName, release.assets.size)
                 },
                 onItemSelected = { release ->
                     selectedRelease = release
@@ -121,7 +121,7 @@ fun RendererSettingsScreen(
                 items = selectedRelease!!.assets,
                 itemTextProvider = { asset ->
                     val sizeMb = asset.size / (1024 * 1024)
-                    "${asset.name} (${sizeMb}MB)"
+                    stringResource(R.string.settings_renderer_turnip_asset_format, asset.name, sizeMb)
                 },
                 onItemSelected = { asset ->
                     TurnipDownloader.downloadAsset(context, asset)

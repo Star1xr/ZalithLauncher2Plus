@@ -1222,10 +1222,12 @@
     <string name="launcher_fork_subtitle">a fork of Zalith Launcher 2</string>
     <string name="settings_renderer_external_driver">External Driver</string>
     <string name="settings_renderer_download_turnip">Download Turnip Driver</string>
-    <string name="settings_renderer_download_turnip_summary">Download and extract the latest Turnip drivers from GitHub</string>
+    <string name="settings_renderer_download_turnip_summary">Select a Turnip driver version and download it from GitHub</string>
     <string name="settings_renderer_turnip_downloading">Downloading Turnip Driver...</string>
     <string name="settings_renderer_turnip_extracting">Extracting Turnip Driver...</string>
     <string name="settings_renderer_turnip_success">Turnip Driver installed successfully</string>
+    <string name="settings_renderer_turnip_release_format">%1$s (%2$d drivers)</string>
+    <string name="settings_renderer_turnip_asset_format">%1$s (%2$d MB)</string>
     <string name="launcher_ram_usage">RAM: %1$dMB / %2$dMB</string>
     <string name="launcher_fps_display">FPS: %d</string>
     <string name="about_acknowledgements_title">Acknowledgements</string>
