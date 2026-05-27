@@ -24,6 +24,9 @@ import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebResourceRequest
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,6 +58,8 @@ import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
+import com.movtery.zalithlauncher.utils.driver.TurnipDownloader
+import com.movtery.zalithlauncher.coroutine.TaskSystem
 import org.apache.commons.io.FileUtils
 
 /**
@@ -142,6 +147,23 @@ fun WebViewScreen(
                                     super.onPageStarted(view, url, favicon)
                                     webUrl = url ?: ""
                                     isWebLoading = true
+                                }
+                                
+                                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                                    val currentUrl = request?.url?.toString() ?: return false
+                                    val uri = Uri.parse(currentUrl)
+                                    val FileName = uri.lastPathSegment
+                                    if ( currentUrl?.startsWith("https://github.com/K11MCH1/AdrenoToolsDrivers/releases/download/") && (FileName?.endsWith(".zip", ignoreCase = true) ?: false)
+                                    ) {
+                                    if (TaskSystem.containsTask("download_turnip_driver")) {
+                                       Toast.makeText(context.applicationContext, "A Turnip driver is already downloading. Please Wait.", Toast.LENGTH_SHORT).show()
+                                       return true
+                                        } else {
+                                       TurnipDownloader.downloadUrl( context.applicationContext, currentUrl )
+                                       return true
+                                        }
+                                    }
+                                    return false
                                 }
                             }
 
