@@ -219,7 +219,7 @@ object TurnipDownloader {
                 }
              },
              onError = { th ->
-                lError("Failed to download Turnip driver", th)
+                Logger.error(TAG, "Failed to download Turnip driver", th)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Failed: ${th.message}", Toast.LENGTH_LONG).show()
                 }
