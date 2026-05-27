@@ -97,6 +97,11 @@ fun RendererSettingsScreen(
         var allDrivers by remember { mutableStateOf<List<Pair<TurnipRelease, GithubReleaseApi.Asset>>?>(null) }
         var driverListError by remember { mutableStateOf<String?>(null) }
         var driverListLoading by remember { mutableStateOf(false) }
+        var showMobileGluesSettings by remember { mutableStateOf(false) }
+
+        if (showMobileGluesSettings) {
+            MobileGluesSettingsDialog(onDismissRequest = { showMobileGluesSettings = false })
+        }
 
         if (showDriverList && allDrivers != null) {
             SimpleListDialog(
@@ -148,7 +153,7 @@ fun RendererSettingsScreen(
                         },
                         getItemTrailing = { renderer ->
                             if (renderer.getRendererName() == "MobileGlues") {
-                                IconButton(onClick = { }) {
+                                IconButton(onClick = { showMobileGluesSettings = true }) {
                                     Icon(
                                         painter = painterResource(R.drawable.ic_settings_filled),
                                         contentDescription = stringResource(R.string.generic_setting)
