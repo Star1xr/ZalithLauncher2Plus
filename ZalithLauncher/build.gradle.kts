@@ -164,6 +164,70 @@ androidComponents {
 }
 
 
+val mobileGluesLibs by tasks.registering {
+    val abis = mapOf(
+        "arm64-v8a" to "arm64-v8a",
+        "armeabi-v7a" to "armeabi-v7a"
+    )
+    doLast {
+        val jniLibsDir = file("src/main/jniLibs")
+        var needsDownload = false
+        abis.forEach { (abi, _) ->
+            val libFile = file("$jniLibsDir/$abi/libMobileGlues.so")
+            if (!libFile.exists()) {
+                needsDownload = true
+            }
+        }
+        if (!needsDownload) return@doLast
+
+        val apiUrl = java.net.URI("https://api.github.com/repos/MobileGL-Dev/MobileGlues-release/releases/latest").toURL()
+        val conn = apiUrl.openConnection() as java.net.HttpURLConnection
+        conn.setRequestProperty("Accept", "application/json")
+        val releaseJson = conn.inputStream.readAllBytes().decodeToString()
+        conn.disconnect()
+
+        val assetUrl = Regex("\"browser_download_url\":\"([^\"]+\\.apk)\"").find(releaseJson)?.groupValues?.get(1)
+            ?: throw GradleException("No APK asset found in latest MobileGlues release")
+
+        val apkFile = file("$buildDir/tmp/mobileglues.apk")
+        apkFile.parentFile.mkdirs()
+
+        logger.lifecycle("Downloading MobileGlues from $assetUrl")
+        val downloadConn = java.net.URI(assetUrl).toURL().openConnection()
+        downloadConn.getInputStream().use { input ->
+            apkFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        java.util.zip.ZipFile(apkFile).use { zip ->
+            abis.forEach { (abi, _) ->
+                val entryName = "lib/$abi/libMobileGlues.so"
+                val entry = zip.getEntry(entryName)
+                if (entry != null) {
+                    val outDir = file("$jniLibsDir/$abi")
+                    outDir.mkdirs()
+                    zip.getInputStream(entry).use { input ->
+                        File(outDir, "libMobileGlues.so").outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    logger.lifecycle("Extracted $entryName")
+                } else {
+                    logger.warn("$entryName not found in APK")
+                }
+            }
+        }
+        apkFile.delete()
+    }
+}
+
+afterEvaluate {
+    tasks.matching { it.name.startsWith("merge") && it.name.endsWith("JniLibs") }.configureEach {
+        dependsOn(mobileGluesLibs)
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)

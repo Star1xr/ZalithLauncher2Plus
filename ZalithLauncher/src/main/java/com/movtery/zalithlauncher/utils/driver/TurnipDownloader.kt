@@ -38,21 +38,59 @@ import java.io.File
 import java.util.zip.ZipFile
 import kotlinx.serialization.json.Json
 
+data class TurnipRelease(
+    val tagName: String,
+    val assets: List<GithubReleaseApi.Asset>
+)
+
 object TurnipDownloader {
     private const val TAG = "TurnipDownloader"
     private val client = OkHttpClient()
     private val json = Json { ignoreUnknownKeys = true }
-    private const val REPO_API = "https://api.github.com/repos/K11MCH1/AdrenoToolsDrivers/releases/latest"
+    private const val REPO_API = "https://api.github.com/repos/K11MCH1/AdrenoToolsDrivers/releases"
 
-    suspend fun fetchLatestAssets(): List<GithubReleaseApi.Asset> {
-        val request = Request.Builder().url(REPO_API).build()
-        val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
-        if (!response.isSuccessful) throw Exception("Failed to fetch latest release")
+    private fun parseVersion(tag: String): Int {
+        val digits = tag.removePrefix("V").takeWhile { it.isDigit() || it == '.' }
+            .split(".").firstOrNull()?.toIntOrNull() ?: 0
+        return digits
+    }
 
-        val body = response.body?.string() ?: throw Exception("Empty response body")
-        val release = json.decodeFromString<GithubReleaseApi>(body)
+    suspend fun fetchAllReleases(): List<TurnipRelease> {
+        val result = mutableListOf<TurnipRelease>()
+        var page = 1
+        var hasMore = true
 
-        return release.assets.filter { it.name.endsWith(".zip", ignoreCase = true) }
+        while (hasMore) {
+            val url = "$REPO_API?per_page=100&page=$page"
+            val request = Request.Builder().url(url).build()
+            val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+            if (!response.isSuccessful) break
+
+            val body = response.body?.string() ?: break
+            val releases = json.decodeFromString<List<GithubReleaseApi>>(body)
+
+            if (releases.isEmpty()) {
+                hasMore = false
+                break
+            }
+
+            releases.forEach { release ->
+                val version = parseVersion(release.tagName)
+                if (version >= 23) {
+                    val zipAssets = release.assets.filter { it.name.endsWith(".zip", ignoreCase = true) }
+                    if (zipAssets.isNotEmpty()) {
+                        result.add(TurnipRelease(release.tagName, zipAssets))
+                    }
+                } else if (version < 23) {
+                    hasMore = false
+                }
+            }
+
+            page++
+        }
+
+        if (result.isEmpty()) throw Exception("No Turnip releases found (V23+)")
+        return result
     }
 
     fun downloadAsset(context: Context, asset: GithubReleaseApi.Asset) {

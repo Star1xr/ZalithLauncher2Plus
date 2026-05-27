@@ -19,13 +19,8 @@
 package com.movtery.zalithlauncher.game.renderer.renderers
 
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
-import com.movtery.zalithlauncher.path.PathManager
-import java.io.File
 
 object MobileGluesRenderer : RendererInterface {
-    private const val DIR_NAME = "mobileglues"
-    private const val LIB_NAME = "libMobileGlues.so"
-
     override fun getRendererId(): String = "mobileglues"
 
     override fun getUniqueIdentifier(): String = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
@@ -38,8 +33,5 @@ object MobileGluesRenderer : RendererInterface {
 
     override fun getDlopenLibrary(): Lazy<List<String>> = lazy { emptyList() }
 
-    override fun getRendererLibrary(): String {
-        val libFile = File(PathManager.DIR_DRIVERS, "$DIR_NAME/$LIB_NAME")
-        return if (libFile.exists()) libFile.absolutePath else LIB_NAME
-    }
+    override fun getRendererLibrary(): String = "libMobileGlues.so"
 }

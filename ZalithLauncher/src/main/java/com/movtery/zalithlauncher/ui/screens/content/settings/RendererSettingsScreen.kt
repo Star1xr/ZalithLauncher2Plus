@@ -71,9 +71,8 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.ListSettin
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
-import com.movtery.zalithlauncher.upgrade.GithubReleaseApi
 import com.movtery.zalithlauncher.utils.device.checkVulkanSupport
-import com.movtery.zalithlauncher.utils.driver.MobileGluesDownloader
+import com.movtery.zalithlauncher.utils.driver.TurnipRelease
 import com.movtery.zalithlauncher.utils.driver.TurnipDownloader
 import com.movtery.zalithlauncher.utils.isAdrenoGPU
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
@@ -93,15 +92,33 @@ fun RendererSettingsScreen(
     ) { isVisible ->
         val context = LocalContext.current
         val coroutineScope = rememberCoroutineScope()
-        var showDriverList by remember { mutableStateOf(false) }
-        var driverAssets by remember { mutableStateOf<List<GithubReleaseApi.Asset>?>(null) }
+        var showReleaseList by remember { mutableStateOf(false) }
+        var releases by remember { mutableStateOf<List<TurnipRelease>?>(null) }
+        var selectedRelease by remember { mutableStateOf<TurnipRelease?>(null) }
+        var showAssetList by remember { mutableStateOf(false) }
         var driverListError by remember { mutableStateOf<String?>(null) }
         var driverListLoading by remember { mutableStateOf(false) }
 
-        if (showDriverList && driverAssets != null) {
+        if (showReleaseList && releases != null) {
             SimpleListDialog(
                 title = stringResource(R.string.settings_renderer_download_turnip),
-                items = driverAssets!!,
+                items = releases!!,
+                itemTextProvider = { release ->
+                    "${release.tagName} (${release.assets.size} drivers)"
+                },
+                onItemSelected = { release ->
+                    selectedRelease = release
+                    showReleaseList = false
+                    showAssetList = true
+                },
+                onDismissRequest = { showReleaseList = false }
+            )
+        }
+
+        if (showAssetList && selectedRelease != null) {
+            SimpleListDialog(
+                title = selectedRelease!!.tagName,
+                items = selectedRelease!!.assets,
                 itemTextProvider = { asset ->
                     val sizeMb = asset.size / (1024 * 1024)
                     "${asset.name} (${sizeMb}MB)"
@@ -109,7 +126,7 @@ fun RendererSettingsScreen(
                 onItemSelected = { asset ->
                     TurnipDownloader.downloadAsset(context, asset)
                 },
-                onDismissRequest = { showDriverList = false }
+                onDismissRequest = { showAssetList = false }
             )
         }
 
@@ -211,8 +228,8 @@ fun RendererSettingsScreen(
                                 driverListLoading = true
                                 coroutineScope.launch {
                                     try {
-                                        driverAssets = TurnipDownloader.fetchLatestAssets()
-                                        showDriverList = true
+                                        releases = TurnipDownloader.fetchAllReleases()
+                                        showReleaseList = true
                                     } catch (e: Exception) {
                                         driverListError = e.message ?: "Unknown error"
                                     } finally {
@@ -226,35 +243,6 @@ fun RendererSettingsScreen(
                                 IconButton(
                                     onClick = {
                                         eventViewModel.sendEvent(EventViewModel.Event.OpenWeb("https://github.com/K11MCH1/AdrenoToolsDrivers/releases"))
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_link),
-                                        contentDescription = stringResource(R.string.generic_open_link)
-                                    )
-                                }
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_download),
-                                    contentDescription = null,
-                                    modifier = Modifier.align(Alignment.CenterVertically).padding(end = 12.dp)
-                                )
-                            }
-                        }
-                    )
-
-                    SettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        title = "Download MobileGlues",
-                        summary = "Download and install MobileGlues GL-on-ES renderer",
-                        onClick = {
-                            MobileGluesDownloader.downloadLatest(context)
-                        },
-                        trailingIcon = {
-                            Row {
-                                IconButton(
-                                    onClick = {
-                                        eventViewModel.sendEvent(EventViewModel.Event.OpenWeb("https://github.com/MobileGL-Dev/MobileGlues-release/releases"))
                                     }
                                 ) {
                                     Icon(
