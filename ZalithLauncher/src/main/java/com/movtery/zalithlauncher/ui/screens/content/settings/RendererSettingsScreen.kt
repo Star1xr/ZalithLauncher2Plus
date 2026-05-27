@@ -77,6 +77,7 @@ import com.movtery.zalithlauncher.utils.driver.TurnipDownloader
 import com.movtery.zalithlauncher.utils.driver.TurnipRelease
 import com.movtery.zalithlauncher.utils.isAdrenoGPU
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
+import com.movtery.zalithlauncher.viewmodel.sendDLPlugin
 import kotlinx.coroutines.launch
 
 @Composable
