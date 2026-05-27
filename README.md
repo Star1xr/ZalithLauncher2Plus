@@ -19,7 +19,9 @@ This fork aims to enhance and customize the original Zalith Launcher 2 experienc
 - [x] Chroma names
 - [x] Shortcuts in main screen
 - [x] Importing/exporting settings
-- [x] Importing/exporting accounts along with capes and skins
+- [x] Importing/exporting accounts along with capes and skins, chroma names
+- [x] Implemented mobileglues with config
+- [x] Config UI remake
 
 **Soon:**
 - [ ] Friend system
