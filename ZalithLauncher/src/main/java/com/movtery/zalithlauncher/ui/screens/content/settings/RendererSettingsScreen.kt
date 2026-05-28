@@ -278,7 +278,7 @@ fun RendererSettingsScreen(
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Top,
+                        position = CardPosition.Middle,
                         unit = AllSettings.fsrEnabled,
                         title = stringResource(R.string.settings_renderer_fsr_title),
                         summary = stringResource(R.string.settings_renderer_fsr_summary)
