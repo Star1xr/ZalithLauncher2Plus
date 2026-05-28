@@ -97,6 +97,17 @@ object TurnipDownloader {
         val task = Task.runTask(
             id = "download_turnip_driver_${asset.name}",
             task = { it ->
+                
+                val zipName = asset.name
+                val canonicalZipName = zipName.substringBeforeLast(".zip")
+                val currentDir = PathManager.DIR_DRIVERS
+                val forbidden = listOf("/","\")
+                
+                if ((currentDir.listFiles()?.any{it.isDirectory && it.name == canonicalZipName} ?: false) && (canonicalZipName != "." && canonicalZipName != ".." && canonicalZipName.isNotEmpty() && forbidden.none{canonicalZipName.contains(it)})) {
+                   Toast.makeText(context.applicationContext, "Driver already exists, skipping...", Toast.LENGTH_SHORT ).show()
+                   return
+                   }
+                
                 it.updateMessage(R.string.settings_renderer_turnip_downloading)
                 it.updateProgress(-1f)
 
@@ -163,6 +174,14 @@ object TurnipDownloader {
                 it.updateMessage(R.string.settings_renderer_turnip_downloading)
                 
                 val zipName = downloadUrl.substringAfterLast("/").substringBeforeLast("?")
+                val canonicalZipName = zipName.substringBeforeLast(".zip")
+                val currentDir = PathManager.DIR_DRIVERS
+                val forbidden = listOf("/","\")
+                
+                if ((currentDir.listFiles()?.any{it.isDirectory && it.name == canonicalZipName} ?: false) && (canonicalZipName != "." && canonicalZipName != ".." && canonicalZipName.isNotEmpty() && forbidden.none{canonicalZipName.contains(it)})) {
+                   Toast.makeText(context.applicationContext, "Driver already exists, skipping...", Toast.LENGTH_SHORT ).show()
+                   return
+                   }
                 
                 val downloadFile = File(PathManager.DIR_CACHE, zipName)
                 val downloadRequest = Request.Builder().url(downloadUrl).build()
@@ -191,9 +210,8 @@ object TurnipDownloader {
                 it.updateMessage(R.string.settings_renderer_turnip_extracting)
                 it.updateProgress(-1f)
                 
-                val currentDir = PathManager.DIR_DRIVERS
                 val prefix = "unnamed-driver-"
-                val canonicalZipName = zipName.substringBeforeLast(".zip")
+                
                 val safeDirName = if ( canonicalZipName.isEmpty() || canonicalZipName == "." || canonicalZipName == ".." ) { "$prefix${(currentDir.listFiles()?.map {it.name}?.filter {it.startsWith(prefix)}?.mapNotNull {it.substring(prefix.length).toIntOrNull() }?.maxOrNull() ?:0) +1}" } else {
                                                      canonicalZipName.replace(Regex("[/\\\\]+"), "_")}
                 
@@ -227,4 +245,4 @@ object TurnipDownloader {
          )
          TaskSystem.submitTask(task)
     }
-}
+            }
