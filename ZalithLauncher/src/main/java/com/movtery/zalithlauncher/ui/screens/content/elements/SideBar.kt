@@ -58,7 +58,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import android.content.Context
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
@@ -72,6 +74,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.utils.platform.bytesToMB
+import com.movtery.zalithlauncher.utils.platform.getTotalMemory
+import com.movtery.zalithlauncher.utils.platform.getUsedMemory
 import kotlinx.coroutines.delay
 
 private val CollapsedWidth = 56.dp
@@ -86,7 +91,8 @@ fun SideBar(
     onVersionsClick: () -> Unit,
     onInfoClick: () -> Unit
 ) {
-    var memoryInfo by remember { mutableStateOf(getMemoryInfo()) }
+    val context = LocalContext.current
+    var memoryInfo by remember { mutableStateOf(getMemoryInfo(context)) }
     val usedRatio by animateFloatAsState(
         targetValue = if (memoryInfo.first > 0) memoryInfo.second.toFloat() / memoryInfo.first.toFloat() else 0f,
         label = "ramUsedRatio"
@@ -105,7 +111,7 @@ fun SideBar(
     LaunchedEffect(isVisible) {
         if (isVisible) {
             while (true) {
-                memoryInfo = getMemoryInfo()
+                memoryInfo = getMemoryInfo(context)
                 delay(1000)
             }
         }
@@ -514,10 +520,8 @@ private fun SideBarShortcut(
     }
 }
 
-private fun getMemoryInfo(): Triple<Long, Long, Long> {
-    val runtime = Runtime.getRuntime()
-    val allocated = runtime.totalMemory() / 1024 / 1024
-    val used = (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024
-    val max = runtime.maxMemory() / 1024 / 1024
-    return Triple(allocated, used, max)
+private fun getMemoryInfo(context: Context): Triple<Long, Long, Long> {
+    val total = getTotalMemory(context).bytesToMB().toLong()
+    val used = getUsedMemory(context).bytesToMB().toLong()
+    return Triple(total, used, 0)
 }
