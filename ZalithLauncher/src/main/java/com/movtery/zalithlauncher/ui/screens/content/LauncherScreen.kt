@@ -135,9 +135,6 @@ fun LauncherScreen(
                 onFpsClick = {
                     performanceSettingsState = PerformanceSettingsOperation.Fps
                 },
-                onRamClick = {
-                    performanceSettingsState = PerformanceSettingsOperation.Ram
-                },
                 onVersionsClick = {
                     backStackViewModel.mainScreen.removeAndNavigateTo(
                         remove = NestedNavKey.VersionSettings::class,

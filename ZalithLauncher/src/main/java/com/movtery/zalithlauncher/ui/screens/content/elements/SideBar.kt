@@ -38,7 +38,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -46,7 +45,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -82,15 +80,9 @@ fun SideBar(
     modifier: Modifier = Modifier,
     isVisible: Boolean,
     onFpsClick: () -> Unit,
-    onRamClick: () -> Unit,
     onVersionsClick: () -> Unit,
     onInfoClick: () -> Unit
 ) {
-    var memoryInfo by remember { mutableStateOf(getMemoryInfo()) }
-    val usedRatio by animateFloatAsState(
-        targetValue = if (memoryInfo.first > 0) memoryInfo.second.toFloat() / memoryInfo.first.toFloat() else 0f,
-        label = "ramUsedRatio"
-    )
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     val targetWidth by animateDpAsState(
@@ -101,15 +93,6 @@ fun SideBar(
         ),
         label = "sidebarWidth"
     )
-
-    LaunchedEffect(isVisible) {
-        if (isVisible) {
-            while (true) {
-                memoryInfo = getMemoryInfo()
-                delay(1000)
-            }
-        }
-    }
 
     Box(
         modifier = modifier
@@ -182,22 +165,6 @@ fun SideBar(
                         Spacer(modifier = Modifier.height(2.dp))
 
                         StaggeredItem(delay = 0) {
-                            SideBarRamIndicator(
-                                allocatedGb = "%.1f".format(memoryInfo.first / 1024f),
-                                ratio = usedRatio,
-                                onClick = onRamClick
-                            )
-                        }
-
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .padding(horizontal = 18.dp)
-                                .alpha(0.2f)
-                        )
-
-                        Spacer(modifier = Modifier.height(2.dp))
-
-                        StaggeredItem(delay = 60) {
                             SideBarShortcut(
                                 icon = painterResource(R.drawable.ic_video_settings),
                                 contentDescription = "FPS",
@@ -327,135 +294,6 @@ private fun SideBarToggle(
 }
 
 @Composable
-private fun SideBarIndicator(
-    label: String,
-    value: String,
-    icon: Painter,
-    onClick: () -> Unit = {}
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessHigh
-        ),
-        label = "indicatorScale"
-    )
-
-    val elevation by animateDpAsState(
-        targetValue = if (isPressed) 2.dp else 8.dp,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "indicatorElevation"
-    )
-
-    Surface(
-        modifier = Modifier
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-            .scale(scale)
-            .shadow(
-                elevation = elevation,
-                shape = RoundedCornerShape(18.dp),
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-            )
-            .clip(RoundedCornerShape(18.dp))
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-        tonalElevation = if (isPressed) 1.dp else 4.dp,
-        shadowElevation = 0.dp
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 10.dp)
-        ) {
-            Icon(
-                painter = icon,
-                contentDescription = label,
-                modifier = Modifier.size(22.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.labelSmall,
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun SideBarRamIndicator(
-    allocatedGb: String,
-    ratio: Float,
-    onClick: () -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessHigh),
-        label = "ramScale"
-    )
-
-    Surface(
-        modifier = Modifier
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-            .scale(scale)
-            .shadow(
-                elevation = if (isPressed) 2.dp else 8.dp,
-                shape = RoundedCornerShape(18.dp),
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-            )
-            .clip(RoundedCornerShape(18.dp))
-            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-        tonalElevation = if (isPressed) 1.dp else 4.dp,
-        shadowElevation = 0.dp
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_dashboard_outlined),
-                contentDescription = "RAM",
-                modifier = Modifier.size(22.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            LinearProgressIndicator(
-                progress = { ratio },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-            Text(
-                text = "${allocatedGb}G",
-                style = MaterialTheme.typography.labelSmall,
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-            )
-        }
-    }
-}
-
-@Composable
 private fun SideBarShortcut(
     icon: Painter,
     contentDescription: String,
@@ -514,10 +352,4 @@ private fun SideBarShortcut(
     }
 }
 
-private fun getMemoryInfo(): Triple<Long, Long, Long> {
-    val runtime = Runtime.getRuntime()
-    val allocated = runtime.totalMemory() / 1024 / 1024
-    val used = (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024
-    val max = runtime.maxMemory() / 1024 / 1024
-    return Triple(allocated, used, max)
-}
+
