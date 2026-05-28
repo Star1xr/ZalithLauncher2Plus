@@ -497,6 +497,15 @@
     <string name="settings_renderer_sustained_performance_summary">Etkinleştirildiğinde, sistem oyuna daha kararlı bir performans sunar; uzun süreli oyunlar için uygundur, ancak aşırı ısınmayı önlemek için cihazın tepki hızını biraz düşürebilir</string>
     <string name="settings_renderer_shader_dump_title">Gölgelengirici Günlüğü</string>
     <string name="settings_renderer_shader_dump_summary">Oyun çalışırken dönüştürülen shader kodunu günlük dosyasına aktarır; grafik render sürecini hata ayıklama veya analiz için kolaylaştırır</string>
+    <string name="settings_renderer_fsr_title">FSR1 Ölçeklendirme</string>
+    <string name="settings_renderer_fsr_summary">AMD FidelityFX Super Resolution 1.0 — daha düşük çözünürlükteki görüntüyü tam çözünürlüğe kenar yeniden yapılandırması ile ölçekler</string>
+    <string name="settings_renderer_fsr_quality_title">FSR Kalitesi</string>
+    <string name="settings_renderer_fsr_quality_summary">Daha yüksek kalite = daha yüksek dahili render çözünürlüğü</string>
+    <string name="settings_renderer_fsr_quality_ultra">Ultra Kalite</string>
+    <string name="settings_renderer_fsr_quality_quality">Kalite</string>
+    <string name="settings_renderer_fsr_quality_balanced">Dengeli</string>
+    <string name="settings_renderer_fsr_quality_performance">Performans</string>
+    <string name="sidebar_shortcut_menu">Kısayol Menüsü</string>
     <string name="settings_renderer_vulkan_driver_system_title">Sistem Vulkan Sürücüsünü Kullan</string>
     <string name="settings_renderer_vulkan_driver_system_summary">Etkinleştirildiğinde, başlatıcı varsayılan Turnip sürücüsü yerine sistemin kendi Vulkan sürücüsünü (Adreno GPU için) zorunlu olarak kullanacaktır. Bu ayar yalnızca Vulkan ile render yapan Zink arka ucu ve ilgili modları etkiler</string>
     <string name="settings_renderer_zink_driver_adreno">Başlatıcı cihazınızın Adreno GPU olduğunu tespit etti; bu seçeneği açmak Zink render cihazının düzgün çalışmamasına yol açabilir. Bu seçeneği açmak istediğinize emin misiniz?</string>

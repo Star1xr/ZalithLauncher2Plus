@@ -866,6 +866,15 @@
     <string name="settings_renderer_sustained_performance_summary">启用后，系统会为游戏提供更稳定的性能输出，适用于长时间游玩，但可能略微降低设备响应速度以防止过热</string>
     <string name="settings_renderer_shader_dump_title">着色器日志输出</string>
     <string name="settings_renderer_shader_dump_summary">将游戏运行时转换后的着色器代码输出到日志文件，便于调试或分析图形渲染过程</string>
+    <string name="settings_renderer_fsr_title">FSR1 超分辨率</string>
+    <string name="settings_renderer_fsr_summary">AMD FidelityFX Super Resolution 1.0 — 以边缘重建技术将低分辨率渲染升级至全分辨率</string>
+    <string name="settings_renderer_fsr_quality_title">FSR 质量</string>
+    <string name="settings_renderer_fsr_quality_summary">质量越高 = 内部渲染分辨率越高</string>
+    <string name="settings_renderer_fsr_quality_ultra">极致质量</string>
+    <string name="settings_renderer_fsr_quality_quality">质量</string>
+    <string name="settings_renderer_fsr_quality_balanced">平衡</string>
+    <string name="settings_renderer_fsr_quality_performance">性能</string>
+    <string name="sidebar_shortcut_menu">快捷菜单</string>
     <string name="settings_renderer_vulkan_driver_system_title">使用系统 Vulkan 驱动</string>
     <string name="settings_renderer_vulkan_driver_system_summary">启用后，启动器将强制使用系统自带的 Vulkan 驱动（适用于 Adreno GPU），而不使用默认的 Turnip 驱动。本设置仅影响使用 Vulkan 渲染的 Zink 后端及相关模组</string>
     <string name="settings_renderer_zink_driver_adreno">启动器检测到您的设备为 Adreno GPU，开启这个选项可能会导致 Zink 渲染器无法正常工作，您确定要打开这个选项吗？</string>

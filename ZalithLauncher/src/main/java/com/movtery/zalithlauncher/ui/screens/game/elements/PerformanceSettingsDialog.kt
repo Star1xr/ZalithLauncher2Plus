@@ -38,6 +38,7 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutSliderItem
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutSwitchItem
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutSelectItem
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 
@@ -75,6 +76,35 @@ fun PerformanceSettingsDialog(
                     decimalFormat = "#0",
                     suffix = "%"
                 )
+
+                InfoLayoutSwitchItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.settings_renderer_fsr_title),
+                    value = AllSettings.fsrEnabled.state,
+                    onValueChange = { AllSettings.fsrEnabled.save(it) }
+                )
+
+                if (AllSettings.fsrEnabled.state) {
+                    InfoLayoutSelectItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.settings_renderer_fsr_quality_title),
+                        options = listOf(1, 2, 3, 4),
+                        current = AllSettings.fsrQuality.state ?: 2,
+                        onClick = { AllSettings.fsrQuality.save(it) },
+                        label = { quality ->
+                            Text(
+                                text = when (quality) {
+                                    1 -> stringResource(R.string.settings_renderer_fsr_quality_ultra)
+                                    2 -> stringResource(R.string.settings_renderer_fsr_quality_quality)
+                                    3 -> stringResource(R.string.settings_renderer_fsr_quality_balanced)
+                                    4 -> stringResource(R.string.settings_renderer_fsr_quality_performance)
+                                    else -> ""
+                                },
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    )
+                }
             }
         }
         PerformanceSettingsOperation.Ram -> {
