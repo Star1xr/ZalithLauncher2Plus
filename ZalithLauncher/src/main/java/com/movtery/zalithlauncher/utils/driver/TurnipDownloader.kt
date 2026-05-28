@@ -101,7 +101,7 @@ object TurnipDownloader {
                 val zipName = asset.name
                 val canonicalZipName = zipName.substringBeforeLast(".zip")
                 val currentDir = PathManager.DIR_DRIVERS
-                val forbidden = listOf("/","\")
+                val forbidden = listOf("/","\\")
                 
                 if ((currentDir.listFiles()?.any{it.isDirectory && it.name == canonicalZipName} ?: false) && (canonicalZipName != "." && canonicalZipName != ".." && canonicalZipName.isNotEmpty() && forbidden.none{canonicalZipName.contains(it)})) {
                    Toast.makeText(context.applicationContext, "Driver already exists, skipping...", Toast.LENGTH_SHORT ).show()
@@ -176,7 +176,7 @@ object TurnipDownloader {
                 val zipName = downloadUrl.substringAfterLast("/").substringBeforeLast("?")
                 val canonicalZipName = zipName.substringBeforeLast(".zip")
                 val currentDir = PathManager.DIR_DRIVERS
-                val forbidden = listOf("/","\")
+                val forbidden = listOf("/","\\")
                 
                 if ((currentDir.listFiles()?.any{it.isDirectory && it.name == canonicalZipName} ?: false) && (canonicalZipName != "." && canonicalZipName != ".." && canonicalZipName.isNotEmpty() && forbidden.none{canonicalZipName.contains(it)})) {
                    Toast.makeText(context.applicationContext, "Driver already exists, skipping...", Toast.LENGTH_SHORT ).show()
@@ -237,7 +237,7 @@ object TurnipDownloader {
                 }
              },
              onError = { th ->
-                Logger.error(TAG, "Failed to download Turnip driver", th)
+                lError("Failed to download Turnip driver", th)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Failed: ${th.message}", Toast.LENGTH_LONG).show()
                 }
@@ -245,4 +245,4 @@ object TurnipDownloader {
          )
          TaskSystem.submitTask(task)
     }
-            }
+}
