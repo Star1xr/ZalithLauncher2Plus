@@ -28,6 +28,10 @@ static void (*real_glBindFramebuffer)(GLenum target, GLuint framebuffer) = nullp
 static void (*real_glViewport)(GLint x, GLint y, GLsizei width, GLsizei height) = nullptr;
 static void (*real_glGetIntegerv)(GLenum pname, GLint* data) = nullptr;
 static void* (*real_eglGetProcAddress)(const char* procname) = nullptr;
+static void (*real_glGenVertexArrays)(GLsizei n, GLuint* arrays) = nullptr;
+static void (*real_glBindVertexArray)(GLuint array) = nullptr;
+static void (*real_glDeleteVertexArrays)(GLsizei n, const GLuint* arrays) = nullptr;
+static void (*real_glBlitFramebuffer)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) = nullptr;
 
 static void checkError(const char* tag) {
     GLenum err = glGetError();
@@ -75,8 +79,12 @@ static void getRealGLFunctions() {
         real_glBindFramebuffer = (void (*)(GLenum, GLuint))dlsym(gles, "glBindFramebuffer");
         real_glViewport = (void (*)(GLint, GLint, GLsizei, GLsizei))dlsym(gles, "glViewport");
         real_glGetIntegerv = (void (*)(GLenum, GLint*))dlsym(gles, "glGetIntegerv");
+        real_glGenVertexArrays = (void (*)(GLsizei, GLuint*))dlsym(gles, "glGenVertexArrays");
+        real_glBindVertexArray = (void (*)(GLuint))dlsym(gles, "glBindVertexArray");
+        real_glDeleteVertexArrays = (void (*)(GLsizei, const GLuint*))dlsym(gles, "glDeleteVertexArrays");
+        real_glBlitFramebuffer = (void (*)(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum))dlsym(gles, "glBlitFramebuffer");
     }
-    if (!real_glBindFramebuffer || !real_glViewport || !real_glGetIntegerv) {
+    if (!real_glBindFramebuffer || !real_glViewport || !real_glGetIntegerv || !real_glGenVertexArrays || !real_glBindVertexArray || !real_glDeleteVertexArrays || !real_glBlitFramebuffer) {
         LOGE("Failed to resolve real GL functions");
     }
 }
@@ -222,9 +230,9 @@ static bool initFSRResources() {
          1.0f,  1.0f, 1.0f, 1.0f
     };
 
-    glGenVertexArrays(1, &g_quadVAO);
+    real_glGenVertexArrays(1, &g_quadVAO);
     glGenBuffers(1, &g_quadVBO);
-    glBindVertexArray(g_quadVAO);
+    real_glBindVertexArray(g_quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, g_quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -232,7 +240,7 @@ static bool initFSRResources() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    real_glBindVertexArray(0);
 
     glGenTextures(1, &g_renderTexture);
     glBindTexture(GL_TEXTURE_2D, g_renderTexture);
@@ -266,7 +274,7 @@ static bool initFSRResources() {
     checkError("initFSRResources");
 
     glUseProgram(prevProgram);
-    glBindVertexArray(prevVAO);
+    real_glBindVertexArray(prevVAO);
     glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuffer);
     glBindTexture(GL_TEXTURE_2D, prevTexture);
     real_glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
@@ -385,20 +393,20 @@ do_fsr:
         glUniform4fv(glGetUniformLocation(g_fsrProgram, "uConst0"), 1, const0);
         glUniform2fv(glGetUniformLocation(g_fsrProgram, "uViewportSize"), 1, viewportSize);
 
-        glBindVertexArray(g_quadVAO);
+        real_glBindVertexArray(g_quadVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
+        real_glBindVertexArray(0);
 
         real_glBindFramebuffer(GL_READ_FRAMEBUFFER, g_targetFBO);
         real_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, g_targetWidth, g_targetHeight, 0, 0, g_targetWidth, g_targetHeight,
-                          GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        real_glBlitFramebuffer(0, 0, g_targetWidth, g_targetHeight, 0, 0, g_targetWidth, g_targetHeight,
+                               GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
         real_glBindFramebuffer(GL_FRAMEBUFFER, g_renderFBO);
         real_glViewport(0, 0, g_renderWidth, g_renderHeight);
 
         glUseProgram(prevProgram);
-        glBindVertexArray(prevVAO);
+        real_glBindVertexArray(prevVAO);
         glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuffer);
         glActiveTexture(prevActiveTexture);
         glBindTexture(GL_TEXTURE_2D, prevTexture);
@@ -419,7 +427,7 @@ extern "C" void fsr_destroy() {
     g_initialized = false;
     g_hooksActive = false;
     if (g_fsrProgram) { glDeleteProgram(g_fsrProgram); g_fsrProgram = 0; }
-    if (g_quadVAO) { glDeleteVertexArrays(1, &g_quadVAO); g_quadVAO = 0; }
+    if (g_quadVAO) { real_glDeleteVertexArrays(1, &g_quadVAO); g_quadVAO = 0; }
     if (g_quadVBO) { glDeleteBuffers(1, &g_quadVBO); g_quadVBO = 0; }
     if (g_renderFBO) { glDeleteFramebuffers(1, &g_renderFBO); g_renderFBO = 0; }
     if (g_renderTexture) { glDeleteTextures(1, &g_renderTexture); g_renderTexture = 0; }
