@@ -154,11 +154,6 @@ fun SideBar(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                SideBarToggle(
-                    expanded = expanded,
-                    onClick = { expanded = !expanded }
-                )
-
                 AnimatedVisibility(
                     visible = expanded,
                     enter = fadeIn(animationSpec = tween(250)) +
@@ -228,6 +223,11 @@ fun SideBar(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.weight(1f))
+                SideBarToggle(
+                    expanded = expanded,
+                    onClick = { expanded = !expanded }
+                )
             }
         }
     }
@@ -292,7 +292,7 @@ private fun SideBarToggle(
 
     Surface(
         modifier = Modifier
-            .size(50.dp)
+            .size(58.dp)
             .scale(scale)
             .shadow(
                 elevation = if (isPressed) 1.dp else 6.dp,
@@ -320,14 +320,14 @@ private fun SideBarToggle(
                 painter = if (expanded) painterResource(R.drawable.ic_arrow_left_rounded)
                     else painterResource(R.drawable.ic_menu),
                 contentDescription = if (expanded) "Collapse" else "Expand",
-                modifier = Modifier.size(26.dp),
+                modifier = Modifier.size(28.dp),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
                 text = stringResource(R.string.sidebar_shortcut_menu),
                 style = MaterialTheme.typography.labelSmall,
-                fontSize = 8.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f)
             )
         }
     }
