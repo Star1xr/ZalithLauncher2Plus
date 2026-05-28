@@ -878,6 +878,7 @@
     <string name="settings_renderer_fsr_quality_quality">Quality</string>
     <string name="settings_renderer_fsr_quality_balanced">Balanced</string>
     <string name="settings_renderer_fsr_quality_performance">Performance</string>
+    <string name="sidebar_shortcut_menu">Shortcut Menu</string>
     <string name="settings_renderer_vulkan_driver_system_title">Use System Vulkan Driver</string>
     <string name="settings_renderer_vulkan_driver_system_summary">When enabled, the launcher will force the use of the system\'s built-in Vulkan driver (for Adreno GPUs) instead of the default Turnip driver. This setting only affects the Zink backend and related mods that use Vulkan rendering</string>
     <string name="settings_renderer_zink_driver_adreno">The launcher detected your device has an Adreno GPU. Enabling this option may cause the Zink renderer to malfunction. Are you sure you want to enable it?</string>

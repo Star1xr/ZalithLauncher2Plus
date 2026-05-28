@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -291,7 +292,7 @@ private fun SideBarToggle(
 
     Surface(
         modifier = Modifier
-            .size(42.dp)
+            .size(50.dp)
             .scale(scale)
             .shadow(
                 elevation = if (isPressed) 1.dp else 6.dp,
@@ -310,16 +311,23 @@ private fun SideBarToggle(
         tonalElevation = if (isPressed) 0.dp else 3.dp,
         shadowElevation = 0.dp
     ) {
-        Box(
+        Column(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Icon(
                 painter = if (expanded) painterResource(R.drawable.ic_arrow_left_rounded)
                     else painterResource(R.drawable.ic_menu),
                 contentDescription = if (expanded) "Collapse" else "Expand",
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(26.dp),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = stringResource(R.string.sidebar_shortcut_menu),
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = 8.sp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
             )
         }
     }
