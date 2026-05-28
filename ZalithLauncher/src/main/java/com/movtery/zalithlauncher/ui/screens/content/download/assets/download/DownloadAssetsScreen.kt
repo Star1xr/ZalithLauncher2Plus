@@ -92,7 +92,6 @@ import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.Sc
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.VersionInfoMap
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.initAll
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.mapWithVersions
-import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.isChinese
@@ -433,8 +432,6 @@ private fun Versions(
                         modifier = Modifier.weight(1f),
                         value = viewModel.searchMCVersion,
                         onValueChange = { viewModel.filterWith(searchMCVersion = it) },
-                        color = cardColor(),
-                        contentColor = onCardColor(),
                         singleLine = true,
                         textStyle = TextStyle(color = onCardColor()).copy(fontSize = 12.sp),
                         hint = {

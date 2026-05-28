@@ -29,7 +29,7 @@ import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.setting.enums.AppLanguage
-import com.movtery.zalithlauncher.setting.enums.ChromaMode
+import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.setting.enums.DarkMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.HomePageType
@@ -387,6 +387,16 @@ object AllSettings : SettingsRegistry() {
      * 启动器视频背景音量
      */
     val videoBackgroundVolume = intSetting("videoBackgroundVolume", 0, 0..100)
+
+    /**
+     * 启动器背景模糊效果
+     */
+    val backgroundBlur = intSetting("backgroundBlur", 0, 0..40)
+
+    /**
+     * 启动器背景模糊效果类型
+     */
+    val backgroundBlurType = enumSetting("backgroundBlurType", BackgroundBlur.Background)
 
     /**
      * 启动器主页类型

@@ -78,7 +78,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
+import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.backgroundColor
 import com.movtery.zalithlauncher.ui.theme.cardTitleColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
@@ -317,11 +319,12 @@ fun MenuTextButton(
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
     appendLayout: (@Composable () -> Unit)? = null,
     onClick: () -> Unit = {}
 ) {
     MenuButtonLayout(
-        modifier = modifier,
+        modifier = modifier.backgroundGlass(blur, shape, influencedByBackground),
         shape = shape,
         color = color,
         contentColor = contentColor,
@@ -354,9 +357,10 @@ fun MenuSwitchButton(
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
 ) {
     MenuButtonLayout(
-        modifier = modifier,
+        modifier = modifier.backgroundGlass(blur, shape, influencedByBackground),
         shape = shape,
         color = color,
         contentColor = contentColor,
@@ -406,11 +410,12 @@ fun <E> MenuListLayout(
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     MenuButtonLayout(
-        modifier = modifier,
+        modifier = modifier.backgroundGlass(blur, shape, influencedByBackground),
         shape = shape,
         color = color,
         contentColor = contentColor,
@@ -566,12 +571,13 @@ fun MenuSliderLayout(
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var showInputDialog by remember { mutableStateOf(false) }
 
     MenuButtonLayout(
-        modifier = modifier,
+        modifier = modifier.backgroundGlass(blur, shape, influencedByBackground),
         enabled = enabled,
         shape = shape,
         color = color,
@@ -646,6 +652,7 @@ fun MenuSliderLayout(
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
 ) {
     val formatter = DecimalFormat(decimalFormat)
     fun getTextString(value: Float) = formatter.format(value) + (suffix ?: "")
@@ -654,7 +661,7 @@ fun MenuSliderLayout(
     var showInputDialog by remember { mutableStateOf(false) }
 
     MenuButtonLayout(
-        modifier = modifier,
+        modifier = modifier.backgroundGlass(blur, shape, influencedByBackground),
         enabled = enabled,
         shape = shape,
         color = color,
@@ -720,6 +727,7 @@ fun MenuButtonLayout(
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
     onClick: () -> Unit = {},
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     verticalAlignment: Alignment.Vertical = Alignment.Top,
@@ -731,7 +739,9 @@ fun MenuButtonLayout(
     }
 
     Surface(
-        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+        modifier = modifier
+            .graphicsLayer(scaleY = scale.value, scaleX = scale.value)
+            .backgroundGlass(blur, shape, influencedByBackground),
         shape = shape,
         color = color,
         contentColor = contentColor,

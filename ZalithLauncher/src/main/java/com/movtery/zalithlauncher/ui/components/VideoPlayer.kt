@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.components
 
 import android.net.Uri
+import android.view.LayoutInflater
 import androidx.annotation.FloatRange
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,9 +38,11 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import com.movtery.zalithlauncher.R
 
 /**
  * 简单的沉浸式视频播放层
@@ -62,7 +65,10 @@ fun VideoPlayer(
 ) {
     val context = LocalContext.current
     val player = remember {
-        ExoPlayer.Builder(context).build().apply {
+        val renderersFactory = DefaultRenderersFactory(context)
+            .setEnableDecoderFallback(true) //开启解码器 fallback
+
+        ExoPlayer.Builder(context, renderersFactory).build().apply {
             val audioAttr = AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
@@ -75,10 +81,12 @@ fun VideoPlayer(
     }
 
     val playerView = remember {
-        PlayerView(context).apply {
+        val playerView = LayoutInflater.from(context)
+            .inflate(R.layout.player_texture_view, null) as PlayerView
+
+        playerView.apply {
             this.player = player
             this.resizeMode = resizeMode
-            this.useController = false
         }
     }
 

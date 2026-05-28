@@ -33,6 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.cardTitleColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -51,11 +53,17 @@ fun BackgroundCard(
         contentColor = onCardColor()
     ),
     elevation: CardElevation = CardDefaults.cardElevation(),
+    blur: Int = AllSettings.backgroundBlur.state,
     border: BorderStroke? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .backgroundGlass(
+                blur = blur,
+                shape = shape,
+                enabled = influencedByBackground
+            ),
         shape = shape,
         colors = colors,
         elevation = elevation,
@@ -79,13 +87,19 @@ fun BackgroundCard(
         disabledContainerColor = cardColor(influencedByBackground)
     ),
     elevation: CardElevation = CardDefaults.cardElevation(),
+    blur: Int = AllSettings.backgroundBlur.state,
     border: BorderStroke? = null,
     onClick: () -> Unit,
     enabled: Boolean = true,
     content: @Composable @UiComposable ColumnScope.() -> Unit
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .backgroundGlass(
+                blur = blur,
+                shape = shape,
+                enabled = influencedByBackground
+            ),
         shape = shape,
         colors = colors,
         elevation = elevation,
@@ -106,7 +120,7 @@ fun CardTitleLayout(
     influencedByBackground: Boolean = true,
     alpha: Float = 0.5f,
     color: Color = influencedByBackgroundColor(
-        color = cardTitleColor(),
+        color = cardTitleColor(alpha),
         enabled = influencedByBackground
     ),
     contentColor: Color = onCardColor(),

@@ -56,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -71,6 +72,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
 import com.movtery.zalithlauncher.game.versioninfo.models.isType
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CheckChip
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
@@ -81,6 +83,7 @@ import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
+import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
@@ -287,8 +290,6 @@ fun SelectGameVersionScreen(
 
                         VersionList(
                             modifier = Modifier.weight(1f),
-                            itemContainerColor = cardColor(),
-                            itemContentColor = onCardColor(),
                             versions = state.versions,
                             onVersionSelect = onVersionSelect,
                             openLink = { url ->
@@ -438,8 +439,6 @@ private fun VersionTypeItem(
 @Composable
 private fun VersionList(
     modifier: Modifier = Modifier,
-    itemContainerColor: Color,
-    itemContentColor: Color,
     versions: List<MinecraftVersion>,
     onVersionSelect: (String) -> Unit,
     openLink: (url: String) -> Unit
@@ -460,8 +459,6 @@ private fun VersionList(
                 onAccessWiki = { wikiUrl ->
                     openLink(wikiUrl)
                 },
-                color = itemContainerColor,
-                contentColor = itemContentColor
             )
         }
     }
@@ -473,8 +470,11 @@ private fun VersionItemLayout(
     version: MinecraftVersion,
     onClick: () -> Unit = {},
     onAccessWiki: (String) -> Unit = {},
-    color: Color,
-    contentColor: Color,
+    shape: Shape = MaterialTheme.shapes.large,
+    influencedByBackground: Boolean = true,
+    color: Color = cardColor(influencedByBackground),
+    contentColor: Color = onCardColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {
@@ -484,9 +484,11 @@ private fun VersionItemLayout(
     val (icon, versionType, wikiUrl, summary) = getVersionComponents(version)
 
     Surface(
-        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+        modifier = modifier
+            .graphicsLayer(scaleY = scale.value, scaleX = scale.value)
+            .backgroundGlass(blur, shape, influencedByBackground),
         onClick = onClick,
-        shape = MaterialTheme.shapes.large,
+        shape = shape,
         color = color,
         contentColor = contentColor
     ) {

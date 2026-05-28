@@ -86,8 +86,10 @@ import com.movtery.zalithlauncher.game.download.assets.platform.PlatformFilterCo
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformSearchData
 import com.movtery.zalithlauncher.game.download.assets.utils.ModTranslations
 import com.movtery.zalithlauncher.game.download.assets.utils.getMcmodTitle
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SmallOutlinedEditField
+import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
@@ -231,8 +233,10 @@ private fun PageController(
     modifier: Modifier = Modifier,
     page: AssetsPage,
     shape: Shape = MaterialTheme.shapes.large,
-    color: Color = cardColor(),
+    influencedByBackground: Boolean = true,
+    color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
     onPreviousPage: () -> Unit,
     onNextPage: () -> Unit,
     onNavigatePage: (Int) -> Unit
@@ -303,7 +307,7 @@ private fun PageController(
     }
 
     Surface(
-        modifier = modifier,
+        modifier = modifier.backgroundGlass(blur, shape, influencedByBackground),
         shape = shape,
         color = color,
         contentColor = contentColor
@@ -419,8 +423,10 @@ private fun ResultItemLayout(
     modloaders: List<PlatformDisplayLabel>? = null,
     categories: List<PlatformFilterCode>? = null,
     shape: Shape = MaterialTheme.shapes.large,
-    color: Color = cardColor(),
+    influencedByBackground: Boolean = true,
+    color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
     onClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -431,7 +437,9 @@ private fun ResultItemLayout(
     }
 
     Surface(
-        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+        modifier = modifier
+            .graphicsLayer(scaleY = scale.value, scaleX = scale.value)
+            .backgroundGlass(blur, shape, influencedByBackground),
         shape = shape,
         color = color,
         contentColor = contentColor,
