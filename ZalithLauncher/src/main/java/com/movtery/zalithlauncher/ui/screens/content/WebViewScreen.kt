@@ -155,13 +155,8 @@ fun WebViewScreen(
                                     val FileName = uri.lastPathSegment
                                     if ( currentUrl.startsWith("https://github.com/K11MCH1/AdrenoToolsDrivers/releases/download/") && (FileName?.endsWith(".zip", ignoreCase = true) ?: false)
                                     ) {
-                                    if (TaskSystem.containsTask("download_turnip_driver")) {
-                                       Toast.makeText(context.applicationContext, "A Turnip driver is already downloading. Please Wait.", Toast.LENGTH_SHORT).show()
-                                       return true
-                                        } else {
-                                       TurnipDownloader.downloadUrl( context.applicationContext, currentUrl )
-                                       return true
-                                        }
+                                     TurnipDownloader.downloadUrl( context.applicationContext, currentUrl )
+                                     return true
                                     }
                                     return false
                                 }
