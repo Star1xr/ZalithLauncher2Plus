@@ -57,6 +57,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -72,8 +73,10 @@ import com.movtery.zalithlauncher.game.addons.modloader.forgelike.forge.ForgeVer
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.NeoForgeVersion
 import com.movtery.zalithlauncher.game.addons.modloader.modlike.ModVersion
 import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersion
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.influencedByBackgroundColor
 import com.movtery.zalithlauncher.ui.components.rememberMaxHeight
+import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
@@ -169,8 +172,11 @@ fun <E> AddonListLayout(
     autoCollapse: Boolean = true,
     onValueChange: (E?) -> Unit = {},
     onReload: () -> Unit = {},
-    color: Color = cardColor(),
-    contentColor: Color = onCardColor()
+    shape: Shape = MaterialTheme.shapes.large,
+    influencedByBackground: Boolean = true,
+    color: Color = cardColor(influencedByBackground),
+    contentColor: Color = onCardColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
 ) {
     var selectedItem by remember { mutableStateOf<E?>(null) }
 
@@ -196,8 +202,8 @@ fun <E> AddonListLayout(
     }
 
     Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.large,
+        modifier = modifier.backgroundGlass(blur, shape, influencedByBackground),
+        shape = shape,
         color = color,
         contentColor = contentColor
     ) {
@@ -414,10 +420,11 @@ fun AddonWarningItem(
         color = MaterialTheme.colorScheme.errorContainer,
         enabled = true
     ),
-    contentColor: Color = MaterialTheme.colorScheme.onErrorContainer
+    contentColor: Color = MaterialTheme.colorScheme.onErrorContainer,
+    blur: Int = AllSettings.backgroundBlur.state,
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.backgroundGlass(blur, MaterialTheme.shapes.large),
         shape = MaterialTheme.shapes.large,
         color = color,
         contentColor = contentColor

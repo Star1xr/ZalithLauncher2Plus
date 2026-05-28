@@ -22,6 +22,7 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,12 +31,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -63,6 +66,7 @@ import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.AppLanguage
+import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.setting.enums.DarkMode
 import com.movtery.zalithlauncher.setting.enums.HomePageType
 import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
@@ -307,7 +311,7 @@ fun LauncherSettingsScreen(
 
                         IntSliderSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Bottom,
+                            position = CardPosition.Middle,
                             unit = AllSettings.videoBackgroundVolume,
                             title = stringResource(R.string.settings_launcher_background_video_volume_title),
                             summary = stringResource(R.string.settings_launcher_background_video_volume_summary),
@@ -315,6 +319,47 @@ fun LauncherSettingsScreen(
                             suffix = "%",
                             enabled = backgroundViewModel.isValid && backgroundViewModel.isVideo,
                             fineTuningControl = true
+                        )
+
+                        IntSliderSettingsCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            position = CardPosition.Bottom,
+                            unit = AllSettings.backgroundBlur,
+                            title = stringResource(R.string.settings_title_blur),
+                            summary = stringResource(R.string.settings_launcher_background_blur_summary),
+                            valueRange = AllSettings.backgroundBlur.floatRange,
+                            suffix = "Dp",
+                            enabled = backgroundViewModel.isValid,
+                            fineTuningControl = true,
+                            appendContent = {
+                                val unit = AllSettings.backgroundBlurType
+                                val state = unit.state
+                                IconButton(
+                                    modifier = Modifier
+                                        .padding(start = 12.dp)
+                                        .size(32.dp),
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                                    ),
+                                    onClick = {
+                                        unit.save(state.switch())
+                                    }
+                                ) {
+                                    Crossfade(
+                                        targetState = state
+                                    ) { target ->
+                                        val painter = when (target) {
+                                            BackgroundBlur.Background -> painterResource(R.drawable.ic_blur_circular_outlined)
+                                            BackgroundBlur.Foreground -> painterResource(R.drawable.ic_blur_circular_filled)
+                                        }
+                                        Icon(
+                                            painter = painter,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            }
                         )
                     }
                 }

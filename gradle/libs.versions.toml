@@ -12,6 +12,8 @@ coreSplashscreen = "1.2.0"
 editorBom = "0.24.5"
 fishnet = "1.1.0"
 gson = "2.13.2"
+haze = "1.7.2"
+hazeBlur = "2.0.0-alpha02"
 kotlin = "2.3.20"
 kspPlugin = "2.3.4"
 coreKtx = "1.18.0"
@@ -53,6 +55,8 @@ webkit = "1.16.0"
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 buildkeys = { module = "com.github.MovTery.BuildKeys:core", version.ref = "buildKeys" }
+dev-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+dev-haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "hazeBlur" }
 editor = { module = "io.github.rosemoe:editor" }
 editor-bom = { module = "io.github.rosemoe:editor-bom", version.ref = "editorBom" }
 fishnet = { module = "io.github.kyant0:fishnet", version.ref = "fishnet" }

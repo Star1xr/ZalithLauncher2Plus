@@ -272,6 +272,8 @@ dependencies {
     implementation(libs.richtext.ui.material3)
     implementation(platform(libs.editor.bom))
     implementation(libs.editor)
+    implementation(libs.dev.haze)
+    implementation(libs.dev.haze.blur)
     //Project
     implementation(project(":LayerController"))
     implementation(project(":ColorPicker"))

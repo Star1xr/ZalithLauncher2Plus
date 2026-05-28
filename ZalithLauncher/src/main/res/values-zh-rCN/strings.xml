@@ -844,6 +844,7 @@
     <string name="minecraft_download_failed_retried">在此之前，启动器已经尝试过重试一次，但仍有任务下载失败</string>
     <string name="minecraft_download_failed_notfound">某些依赖文件无法下载，如果多次尝试仍失败，可能是游戏缺少必要的库文件，建议重新安装游戏。</string>
     <!--  设置  -->
+    <string name="settings_title_blur">模糊效果</string>
     <string name="settings_element_selected">当前选择项：%s</string>
     <string name="settings_label_ignore_if_blank">留白则忽略此设置</string>
     <string name="settings_tab_renderer">渲染设置</string>
@@ -1051,6 +1052,7 @@
     <string name="settings_launcher_background_opacity_summary">调整背景元素的不透明度，以获得更好的视觉效果并避免与背景冲突</string>
     <string name="settings_launcher_background_video_volume_title">视频背景音量</string>
     <string name="settings_launcher_background_video_volume_summary">背景内容是视频时，可以通过这个选项调整音量</string>
+    <string name="settings_launcher_background_blur_summary">调整背景的模糊效果，此选项较为消耗性能</string>
     <string name="settings_launcher_festivals_effects_title">持续型节日彩蛋效果</string>
     <string name="settings_launcher_festivals_effects_summary">在特定时间段显示持续型彩蛋效果</string>
     <string name="settings_launcher_home_page_title">主页</string>

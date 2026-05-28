@@ -54,6 +54,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
@@ -65,14 +67,17 @@ fun ScalingLabel(
     influencedByBackground: Boolean = true,
     shape: Shape = MaterialTheme.shapes.extraLarge,
     color: Color = itemColor(influencedByBackground),
-    contentColor: Color = onItemColor()
+    contentColor: Color = onItemColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {
         scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
     }
     Surface(
-        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+        modifier = modifier
+            .graphicsLayer(scaleY = scale.value, scaleX = scale.value)
+            .backgroundGlass(blur, shape, influencedByBackground),
         shape = shape,
         color = color,
         contentColor = contentColor
@@ -93,13 +98,16 @@ fun ScalingLabel(
     shape: Shape = MaterialTheme.shapes.extraLarge,
     color: Color = itemColor(influencedByBackground = influencedByBackground),
     contentColor: Color = onItemColor(),
+    blur: Int = AllSettings.backgroundBlur.state,
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {
         scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
     }
     Surface(
-        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+        modifier = modifier
+            .graphicsLayer(scaleY = scale.value, scaleX = scale.value)
+            .backgroundGlass(blur, shape, influencedByBackground),
         shape = shape,
         color = color,
         contentColor = contentColor,

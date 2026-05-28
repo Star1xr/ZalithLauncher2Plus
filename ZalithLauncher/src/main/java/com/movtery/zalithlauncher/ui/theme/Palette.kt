@@ -52,7 +52,9 @@ fun onCardColor(): Color = MaterialTheme.colorScheme.onSurface
  * 卡片顶部Title的背景颜色，半透明的surface
  */
 @Composable
-fun cardTitleColor(): Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+fun cardTitleColor(
+    alpha: Float = 0.5f
+): Color = MaterialTheme.colorScheme.surface.copy(alpha = alpha)
 
 /**
  * 卡片上的Item的背景颜色
