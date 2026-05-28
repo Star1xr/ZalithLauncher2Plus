@@ -294,7 +294,7 @@ fun RendererSettingsScreen(
 
                         ListSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Bottom,
+                            position = CardPosition.Middle,
                             items = fsrQualityLabels,
                             currentId = AllSettings.fsrQuality.state.toString(),
                             defaultId = AllSettings.fsrQuality.defaultValue.toString(),
