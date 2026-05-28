@@ -18,6 +18,8 @@ import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.launcherMMKV
+import com.movtery.zalithlauncher.setting.unit.EnumSettingUnit
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -96,7 +98,9 @@ object SettingsTransferUtils {
             }
 
             val export = SettingsExport(
-                settings = emptyMap(),
+                settings = mapOf(
+                    "chromaMode" to AllSettings.chromaMode.state.name
+                ),
                 accounts = accounts,
                 authServers = authServers,
                 skins = skinsMap,
@@ -132,6 +136,10 @@ object SettingsTransferUtils {
                                 is Int -> (unit as? com.movtery.zalithlauncher.setting.unit.AbstractSettingUnit<Int>)?.save(valueStr.toInt())
                                 is Long -> (unit as? com.movtery.zalithlauncher.setting.unit.AbstractSettingUnit<Long>)?.save(valueStr.toLong())
                                 is String -> (unit as? com.movtery.zalithlauncher.setting.unit.AbstractSettingUnit<String>)?.save(valueStr)
+                                is Enum<*> -> if (unit is EnumSettingUnit<*>) {
+                                    launcherMMKV().putString(unit.key, valueStr).apply()
+                                    unit.init()
+                                }
                             }
                         } catch (e: Exception) {
                             Logger.error(TAG, "Failed to import setting ${unit.key}", e)

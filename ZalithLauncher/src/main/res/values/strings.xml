@@ -870,6 +870,14 @@
     <string name="settings_renderer_sustained_performance_summary">When enabled, the system provides more stable performance for the game, suitable for long play sessions, but may slightly reduce device responsiveness to prevent overheating</string>
     <string name="settings_renderer_shader_dump_title">Shader Logging</string>
     <string name="settings_renderer_shader_dump_summary">Output the converted shader code during game runtime to a log file for easier debugging and graphics rendering analysis</string>
+    <string name="settings_renderer_fsr_title">FSR1 Upscaling</string>
+    <string name="settings_renderer_fsr_summary">AMD FidelityFX Super Resolution 1.0 — scales up a lower-resolution render to full resolution with edge reconstruction</string>
+    <string name="settings_renderer_fsr_quality_title">FSR Quality</string>
+    <string name="settings_renderer_fsr_quality_summary">Higher quality = higher internal render resolution</string>
+    <string name="settings_renderer_fsr_quality_ultra">Ultra Quality</string>
+    <string name="settings_renderer_fsr_quality_quality">Quality</string>
+    <string name="settings_renderer_fsr_quality_balanced">Balanced</string>
+    <string name="settings_renderer_fsr_quality_performance">Performance</string>
     <string name="settings_renderer_vulkan_driver_system_title">Use System Vulkan Driver</string>
     <string name="settings_renderer_vulkan_driver_system_summary">When enabled, the launcher will force the use of the system\'s built-in Vulkan driver (for Adreno GPUs) instead of the default Turnip driver. This setting only affects the Zink backend and related mods that use Vulkan rendering</string>
     <string name="settings_renderer_zink_driver_adreno">The launcher detected your device has an Adreno GPU. Enabling this option may cause the Zink renderer to malfunction. Are you sure you want to enable it?</string>

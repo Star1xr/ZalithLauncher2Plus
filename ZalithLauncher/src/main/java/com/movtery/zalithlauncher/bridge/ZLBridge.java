@@ -78,6 +78,7 @@ public final class ZLBridge {
 
     //Utils
     @Keep public static native int chdir(String path);
+    @Keep public static native void fsrInit(int qualityPreset);
 
     static {
         NativeLibraryLoader.loadExitHookLib();

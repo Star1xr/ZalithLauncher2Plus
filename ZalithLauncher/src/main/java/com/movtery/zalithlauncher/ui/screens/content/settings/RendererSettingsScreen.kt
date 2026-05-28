@@ -97,6 +97,11 @@ fun RendererSettingsScreen(
         var allDrivers by remember { mutableStateOf<List<Pair<TurnipRelease, GithubReleaseApi.Asset>>?>(null) }
         var driverListError by remember { mutableStateOf<String?>(null) }
         var driverListLoading by remember { mutableStateOf(false) }
+        var showMobileGluesSettings by remember { mutableStateOf(false) }
+
+        if (showMobileGluesSettings) {
+            MobileGluesSettingsDialog(onDismissRequest = { showMobileGluesSettings = false })
+        }
 
         if (showDriverList && allDrivers != null) {
             SimpleListDialog(
@@ -148,7 +153,7 @@ fun RendererSettingsScreen(
                         },
                         getItemTrailing = { renderer ->
                             if (renderer.getRendererName() == "MobileGlues") {
-                                IconButton(onClick = { }) {
+                                IconButton(onClick = { showMobileGluesSettings = true }) {
                                     Icon(
                                         painter = painterResource(R.drawable.ic_settings_filled),
                                         contentDescription = stringResource(R.string.generic_setting)
@@ -362,11 +367,60 @@ fun RendererSettingsScreen(
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
+                        position = CardPosition.Middle,
                         unit = AllSettings.dumpShaders,
                         title = stringResource(R.string.settings_renderer_shader_dump_title),
                         summary = stringResource(R.string.settings_renderer_shader_dump_summary)
                     )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.fsrEnabled,
+                        title = stringResource(R.string.settings_renderer_fsr_title),
+                        summary = stringResource(R.string.settings_renderer_fsr_summary)
+                    )
+                }
+            }
+
+            if (AllSettings.fsrEnabled.state) {
+                AnimatedItem(scope) { yOffset ->
+                    SettingsCardColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                    ) {
+                        val fsrQualityLabels = listOf(
+                            1 to stringResource(R.string.settings_renderer_fsr_quality_ultra),
+                            2 to stringResource(R.string.settings_renderer_fsr_quality_quality),
+                            3 to stringResource(R.string.settings_renderer_fsr_quality_balanced),
+                            4 to stringResource(R.string.settings_renderer_fsr_quality_performance)
+                        )
+
+                        ListSettingsCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            position = CardPosition.Top,
+                            items = fsrQualityLabels,
+                            currentId = AllSettings.fsrQuality.state.toString(),
+                            defaultId = AllSettings.fsrQuality.defaultValue.toString(),
+                            title = stringResource(R.string.settings_renderer_fsr_quality_title),
+                            summary = stringResource(R.string.settings_renderer_fsr_quality_summary),
+                            getItemText = { it.second },
+                            getItemId = { it.first.toString() },
+                            getItemSummary = {
+                                when (it.first) {
+                                    1 -> "1.33x (1080p → 1440p)"
+                                    2 -> "1.5x (720p → 1080p)"
+                                    3 -> "1.7x (632p → 1080p)"
+                                    4 -> "2.0x (540p → 1080p)"
+                                    else -> ""
+                                }
+                            },
+                            onValueChange = { item ->
+                                AllSettings.fsrQuality.save(item.first)
+                            }
+                        )
+                    }
                 }
             }
         }

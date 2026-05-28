@@ -635,4 +635,8 @@ object AllSettings : SettingsRegistry() {
      * 启动 MC26.2+ 时，自动检查 Vulkan
      */
     val autoVulkanChecker = boolSetting("autoVulkanChecker", true)
+
+    //FSR
+    val fsrEnabled = boolSetting("fsrEnabled", false)
+    val fsrQuality = intSetting("fsrQuality", 2, 1..4) // 1=UltraQuality, 2=Quality, 3=Balanced, 4=Performance
 }
