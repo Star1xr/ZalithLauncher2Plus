@@ -105,7 +105,7 @@ object TurnipDownloader {
                 
                 if ((currentDir.listFiles()?.any{it.isDirectory && it.name == canonicalZipName} ?: false) && (canonicalZipName != "." && canonicalZipName != ".." && canonicalZipName.isNotEmpty() && forbidden.none{canonicalZipName.contains(it)})) {
                    Toast.makeText(context.applicationContext, "Driver already exists, skipping...", Toast.LENGTH_SHORT ).show()
-                   return
+                   return@runTask
                    }
                 
                 it.updateMessage(R.string.settings_renderer_turnip_downloading)
@@ -171,7 +171,6 @@ object TurnipDownloader {
         val task = Task.runTask(
             id = "download_turnip_driver",
             task = { it ->
-                it.updateMessage(R.string.settings_renderer_turnip_downloading)
                 
                 val zipName = downloadUrl.substringAfterLast("/").substringBeforeLast("?")
                 val canonicalZipName = zipName.substringBeforeLast(".zip")
@@ -180,8 +179,10 @@ object TurnipDownloader {
                 
                 if ((currentDir.listFiles()?.any{it.isDirectory && it.name == canonicalZipName} ?: false) && (canonicalZipName != "." && canonicalZipName != ".." && canonicalZipName.isNotEmpty() && forbidden.none{canonicalZipName.contains(it)})) {
                    Toast.makeText(context.applicationContext, "Driver already exists, skipping...", Toast.LENGTH_SHORT ).show()
-                   return
+                   return@runTask
                    }
+                
+                it.updateMessage(R.string.settings_renderer_turnip_downloading)
                 
                 val downloadFile = File(PathManager.DIR_CACHE, zipName)
                 val downloadRequest = Request.Builder().url(downloadUrl).build()
@@ -237,7 +238,7 @@ object TurnipDownloader {
                 }
              },
              onError = { th ->
-                lError("Failed to download Turnip driver", th)
+                Logger.error(TAG, "Failed to download Turnip driver", th)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Failed: ${th.message}", Toast.LENGTH_LONG).show()
                 }
