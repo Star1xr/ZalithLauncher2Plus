@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +37,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -224,80 +225,79 @@ private fun ContentMenu(
     val pageState by homePageViewModel.pageState.collectAsStateWithLifecycle()
     val richTextStyle = defaultRichTextStyle()
 
-    LazyColumn(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-        contentPadding = PaddingValues(all = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+            .padding(all = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (BuildConfig.DEBUG) {
-            item {
-                //debug版本关不掉的警告，防止有人把测试版当正式版用 XD
-                BackgroundCard(
-                    shape = MaterialTheme.shapes.extraLarge,
+            //debug版本关不掉的警告，防止有人把测试版当正式版用 XD
+            BackgroundCard(shape = MaterialTheme.shapes.extraLarge) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.generic_warning),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = stringResource(R.string.launcher_version_debug_warning, BuildKeys.LAUNCHER_NAME),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            modifier = Modifier
-                                .alpha(0.8f)
-                                .align(Alignment.End),
-                            text = stringResource(R.string.launcher_version_debug_warning_cant_close),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.generic_warning),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.launcher_version_debug_warning, BuildKeys.LAUNCHER_NAME),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        modifier = Modifier
+                            .alpha(0.8f)
+                            .align(Alignment.End),
+                        text = stringResource(R.string.launcher_version_debug_warning_cant_close),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         }
 
-        // ── Stats header + 2×2 grid ──
-        item(key = "stat_grid") {
-            StatsGrid(
-                onNavigateToStats = onNavigateToStats,
-                onNavigateToLog = onNavigateToLog
-            )
-        }
+        // Stats grid fills remaining space — no scroll
+        StatsGrid(
+            modifier = Modifier.weight(1f),
+            onNavigateToStats = onNavigateToStats,
+            onNavigateToLog = onNavigateToLog
+        )
 
+        // Home page content below (only shown when configured)
         when (val state = pageState) {
             is HomePageState.Blank -> {}
             is HomePageState.Loading -> {
-                item(key = "homepage_loading_box") {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(all = 24.dp),
-                        contentAlignment = Alignment.Center
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(all = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            LoadingIndicator()
-                            Text(
-                                text = stringResource(R.string.settings_launcher_home_page_loading),
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                        }
+                        LoadingIndicator()
+                        Text(
+                            text = stringResource(R.string.settings_launcher_home_page_loading),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
                     }
                 }
             }
             is HomePageState.None -> {
-                customHomePage(
-                    blocks = state.page,
-                    richTextStyle = richTextStyle,
-                    onEvent = onHomePageEvent
-                )
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    customHomePage(
+                        blocks = state.page,
+                        richTextStyle = richTextStyle,
+                        onEvent = onHomePageEvent
+                    )
+                }
             }
         }
     }
@@ -307,10 +307,14 @@ private fun ContentMenu(
 
 @Composable
 private fun StatsGrid(
+    modifier: Modifier = Modifier,
     onNavigateToStats: () -> Unit,
     onNavigateToLog: (String) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         Text(
             text = stringResource(R.string.stats_today_header),
             style = MaterialTheme.typography.labelSmall,
@@ -318,86 +322,109 @@ private fun StatsGrid(
                 .padding(horizontal = 4.dp)
                 .alpha(0.5f)
         )
-        // Row 1
+        // Row 1 — graph + daily hours
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
-                PlayTimeGraphCard()
-            }
-            Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
-                DailyPlayTimeCard()
-            }
+            PlayTimeGraphCard(modifier = Modifier.weight(1f).fillMaxHeight())
+            DailyPlayTimeCard(modifier = Modifier.weight(1f).fillMaxHeight())
         }
-        // Row 2
+        // Row 2 — per-version + last log
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
-                VersionPlayRateCard(onNavigateToStats = onNavigateToStats)
-            }
-            Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
-                LastLogCard(onNavigateToLog = onNavigateToLog)
-            }
+            VersionPlayRateCard(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                onNavigateToStats = onNavigateToStats
+            )
+            LastLogCard(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                onNavigateToLog = onNavigateToLog
+            )
         }
     }
 }
 
 // ── Stat Card 1: Bar graph of daily play time ───────────────────────────────
 
+private val DAY_NAMES = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
 @Composable
-private fun PlayTimeGraphCard() {
+private fun PlayTimeGraphCard(modifier: Modifier = Modifier) {
     val versions = remember { VersionsManager.versions.map { it.getVersionName() } }
-    val days = remember { PlayTimeRepository.lastNDays(7).reversed() } // oldest → newest
+    // oldest → newest, 7 days ending today
+    val days = remember { PlayTimeRepository.lastNDays(7).reversed() }
     val barData = remember(versions, days) {
         days.map { date ->
-            val totalMs = PlayTimeRepository.getDailyTotalPlayTime(date, versions)
-            PlayTimeUtils.getPlayHours(totalMs).toFloat()
+            PlayTimeUtils.getPlayHours(PlayTimeRepository.getDailyTotalPlayTime(date, versions)).toFloat()
         }
     }
     val maxVal = remember(barData) { barData.maxOrNull()?.takeIf { it > 0f } ?: 1f }
+    // Day-of-week labels: derive from the date string (yyyy-MM-dd → parse weekday)
+    val dayLabels = remember(days) {
+        days.map { date ->
+            try {
+                val cal = java.util.Calendar.getInstance()
+                val parts = date.split("-")
+                cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+                // Calendar.DAY_OF_WEEK: 1=Sun,2=Mon,...7=Sat
+                val dow = cal.get(java.util.Calendar.DAY_OF_WEEK)
+                DAY_NAMES[(dow + 5) % 7] // shift so Mon=0
+            } catch (e: Exception) { date.takeLast(2) }
+        }
+    }
     val barColor = MaterialTheme.colorScheme.primary
     val labelColor = MaterialTheme.colorScheme.onSurface
 
-    BackgroundCard(modifier = Modifier.fillMaxSize(), shape = MaterialTheme.shapes.extraLarge) {
+    BackgroundCard(modifier = modifier, shape = MaterialTheme.shapes.extraLarge) {
         CardTitleLayout {
             Text(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 text = stringResource(R.string.stats_play_time_graph),
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.labelMedium
             )
         }
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // Day name labels at top
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
-                val barCount = barData.size
-                val gap = size.width * 0.04f
-                val barWidth = (size.width - gap * (barCount + 1)) / barCount
-                barData.forEachIndexed { i, hours ->
-                    val barHeight = (hours / maxVal) * size.height
-                    val x = gap + i * (barWidth + gap)
-                    val y = size.height - barHeight
-                    drawRect(
-                        color = barColor,
-                        topLeft = Offset(x, y),
-                        size = androidx.compose.ui.geometry.Size(barWidth, barHeight)
+                dayLabels.forEach { label ->
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = labelColor,
+                        modifier = Modifier.alpha(0.55f)
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            // Day labels
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                days.forEach { date ->
-                    Text(
-                        text = date.takeLast(5), // MM-dd
-                        style = MaterialTheme.typography.labelSmall,
-                        color = labelColor,
-                        modifier = Modifier.alpha(0.6f)
+            // Bar chart fills remaining space
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val barCount = barData.size
+                val gap = size.width * 0.03f
+                val barWidth = (size.width - gap * (barCount + 1)) / barCount
+                val cornerR = barWidth * 0.25f
+                barData.forEachIndexed { i, hours ->
+                    val barHeight = ((hours / maxVal) * size.height).coerceAtLeast(2f)
+                    val x = gap + i * (barWidth + gap)
+                    val y = size.height - barHeight
+                    drawRoundRect(
+                        color = barColor,
+                        topLeft = Offset(x, y),
+                        size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(cornerR)
                     )
                 }
             }
@@ -408,7 +435,7 @@ private fun PlayTimeGraphCard() {
 // ── Stat Card 2: Today's hours + rank ───────────────────────────────────────
 
 @Composable
-private fun DailyPlayTimeCard() {
+private fun DailyPlayTimeCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val versions = remember { VersionsManager.versions.map { it.getVersionName() } }
     val today = remember { PlayTimeRepository.today() }
@@ -419,26 +446,30 @@ private fun DailyPlayTimeCard() {
     val rank = remember(globalMs) { PlayTimeUtils.getRankName(context, globalMs) }
     val todayFormatted = remember(todayMs) { PlayTimeUtils.formatPlayTime(context, todayMs) }
 
-    BackgroundCard(modifier = Modifier.fillMaxSize(), shape = MaterialTheme.shapes.extraLarge) {
+    BackgroundCard(modifier = modifier, shape = MaterialTheme.shapes.extraLarge) {
         CardTitleLayout {
             Text(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 text = stringResource(R.string.stats_daily_hours),
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.labelMedium
             )
         }
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = stringResource(R.string.stats_daily_hours_value, todayFormatted),
-                style = MaterialTheme.typography.bodyMedium
+                text = todayFormatted,
+                style = MaterialTheme.typography.headlineSmall
             )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = rank,
                 style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier.alpha(0.7f)
+                modifier = Modifier.alpha(0.65f)
             )
         }
     }
@@ -447,7 +478,10 @@ private fun DailyPlayTimeCard() {
 // ── Stat Card 3: Per-version play rate ──────────────────────────────────────
 
 @Composable
-private fun VersionPlayRateCard(onNavigateToStats: () -> Unit) {
+private fun VersionPlayRateCard(
+    modifier: Modifier = Modifier,
+    onNavigateToStats: () -> Unit
+) {
     val context = LocalContext.current
     val versions = remember { VersionsManager.versions }
     data class VersionStat(val name: String, val version: Version, val totalMs: Long)
@@ -461,7 +495,7 @@ private fun VersionPlayRateCard(onNavigateToStats: () -> Unit) {
     val hasData = stats.any { it.totalMs > 0L }
 
     BackgroundCard(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         shape = MaterialTheme.shapes.extraLarge,
         onClick = onNavigateToStats
     ) {
@@ -469,68 +503,64 @@ private fun VersionPlayRateCard(onNavigateToStats: () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = stringResource(R.string.stats_per_version),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.labelMedium
                 )
                 Text(
                     text = stringResource(R.string.stats_view_all),
                     style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.alpha(0.6f)
+                    modifier = Modifier.alpha(0.55f)
                 )
             }
         }
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             if (!hasData) {
-                Text(
-                    text = stringResource(R.string.stats_no_data),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.alpha(0.6f)
-                )
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.stats_no_data),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.alpha(0.55f)
+                    )
+                }
             } else {
                 stats.forEach { stat ->
                     if (stat.totalMs == 0L) return@forEach
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        VersionIconImage(
-                            version = stat.version,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = stat.name,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    maxLines = 1,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = PlayTimeUtils.formatPlayTime(context, stat.totalMs),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.alpha(0.7f)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(2.dp))
-                            LinearProgressIndicator(
-                                progress = { stat.totalMs.toFloat() / maxMs },
-                                modifier = Modifier.fillMaxWidth(),
-                                color = MaterialTheme.colorScheme.primary
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            VersionIconImage(version = stat.version, modifier = Modifier.size(16.dp))
+                            Text(
+                                text = stat.name,
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = PlayTimeUtils.formatPlayTime(context, stat.totalMs),
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.alpha(0.65f)
                             )
                         }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        LinearProgressIndicator(
+                            progress = { stat.totalMs.toFloat() / maxMs },
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -541,51 +571,67 @@ private fun VersionPlayRateCard(onNavigateToStats: () -> Unit) {
 // ── Stat Card 4: Last game log ───────────────────────────────────────────────
 
 @Composable
-private fun LastLogCard(onNavigateToLog: (String) -> Unit) {
+private fun LastLogCard(
+    modifier: Modifier = Modifier,
+    onNavigateToLog: (String) -> Unit
+) {
     val currentVersion by VersionsManager.currentVersion.collectAsStateWithLifecycle()
     val logFile = remember(currentVersion) {
         currentVersion?.let { VersionsManager.getLatestLog(it) }
     }
     val logExists = remember(logFile) { logFile?.exists() == true }
+    // Read as many lines as available; UI clips to card height naturally
+    val logLines = remember(logFile, logExists) {
+        if (logExists && logFile != null) {
+            try { logFile.readLines().takeLast(40) } catch (e: Exception) { emptyList() }
+        } else emptyList()
+    }
 
     BackgroundCard(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         shape = MaterialTheme.shapes.extraLarge,
-        onClick = {
-            if (logExists) logFile?.absolutePath?.let { onNavigateToLog(it) }
-        },
+        onClick = { if (logExists) logFile?.absolutePath?.let { onNavigateToLog(it) } },
         enabled = logExists
     ) {
         CardTitleLayout {
             Text(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 text = stringResource(R.string.stats_last_log),
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.labelMedium
             )
         }
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            if (!logExists || logFile == null) {
+        if (!logExists || logLines.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
                     text = stringResource(R.string.stats_no_log),
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.alpha(0.6f)
+                    modifier = Modifier.alpha(0.55f)
                 )
-            } else {
-                Text(
-                    text = logFile.name,
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = remember(logFile) {
-                        logFile.useLines { lines -> lines.firstOrNull() ?: "" }.take(80)
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 2,
-                    modifier = Modifier.alpha(0.6f)
-                )
+            }
+        } else {
+            // Show lines from the bottom up, clipped by card height — no scroll
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                logLines.forEach { line ->
+                    Text(
+                        text = line,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(0.75f)
+                    )
+                }
             }
         }
     }
