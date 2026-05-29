@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -260,24 +261,12 @@ private fun ContentMenu(
             }
         }
 
-        // ── Card 1: Play time graph (last 7 days) ──
-        item(key = "stat_graph") {
-            PlayTimeGraphCard()
-        }
-
-        // ── Card 2: Today's play time + rank ──
-        item(key = "stat_daily") {
-            DailyPlayTimeCard()
-        }
-
-        // ── Card 3: Per-version play rate (tappable → GameStatsScreen) ──
-        item(key = "stat_versions") {
-            VersionPlayRateCard(onNavigateToStats = onNavigateToStats)
-        }
-
-        // ── Card 4: Last game log ──
-        item(key = "stat_log") {
-            LastLogCard(onNavigateToLog = onNavigateToLog)
+        // ── Stats header + 2×2 grid ──
+        item(key = "stat_grid") {
+            StatsGrid(
+                onNavigateToStats = onNavigateToStats,
+                onNavigateToLog = onNavigateToLog
+            )
         }
 
         when (val state = pageState) {
@@ -314,6 +303,48 @@ private fun ContentMenu(
     }
 }
 
+// ── Stats 2×2 grid with header ──────────────────────────────────────────────
+
+@Composable
+private fun StatsGrid(
+    onNavigateToStats: () -> Unit,
+    onNavigateToLog: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.stats_today_header),
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier
+                .padding(horizontal = 4.dp)
+                .alpha(0.5f)
+        )
+        // Row 1
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
+                PlayTimeGraphCard()
+            }
+            Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
+                DailyPlayTimeCard()
+            }
+        }
+        // Row 2
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
+                VersionPlayRateCard(onNavigateToStats = onNavigateToStats)
+            }
+            Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
+                LastLogCard(onNavigateToLog = onNavigateToLog)
+            }
+        }
+    }
+}
+
 // ── Stat Card 1: Bar graph of daily play time ───────────────────────────────
 
 @Composable
@@ -330,7 +361,7 @@ private fun PlayTimeGraphCard() {
     val barColor = MaterialTheme.colorScheme.primary
     val labelColor = MaterialTheme.colorScheme.onSurface
 
-    BackgroundCard(shape = MaterialTheme.shapes.extraLarge) {
+    BackgroundCard(modifier = Modifier.fillMaxSize(), shape = MaterialTheme.shapes.extraLarge) {
         CardTitleLayout {
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
@@ -388,7 +419,7 @@ private fun DailyPlayTimeCard() {
     val rank = remember(globalMs) { PlayTimeUtils.getRankName(context, globalMs) }
     val todayFormatted = remember(todayMs) { PlayTimeUtils.formatPlayTime(context, todayMs) }
 
-    BackgroundCard(shape = MaterialTheme.shapes.extraLarge) {
+    BackgroundCard(modifier = Modifier.fillMaxSize(), shape = MaterialTheme.shapes.extraLarge) {
         CardTitleLayout {
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
@@ -430,6 +461,7 @@ private fun VersionPlayRateCard(onNavigateToStats: () -> Unit) {
     val hasData = stats.any { it.totalMs > 0L }
 
     BackgroundCard(
+        modifier = Modifier.fillMaxSize(),
         shape = MaterialTheme.shapes.extraLarge,
         onClick = onNavigateToStats
     ) {
@@ -517,6 +549,7 @@ private fun LastLogCard(onNavigateToLog: (String) -> Unit) {
     val logExists = remember(logFile) { logFile?.exists() == true }
 
     BackgroundCard(
+        modifier = Modifier.fillMaxSize(),
         shape = MaterialTheme.shapes.extraLarge,
         onClick = {
             if (logExists) logFile?.absolutePath?.let { onNavigateToLog(it) }

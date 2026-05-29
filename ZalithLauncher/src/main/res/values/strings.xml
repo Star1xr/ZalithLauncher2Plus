@@ -92,6 +92,7 @@
     <string name="stats_no_log">No log available yet</string>
     <string name="stats_no_data">No data yet</string>
     <string name="stats_view_all">View All</string>
+    <string name="stats_today_header">TODAY\'S STATISTICS</string>
     <string name="empty_holder" translatable="false">%s</string>
     <!-- Sort By -->
     <string name="sort_by">Sort By</string>

@@ -1259,4 +1259,20 @@
     <string name="settings_renderer_turnip_downloading">Turnip Sürücüsü İndiriliyor...</string>
     <string name="settings_renderer_turnip_extracting">Turnip Sürücüsü Çıkarılıyor...</string>
     <string name="settings_renderer_turnip_success">Turnip Sürücüsü başarıyla yüklendi</string>
+    <!-- Game Stats -->
+    <string name="stats_game_stats">Oyun İstatistikleri</string>
+    <string name="stats_play_time_graph">Oyun Süresi (Son 7 Gün)</string>
+    <string name="stats_daily_hours">Bugünkü Oyun Süresi</string>
+    <string name="stats_daily_hours_value">Bugün %s</string>
+    <string name="stats_per_version">Versiyona Göre Süre</string>
+    <string name="stats_last_log">Son Oyun Kaydı</string>
+    <string name="stats_no_log">Henüz kayıt yok</string>
+    <string name="stats_no_data">Henüz veri yok</string>
+    <string name="stats_view_all">Tümünü Gör</string>
+    <string name="stats_today_header">BUGÜNKÜ İSTATİSTİKLER</string>
+    <!-- Play time units -->
+    <string name="play_time_last_played">Son oynama: %s</string>
+    <string name="play_time_total">Oyun süresi: %s</string>
+    <string name="play_time_hours_minutes">%1$d sa %2$d dk</string>
+    <string name="play_time_minutes">%d dk</string>
 </resources>
