@@ -80,6 +80,10 @@ sealed interface NormalNavKey : TitledNavKey {
         @Serializable data object Renderer : Settings {
             override val title: Int = R.string.settings_tab_renderer
         }
+        /** Turnip 驱动下载屏幕 */
+        @Serializable data object TurnipDrivers : Settings {
+            override val title: Int = R.string.settings_renderer_download_turnip
+        }
         /** 游戏设置屏幕 */
         @Serializable data object Game : Settings {
             override val title: Int = R.string.settings_tab_game

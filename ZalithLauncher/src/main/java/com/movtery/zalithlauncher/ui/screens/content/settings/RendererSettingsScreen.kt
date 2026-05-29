@@ -45,7 +45,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.rememberCoroutineScope
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.plugin.driver.Driver
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
@@ -60,8 +59,6 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
-import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
-import com.movtery.zalithlauncher.ui.components.SimpleListDialog
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -71,14 +68,11 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.ListSettin
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
+import com.movtery.zalithlauncher.ui.screens.navigateOnce
 import com.movtery.zalithlauncher.utils.device.checkVulkanSupport
-import com.movtery.zalithlauncher.upgrade.GithubReleaseApi
-import com.movtery.zalithlauncher.utils.driver.TurnipDownloader
-import com.movtery.zalithlauncher.utils.driver.TurnipRelease
 import com.movtery.zalithlauncher.utils.isAdrenoGPU
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.sendDLPlugin
-import kotlinx.coroutines.launch
 
 @Composable
 fun RendererSettingsScreen(
@@ -92,38 +86,10 @@ fun RendererSettingsScreen(
         Triple(NormalNavKey.Settings.Renderer, settingsScreenKey, false)
     ) { isVisible ->
         val context = LocalContext.current
-        val coroutineScope = rememberCoroutineScope()
-        var showDriverList by remember { mutableStateOf(false) }
-        var allDrivers by remember { mutableStateOf<List<Pair<TurnipRelease, GithubReleaseApi.Asset>>?>(null) }
-        var driverListError by remember { mutableStateOf<String?>(null) }
-        var driverListLoading by remember { mutableStateOf(false) }
         var showMobileGluesSettings by remember { mutableStateOf(false) }
 
         if (showMobileGluesSettings) {
             MobileGluesSettingsDialog(onDismissRequest = { showMobileGluesSettings = false })
-        }
-
-        if (showDriverList && allDrivers != null) {
-            SimpleListDialog(
-                title = stringResource(R.string.settings_renderer_download_turnip),
-                items = allDrivers!!,
-                itemTextProvider = { (release, asset) ->
-                    val sizeMb = asset.size / (1024 * 1024)
-                    "[${release.tagName}] ${asset.name} (${sizeMb}MB)"
-                },
-                onItemSelected = { (_, asset) ->
-                    TurnipDownloader.downloadAsset(context, asset)
-                },
-                onDismissRequest = { showDriverList = false }
-            )
-        }
-
-        if (driverListError != null) {
-            SimpleAlertDialog(
-                title = stringResource(R.string.generic_error),
-                text = driverListError!!,
-                onDismiss = { driverListError = null }
-            )
         }
 
         AnimatedColumn(
@@ -222,22 +188,7 @@ fun RendererSettingsScreen(
                         title = stringResource(R.string.settings_renderer_download_turnip),
                         summary = stringResource(R.string.settings_renderer_download_turnip_summary),
                         onClick = {
-                            if (!driverListLoading) {
-                                driverListLoading = true
-                                coroutineScope.launch {
-                                    try {
-                                        val releases = TurnipDownloader.fetchAllReleases()
-                                        allDrivers = releases.flatMap { release ->
-                                            release.assets.map { asset -> release to asset }
-                                        }
-                                        showDriverList = true
-                                    } catch (e: Exception) {
-                                        driverListError = e.message ?: "Unknown error"
-                                    } finally {
-                                        driverListLoading = false
-                                    }
-                                }
-                            }
+                            key.backStack.navigateOnce(NormalNavKey.Settings.TurnipDrivers)
                         },
                         trailingIcon = {
                             Row {

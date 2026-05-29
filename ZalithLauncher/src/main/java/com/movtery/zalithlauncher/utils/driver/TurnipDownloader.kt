@@ -178,10 +178,7 @@ object TurnipDownloader {
             task = { it ->
                 val extractDir = File(PathManager.DIR_DRIVERS, safeDirName)
                 if (extractDir.exists()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, R.string.settings_renderer_turnip_already_exists, Toast.LENGTH_SHORT).show()
-                    }
-                    return@runTask
+                    extractDir.deleteRecursively()
                 }
 
                 it.updateMessage(R.string.settings_renderer_turnip_downloading)

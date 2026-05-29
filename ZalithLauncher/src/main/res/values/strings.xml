@@ -1251,7 +1251,6 @@
     <string name="settings_renderer_turnip_downloading">Downloading Turnip Driver...</string>
     <string name="settings_renderer_turnip_extracting">Extracting Turnip Driver...</string>
     <string name="settings_renderer_turnip_success">Turnip Driver installed successfully</string>
-    <string name="settings_renderer_turnip_already_exists">Driver already exists, skipping</string>
     <string name="launcher_ram_usage">RAM: %1$dMB / %2$dMB</string>
     <string name="launcher_fps_display">FPS: %d</string>
     <string name="about_acknowledgements_title">Acknowledgements</string>

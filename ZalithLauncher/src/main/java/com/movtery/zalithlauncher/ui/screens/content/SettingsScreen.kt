@@ -66,6 +66,7 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.GamepadSettingsScr
 import com.movtery.zalithlauncher.ui.screens.content.settings.JavaManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.LauncherSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.RendererSettingsScreen
+import com.movtery.zalithlauncher.ui.screens.content.settings.TurnipDriversScreen
 import com.movtery.zalithlauncher.ui.screens.navigateOnce
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
@@ -226,6 +227,9 @@ private fun NavigationUI(
                 entryProvider = entryProvider {
                     entry<NormalNavKey.Settings.Renderer> {
                         RendererSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel)
+                    }
+                    entry<NormalNavKey.Settings.TurnipDrivers> {
+                        TurnipDriversScreen(key, settingsScreenKey, mainScreenKey)
                     }
                     entry<NormalNavKey.Settings.Game> {
                         GameSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel)
