@@ -2,9 +2,11 @@
 #include "fsr_shader.h"
 
 #include <cmath>
+#include <cstring>
 
 static bool g_initialized = false;
 static bool g_active = false;
+static bool g_hooksActive = false;
 static int g_qualityPreset = 2;
 
 static GLuint g_renderFBO = 0;
@@ -20,6 +22,16 @@ static GLsizei g_renderWidth = 0;
 static GLsizei g_renderHeight = 0;
 static GLsizei g_targetWidth = 0;
 static GLsizei g_targetHeight = 0;
+
+/* Real function pointers for intercepted GL functions */
+static void (*real_glBindFramebuffer)(GLenum target, GLuint framebuffer) = nullptr;
+static void (*real_glViewport)(GLint x, GLint y, GLsizei width, GLsizei height) = nullptr;
+static void (*real_glGetIntegerv)(GLenum pname, GLint* data) = nullptr;
+static void* (*real_eglGetProcAddress)(const char* procname) = nullptr;
+static void (*real_glGenVertexArrays)(GLsizei n, GLuint* arrays) = nullptr;
+static void (*real_glBindVertexArray)(GLuint array) = nullptr;
+static void (*real_glDeleteVertexArrays)(GLsizei n, const GLuint* arrays) = nullptr;
+static void (*real_glBlitFramebuffer)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) = nullptr;
 
 static void checkError(const char* tag) {
     GLenum err = glGetError();
@@ -57,6 +69,128 @@ static GLuint compileShader(GLenum type, const char* source) {
         return 0;
     }
     return shader;
+}
+
+static void resolveGLProc(void** ptr, const char* name) {
+    if (*ptr) return;
+    if (real_eglGetProcAddress) {
+        *ptr = real_eglGetProcAddress(name);
+        if (*ptr) return;
+    }
+    void* gles = dlopen("libGLESv2.so", RTLD_LAZY | RTLD_LOCAL);
+    if (!gles) gles = dlopen("libGLESv3.so", RTLD_LAZY | RTLD_LOCAL);
+    if (gles) *ptr = dlsym(gles, name);
+}
+
+static void getRealGLFunctions() {
+    if (real_glBindFramebuffer) return;
+    if (!real_eglGetProcAddress) {
+        real_eglGetProcAddress = (void* (*)(const char*))dlsym(RTLD_DEFAULT, "eglGetProcAddress");
+        if (!real_eglGetProcAddress) {
+            void* egl = dlopen("libEGL.so", RTLD_LAZY | RTLD_LOCAL);
+            if (egl) real_eglGetProcAddress = (void* (*)(const char*))dlsym(egl, "eglGetProcAddress");
+        }
+    }
+    resolveGLProc((void**)&real_glBindFramebuffer, "glBindFramebuffer");
+    resolveGLProc((void**)&real_glViewport, "glViewport");
+    resolveGLProc((void**)&real_glGetIntegerv, "glGetIntegerv");
+    resolveGLProc((void**)&real_glGenVertexArrays, "glGenVertexArrays");
+    resolveGLProc((void**)&real_glBindVertexArray, "glBindVertexArray");
+    resolveGLProc((void**)&real_glDeleteVertexArrays, "glDeleteVertexArrays");
+    resolveGLProc((void**)&real_glBlitFramebuffer, "glBlitFramebuffer");
+    if (!real_glBindFramebuffer || !real_glViewport || !real_glGetIntegerv || !real_glGenVertexArrays || !real_glBindVertexArray || !real_glDeleteVertexArrays || !real_glBlitFramebuffer) {
+        LOGE("Failed to resolve real GL functions");
+    }
+}
+
+/*
+ * Hooked eglGetProcAddress — returns our wrapper for intercepted functions,
+ * passes through everything else to the real eglGetProcAddress.
+ * Called from any library whose PLT entry for eglGetProcAddress was hooked by bytehook.
+ */
+extern "C" void* hook_eglGetProcAddress(const char* name) {
+    if (strcmp(name, "glBindFramebuffer") == 0) return (void*)glBindFramebuffer;
+    if (strcmp(name, "glViewport") == 0) return (void*)glViewport;
+    if (strcmp(name, "glGetIntegerv") == 0) return (void*)glGetIntegerv;
+    return real_eglGetProcAddress(name);
+}
+
+/*
+ * Exported wrapper — when the game binds framebuffer 0 (the default / EGL surface),
+ * redirect to our lower-resolution render FBO so the game renders at reduced resolution.
+ */
+extern "C" void glBindFramebuffer(GLenum target, GLuint framebuffer) {
+    if (g_active && g_renderFBO != 0 && framebuffer == 0) {
+        real_glBindFramebuffer(target, g_renderFBO);
+        return;
+    }
+    real_glBindFramebuffer(target, framebuffer);
+}
+
+/*
+ * Exported wrapper — clamp viewport to the render resolution when FSR is active.
+ * This ensures the rasterizer only generates fragments within the lower-res FBO,
+ * delivering the full FPS gain from reduced pixel processing.
+ */
+extern "C" void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
+    if (g_active) {
+        GLsizei maxW = (GLsizei)g_renderWidth - x;
+        GLsizei maxH = (GLsizei)g_renderHeight - y;
+        if (maxW < 0) maxW = 0;
+        if (maxH < 0) maxH = 0;
+        real_glViewport(x, y,
+            width < maxW ? width : maxW,
+            height < maxH ? height : maxH);
+        return;
+    }
+    real_glViewport(x, y, width, height);
+}
+
+/*
+ * Exported wrapper — spoof GL_FRAMEBUFFER_BINDING queries so the game always sees 0
+ * when our redirect FBO is active. This prevents state save/restore breakage.
+ */
+extern "C" void glGetIntegerv(GLenum pname, GLint* data) {
+    real_glGetIntegerv(pname, data);
+    if (g_active && g_renderFBO != 0) {
+        if (pname == GL_FRAMEBUFFER_BINDING &&
+            (GLuint)data[0] == g_renderFBO) {
+            data[0] = 0;
+        }
+    }
+}
+
+static bool initHooks() {
+    void* bh = dlopen("libbytehook.so", RTLD_NOW);
+    if (!bh) {
+        LOGD("bytehook not available — FSR running without FPS gain");
+        return false;
+    }
+
+    int (*bytehook_init)(int mode, bool debug) =
+        (int (*)(int, bool))dlsym(bh, "bytehook_init");
+    void* (*bytehook_hook_all)(const char*, const char*, void*, void*, void*) =
+        (void* (*)(const char*, const char*, void*, void*, void*))dlsym(bh, "bytehook_hook_all");
+
+    if (!bytehook_init || !bytehook_hook_all) {
+        LOGD("bytehook symbols not found");
+        dlclose(bh);
+        return false;
+    }
+
+    if (bytehook_init(0, false) != 0) {
+        LOGD("bytehook init failed");
+        dlclose(bh);
+        return false;
+    }
+
+    bytehook_hook_all(nullptr, "eglGetProcAddress", (void*)hook_eglGetProcAddress, nullptr, nullptr);
+    bytehook_hook_all(nullptr, "glBindFramebuffer", (void*)glBindFramebuffer, nullptr, nullptr);
+    bytehook_hook_all(nullptr, "glViewport", (void*)glViewport, nullptr, nullptr);
+    bytehook_hook_all(nullptr, "glGetIntegerv", (void*)glGetIntegerv, nullptr, nullptr);
+
+    LOGD("FSR: bytehook installed — all hooks active");
+    return true;
 }
 
 static bool initFSRResources() {
@@ -99,9 +233,9 @@ static bool initFSRResources() {
          1.0f,  1.0f, 1.0f, 1.0f
     };
 
-    glGenVertexArrays(1, &g_quadVAO);
+    real_glGenVertexArrays(1, &g_quadVAO);
     glGenBuffers(1, &g_quadVBO);
-    glBindVertexArray(g_quadVAO);
+    real_glBindVertexArray(g_quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, g_quadVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -109,7 +243,7 @@ static bool initFSRResources() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    real_glBindVertexArray(0);
 
     glGenTextures(1, &g_renderTexture);
     glBindTexture(GL_TEXTURE_2D, g_renderTexture);
@@ -124,7 +258,7 @@ static bool initFSRResources() {
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, g_renderWidth, g_renderHeight);
 
     glGenFramebuffers(1, &g_renderFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, g_renderFBO);
+    real_glBindFramebuffer(GL_FRAMEBUFFER, g_renderFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_renderTexture, 0);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, g_depthStencilRBO);
 
@@ -137,16 +271,16 @@ static bool initFSRResources() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glGenFramebuffers(1, &g_targetFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, g_targetFBO);
+    real_glBindFramebuffer(GL_FRAMEBUFFER, g_targetFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_targetTexture, 0);
 
     checkError("initFSRResources");
 
     glUseProgram(prevProgram);
-    glBindVertexArray(prevVAO);
+    real_glBindVertexArray(prevVAO);
     glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuffer);
     glBindTexture(GL_TEXTURE_2D, prevTexture);
-    glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
+    real_glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
 
     LOGD("FSR initialized: render %dx%d target %dx%d", g_renderWidth, g_renderHeight, g_targetWidth, g_targetHeight);
     return true;
@@ -163,6 +297,11 @@ extern "C" void fsr_init(int qualityPreset) {
         LOGD("FSR init deferred (no current context)");
         g_initialized = true;
         return;
+    }
+
+    getRealGLFunctions();
+    if (!g_hooksActive) {
+        g_hooksActive = initHooks();
     }
 
     EGLint targetW = 0, targetH = 0;
@@ -193,14 +332,90 @@ extern "C" void fsr_init(int qualityPreset) {
     }
 
     g_active = true;
-    LOGD("FSR active: render %dx%d target %dx%d preset %d", g_renderWidth, g_renderHeight, g_targetWidth, g_targetHeight, g_qualityPreset);
+    if (!g_hooksActive) {
+        LOGD("FSR active (no FPS gain — no bytehook)");
+    } else {
+        LOGD("FSR active with FPS gain — fb/wvp hooks installed");
+    }
 
-    glViewport(0, 0, g_renderWidth, g_renderHeight);
-    glBindFramebuffer(GL_FRAMEBUFFER, g_renderFBO);
+    real_glViewport(0, 0, g_renderWidth, g_renderHeight);
+    real_glBindFramebuffer(GL_FRAMEBUFFER, g_renderFBO);
+}
+
+static bool fsrRebuildFramebuffers() {
+    GLint prevTexture, prevFBO, prevRBO;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glGetIntegerv(GL_RENDERBUFFER_BINDING, &prevRBO);
+
+    if (g_renderTexture) glDeleteTextures(1, &g_renderTexture);
+    if (g_depthStencilRBO) glDeleteRenderbuffers(1, &g_depthStencilRBO);
+    if (g_renderFBO) glDeleteFramebuffers(1, &g_renderFBO);
+    if (g_targetTexture) glDeleteTextures(1, &g_targetTexture);
+    if (g_targetFBO) glDeleteFramebuffers(1, &g_targetFBO);
+    g_renderTexture = g_depthStencilRBO = g_renderFBO = g_targetTexture = g_targetFBO = 0;
+
+    glGenTextures(1, &g_renderTexture);
+    glBindTexture(GL_TEXTURE_2D, g_renderTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g_renderWidth, g_renderHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glGenRenderbuffers(1, &g_depthStencilRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, g_depthStencilRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, g_renderWidth, g_renderHeight);
+
+    glGenFramebuffers(1, &g_renderFBO);
+    real_glBindFramebuffer(GL_FRAMEBUFFER, g_renderFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_renderTexture, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, g_depthStencilRBO);
+
+    glGenTextures(1, &g_targetTexture);
+    glBindTexture(GL_TEXTURE_2D, g_targetTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g_targetWidth, g_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glGenFramebuffers(1, &g_targetFBO);
+    real_glBindFramebuffer(GL_FRAMEBUFFER, g_targetFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_targetTexture, 0);
+
+    glBindTexture(GL_TEXTURE_2D, prevTexture);
+    glBindRenderbuffer(GL_RENDERBUFFER, prevRBO);
+    real_glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
+
+    checkError("fsrRebuildFramebuffers");
+    return true;
 }
 
 extern "C" void fsr_apply() {
     if (g_active) {
+        EGLDisplay display = eglGetCurrentDisplay();
+        EGLSurface surface = eglGetCurrentSurface(EGL_DRAW);
+        if (display != EGL_NO_DISPLAY && surface != EGL_NO_SURFACE) {
+            EGLint w, h;
+            if (eglQuerySurface(display, surface, EGL_WIDTH, &w) &&
+                eglQuerySurface(display, surface, EGL_HEIGHT, &h) &&
+                (w != g_targetWidth || h != g_targetHeight)) {
+                LOGD("FSR: surface resized %dx%d -> %dx%d", g_targetWidth, g_targetHeight, w, h);
+                g_targetWidth = w;
+                g_targetHeight = h;
+                calcRenderResolution(g_targetWidth, g_targetHeight, g_qualityPreset, &g_renderWidth, &g_renderHeight);
+                if (g_renderWidth < g_targetWidth && g_renderHeight < g_targetHeight) {
+                    if (!fsrRebuildFramebuffers()) {
+                        LOGE("FSR: resize failed, disabling");
+                        g_active = false;
+                        return;
+                    }
+                    real_glViewport(0, 0, g_renderWidth, g_renderHeight);
+                    real_glBindFramebuffer(GL_FRAMEBUFFER, g_renderFBO);
+                }
+            }
+        }
         goto do_fsr;
     }
     if (g_initialized) {
@@ -231,8 +446,8 @@ do_fsr:
         glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevDrawFBO);
         glGetIntegerv(GL_RENDERBUFFER_BINDING, &prevRenderbuffer);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, g_targetFBO);
-        glViewport(0, 0, g_targetWidth, g_targetHeight);
+        real_glBindFramebuffer(GL_FRAMEBUFFER, g_targetFBO);
+        real_glViewport(0, 0, g_targetWidth, g_targetHeight);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -253,26 +468,26 @@ do_fsr:
         glUniform4fv(glGetUniformLocation(g_fsrProgram, "uConst0"), 1, const0);
         glUniform2fv(glGetUniformLocation(g_fsrProgram, "uViewportSize"), 1, viewportSize);
 
-        glBindVertexArray(g_quadVAO);
+        real_glBindVertexArray(g_quadVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
+        real_glBindVertexArray(0);
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, g_targetFBO);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, g_targetWidth, g_targetHeight, 0, 0, g_targetWidth, g_targetHeight,
-                          GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        real_glBindFramebuffer(GL_READ_FRAMEBUFFER, g_targetFBO);
+        real_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        real_glBlitFramebuffer(0, 0, g_targetWidth, g_targetHeight, 0, 0, g_targetWidth, g_targetHeight,
+                               GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, g_renderFBO);
-        glViewport(0, 0, g_renderWidth, g_renderHeight);
+        real_glBindFramebuffer(GL_FRAMEBUFFER, g_renderFBO);
+        real_glViewport(0, 0, g_renderWidth, g_renderHeight);
 
         glUseProgram(prevProgram);
-        glBindVertexArray(prevVAO);
+        real_glBindVertexArray(prevVAO);
         glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuffer);
         glActiveTexture(prevActiveTexture);
         glBindTexture(GL_TEXTURE_2D, prevTexture);
         glBindRenderbuffer(GL_RENDERBUFFER, prevRenderbuffer);
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, prevReadFBO);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
+        real_glBindFramebuffer(GL_READ_FRAMEBUFFER, prevReadFBO);
+        real_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDrawFBO);
 
         checkError("fsr_apply");
     }
@@ -285,8 +500,9 @@ extern "C" void fsr_set_quality(int qualityPreset) {
 extern "C" void fsr_destroy() {
     g_active = false;
     g_initialized = false;
+    g_hooksActive = false;
     if (g_fsrProgram) { glDeleteProgram(g_fsrProgram); g_fsrProgram = 0; }
-    if (g_quadVAO) { glDeleteVertexArrays(1, &g_quadVAO); g_quadVAO = 0; }
+    if (g_quadVAO) { real_glDeleteVertexArrays(1, &g_quadVAO); g_quadVAO = 0; }
     if (g_quadVBO) { glDeleteBuffers(1, &g_quadVBO); g_quadVBO = 0; }
     if (g_renderFBO) { glDeleteFramebuffers(1, &g_renderFBO); g_renderFBO = 0; }
     if (g_renderTexture) { glDeleteTextures(1, &g_renderTexture); g_renderTexture = 0; }

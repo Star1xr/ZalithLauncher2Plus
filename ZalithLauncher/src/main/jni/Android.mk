@@ -116,7 +116,7 @@ include $(CLEAR_VARS)
 LOCAL_PATH := $(HERE_PATH)
 LOCAL_MODULE := gl_fsr
 LOCAL_CFLAGS += -rdynamic
-LOCAL_LDLIBS := -ldl -llog -lEGL -lGLESv3
+LOCAL_LDLIBS := -ldl -llog -lEGL -lGLESv2
 LOCAL_SRC_FILES := \
     fsr/fsr_hook.cpp
 include $(BUILD_SHARED_LIBRARY)

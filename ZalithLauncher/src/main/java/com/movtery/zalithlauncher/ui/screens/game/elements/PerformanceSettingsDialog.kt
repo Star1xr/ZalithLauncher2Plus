@@ -81,7 +81,10 @@ fun PerformanceSettingsDialog(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.settings_renderer_fsr_title),
                     value = AllSettings.fsrEnabled.state,
-                    onValueChange = { AllSettings.fsrEnabled.save(it) }
+                    onValueChange = {
+                        AllSettings.fsrEnabled.save(it)
+                        if (it) AllSettings.resolutionRatio.save(100)
+                    }
                 )
 
                 if (AllSettings.fsrEnabled.state) {

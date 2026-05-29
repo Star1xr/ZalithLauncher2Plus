@@ -78,6 +78,10 @@
     <string name="days_ago">%d days ago</string>
     <string name="months_ago">%d months ago</string>
     <string name="years_ago">%d years ago</string>
+    <string name="play_time_last_played">Last played: %s</string>
+    <string name="play_time_total">Play time: %s</string>
+    <string name="play_time_hours_minutes">%1$dh %2$dm</string>
+    <string name="play_time_minutes">%dm</string>
     <string name="empty_holder" translatable="false">%s</string>
     <!-- Sort By -->
     <string name="sort_by">Sort By</string>

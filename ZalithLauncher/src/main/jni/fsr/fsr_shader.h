@@ -1,6 +1,6 @@
 #pragma once
 
-const char* FSR_VSSource = R"fsr_glsl(#version 320 es
+const char* FSR_VSSource = R"fsr_glsl(#version 300 es
 
 layout(location = 0) in vec2 aPosition;
 out vec2 vTexCoord;
@@ -10,7 +10,7 @@ void main() {
     vTexCoord = aPosition * 0.5 + 0.5;
 })fsr_glsl";
 
-const char* FSR_FSSource = R"fsr_glsl(#version 320 es
+const char* FSR_FSSource = R"fsr_glsl(#version 300 es
 precision highp float;
 
 #define A_GPU 1

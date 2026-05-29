@@ -281,7 +281,10 @@ fun RendererSettingsScreen(
                         position = CardPosition.Middle,
                         unit = AllSettings.fsrEnabled,
                         title = stringResource(R.string.settings_renderer_fsr_title),
-                        summary = stringResource(R.string.settings_renderer_fsr_summary)
+                        summary = stringResource(R.string.settings_renderer_fsr_summary),
+                        onCheckedChange = { enabled ->
+                            if (enabled) AllSettings.resolutionRatio.save(100)
+                        }
                     )
 
                     if (AllSettings.fsrEnabled.state) {

@@ -9,6 +9,9 @@ object FSRUtils {
     fun load() {
         if (loaded) return
         if (!AllSettings.fsrEnabled.getValue()) return
+
+        AllSettings.resolutionRatio.updateState(100)
+
         if (ZLBridge.dlopen("libgl_fsr.so")) {
             loaded = true
             ZLBridge.fsrInit(AllSettings.fsrQuality.getValue())

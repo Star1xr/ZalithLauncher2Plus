@@ -79,6 +79,7 @@ import com.movtery.zalithlauncher.game.launch.handler.GameHandler
 import com.movtery.zalithlauncher.game.launch.handler.HandlerType
 import com.movtery.zalithlauncher.game.launch.handler.JVMHandler
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
+import com.movtery.zalithlauncher.game.version.installed.PlayTimeRepository
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.terracotta.TerracottaVPNService
@@ -180,10 +181,12 @@ class VMViewModel : ViewModel() {
                     activity = activity,
                     version = version,
                     onExit = { code, isSignal ->
-                        val duration = System.currentTimeMillis() - startTime
+                        val endTime = System.currentTimeMillis()
+                        val duration = endTime - startTime
                         if (duration > 0) {
                             val currentPlayTime = AllSettings.playTime.getValue()
                             AllSettings.playTime.save(currentPlayTime + duration)
+                            PlayTimeRepository.recordSession(version.getVersionName(), startTime, endTime)
                         }
 
                         if (code == 0) {

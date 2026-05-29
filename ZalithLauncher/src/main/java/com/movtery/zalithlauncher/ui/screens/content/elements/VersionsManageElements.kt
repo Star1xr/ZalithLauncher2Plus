@@ -80,6 +80,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.path.GamePath
 import com.movtery.zalithlauncher.game.path.GamePathManager
+import com.movtery.zalithlauncher.game.version.installed.PlayTimeRepository
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.cleanup.CleanFailedException
@@ -845,6 +846,7 @@ fun VersionItemLayout(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CommonVersionInfoLayout(
     version: Version,
@@ -919,6 +921,63 @@ fun CommonVersionInfoLayout(
                     }
                 }
             }
+            //游戏时间信息
+            if (isValid) {
+                PlayTimeInfoRow(versionName = versionName)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PlayTimeInfoRow(versionName: String) {
+    val lastPlayed = remember(versionName) { PlayTimeRepository.getLastPlayed(versionName) }
+    val totalMs = remember(versionName) { PlayTimeRepository.getTotalPlayTime(versionName) }
+
+    if (lastPlayed == 0L && totalMs == 0L) return
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val lastPlayedText = remember(lastPlayed) {
+        if (lastPlayed == 0L) null
+        else {
+            val diff = System.currentTimeMillis() - lastPlayed
+            when {
+                diff < 60_000L -> context.getString(R.string.just_now)
+                diff < 3_600_000L -> context.getString(R.string.minutes_ago, (diff / 60_000L).toInt())
+                diff < 86_400_000L -> context.getString(R.string.hours_ago, (diff / 3_600_000L).toInt())
+                diff < 2_592_000_000L -> context.getString(R.string.days_ago, (diff / 86_400_000L).toInt())
+                diff < 31_536_000_000L -> context.getString(R.string.months_ago, (diff / 2_592_000_000L).toInt())
+                else -> context.getString(R.string.years_ago, (diff / 31_536_000_000L).toInt())
+            }
+        }
+    }
+    val totalText = remember(totalMs) {
+        if (totalMs == 0L) null
+        else {
+            val totalMinutes = (totalMs / 60_000L).toInt()
+            val hours = totalMinutes / 60
+            val minutes = totalMinutes % 60
+            if (hours > 0) context.getString(R.string.play_time_hours_minutes, hours, minutes)
+            else context.getString(R.string.play_time_minutes, minutes)
+        }
+    }
+
+    FlowRow(
+        modifier = Modifier.alpha(0.6f),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        lastPlayedText?.let {
+            Text(
+                text = stringResource(R.string.play_time_last_played, it),
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+        totalText?.let {
+            Text(
+                text = stringResource(R.string.play_time_total, it),
+                style = MaterialTheme.typography.labelSmall
+            )
         }
     }
 }
