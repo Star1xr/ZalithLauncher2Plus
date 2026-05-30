@@ -128,3 +128,10 @@ JNIEXPORT void JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_fsrInit(J
 	}
 }
 
+JNIEXPORT void JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_fsrSetQuality(JNIEnv *env, jclass clazz, jint qualityPreset) {
+	void (*fsr_set_quality_fn)(int) = dlsym(RTLD_DEFAULT, "fsr_set_quality");
+	if (fsr_set_quality_fn) {
+		fsr_set_quality_fn((int)qualityPreset);
+	}
+}
+

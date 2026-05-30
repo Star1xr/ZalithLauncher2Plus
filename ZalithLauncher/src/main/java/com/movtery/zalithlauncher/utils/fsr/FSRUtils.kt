@@ -29,6 +29,12 @@ object FSRUtils {
         }
     }
 
+    fun updateQuality(quality: Int) {
+        AllSettings.resolutionRatio.updateState(qualityToResolutionRatio(quality))
+        AllSettings.resolutionRatio.save()
+        if (loaded) ZLBridge.fsrSetQuality(quality)
+    }
+
     fun destroy() {
         if (!loaded) return
         AllSettings.resolutionRatio.updateState(100)

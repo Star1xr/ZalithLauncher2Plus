@@ -103,9 +103,7 @@ fun PerformanceSettingsDialog(
                         current = AllSettings.fsrQuality.state ?: 2,
                         onClick = { quality ->
                             AllSettings.fsrQuality.save(quality)
-                            val ratio = FSRUtils.qualityToResolutionRatio(quality)
-                            AllSettings.resolutionRatio.updateState(ratio)
-                            AllSettings.resolutionRatio.save()
+                            FSRUtils.updateQuality(quality)
                         },
                         label = { quality ->
                             Text(

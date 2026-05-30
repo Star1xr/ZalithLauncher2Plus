@@ -280,9 +280,7 @@ fun RendererSettingsScreen(
                                 onValueChange = { item ->
                                     AllSettings.fsrQuality.save(item.first)
                                     if (AllSettings.fsrEnabled.getValue()) {
-                                        val ratio = FSRUtils.qualityToResolutionRatio(item.first)
-                                        AllSettings.resolutionRatio.updateState(ratio)
-                                        AllSettings.resolutionRatio.save()
+                                        FSRUtils.updateQuality(item.first)
                                     }
                                 }
                             )
