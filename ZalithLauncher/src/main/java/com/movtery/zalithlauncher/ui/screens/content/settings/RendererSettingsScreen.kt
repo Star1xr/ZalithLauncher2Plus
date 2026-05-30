@@ -56,6 +56,7 @@ import com.movtery.zalithlauncher.path.URL_CLOUD_RENDERER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_DRIVER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_RENDERER_PLUGINS
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.utils.fsr.FSRUtils
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
@@ -235,7 +236,14 @@ fun RendererSettingsScreen(
                         title = stringResource(R.string.settings_renderer_fsr_title),
                         summary = stringResource(R.string.settings_renderer_fsr_summary),
                         onCheckedChange = { enabled ->
-                            if (enabled) AllSettings.resolutionRatio.save(100)
+                            if (enabled) {
+                                val ratio = FSRUtils.qualityToResolutionRatio(AllSettings.fsrQuality.getValue())
+                                AllSettings.resolutionRatio.updateState(ratio)
+                                AllSettings.resolutionRatio.save()
+                            } else {
+                                AllSettings.resolutionRatio.updateState(100)
+                                AllSettings.resolutionRatio.save()
+                            }
                         }
                     )
 
@@ -271,6 +279,11 @@ fun RendererSettingsScreen(
                                 },
                                 onValueChange = { item ->
                                     AllSettings.fsrQuality.save(item.first)
+                                    if (AllSettings.fsrEnabled.getValue()) {
+                                        val ratio = FSRUtils.qualityToResolutionRatio(item.first)
+                                        AllSettings.resolutionRatio.updateState(ratio)
+                                        AllSettings.resolutionRatio.save()
+                                    }
                                 }
                             )
                         }
