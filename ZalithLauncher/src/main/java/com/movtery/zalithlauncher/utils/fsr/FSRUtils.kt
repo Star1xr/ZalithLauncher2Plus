@@ -1,6 +1,7 @@
 package com.movtery.zalithlauncher.utils.fsr
 
 import com.movtery.zalithlauncher.bridge.ZLBridge
+import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.setting.AllSettings
 
 object FSRUtils {
@@ -22,6 +23,14 @@ object FSRUtils {
 
         val quality = AllSettings.fsrQuality.getValue()
         AllSettings.resolutionRatio.updateState(qualityToResolutionRatio(quality))
+
+        // Krypton Wrapper IS libgl_fsr.so — loading our hook into it causes a null
+        // real_glGetIntegerv crash (pc=0x0). Krypton has FSR built-in; resolutionRatio is enough.
+        val rendererName = Renderers.getCurrentRenderer().getRendererName()
+        if (rendererName == "Krypton Wrapper") {
+            loaded = true
+            return
+        }
 
         if (ZLBridge.dlopen("libgl_fsr.so")) {
             loaded = true
