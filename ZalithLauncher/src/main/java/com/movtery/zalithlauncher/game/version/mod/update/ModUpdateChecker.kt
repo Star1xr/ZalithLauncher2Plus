@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -31,8 +32,7 @@ object ModUpdateChecker {
     /** Run background update check for all versions. Called once at app start. */
     fun checkAllInBackground(scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) {
         scope.launch(Dispatchers.IO) {
-            val versions = VersionsManager.versions.value
-            versions.forEach { version -> checkVersion(version) }
+            VersionsManager.versions.forEach { version -> checkVersion(version) }
         }
     }
 
@@ -48,26 +48,28 @@ object ModUpdateChecker {
             val mods = AllModReader(modsDir).readAllForRemote()
             if (mods.isEmpty()) {
                 launcherMMKV().putInt(updateCountKey(version.getVersionName()), 0).apply()
-                return
+                return@runCatching
             }
 
             val semaphore = Semaphore(5)
-            val updateCount = mods.map { mod ->
-                async(Dispatchers.IO) {
-                    semaphore.withPermit {
-                        runCatching { mod.load(loadFromCache = true) }.getOrNull()
-                        val modFile = mod.remoteFile ?: return@withPermit 0
-                        val project = mod.projectInfo ?: return@withPermit 0
-                        val data = ModData(
-                            file = mod.localMod.file,
-                            modFile = modFile,
-                            project = project,
-                            mcMod = mod.mcMod
-                        )
-                        if (data.checkUpdate(minecraft, modLoader) != null) 1 else 0
+            val updateCount = coroutineScope {
+                mods.map { mod ->
+                    async(Dispatchers.IO) {
+                        semaphore.withPermit {
+                            runCatching { mod.load(loadFromCache = true) }.getOrNull()
+                            val modFile = mod.remoteFile ?: return@withPermit 0
+                            val project = mod.projectInfo ?: return@withPermit 0
+                            val data = ModData(
+                                file = mod.localMod.file,
+                                modFile = modFile,
+                                project = project,
+                                mcMod = mod.mcMod
+                            )
+                            if (data.checkUpdate(minecraft, modLoader) != null) 1 else 0
+                        }
                     }
-                }
-            }.awaitAll().sum()
+                }.awaitAll().sum()
+            }
 
             launcherMMKV().putInt(updateCountKey(version.getVersionName()), updateCount).apply()
             Logger.info(TAG, "${version.getVersionName()}: $updateCount mod updates available")
