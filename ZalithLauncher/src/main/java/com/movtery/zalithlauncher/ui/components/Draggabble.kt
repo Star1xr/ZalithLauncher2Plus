@@ -43,7 +43,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
@@ -62,8 +61,6 @@ fun FloatingBall(
     shape: Shape = MaterialTheme.shapes.medium,
     content: @Composable () -> Unit
 ) {
-    val viewConfig = LocalViewConfiguration.current
-
     var ballSize by remember { mutableStateOf(IntSize.Zero) }
     val currentPosition by rememberUpdatedState(position)
     val currentOnClick by rememberUpdatedState(onClick)
@@ -121,7 +118,7 @@ fun FloatingBall(
                             val delta = change.positionChange()
                             val distanceFromStart = (change.position - startPosition).getDistance()
 
-                            if (!isDragging && distanceFromStart > viewConfig.touchSlop) {
+                            if (!isDragging && distanceFromStart > viewConfiguration.touchSlop) {
                                 //超出了拖动检测距离，说明是真的在进行拖动
                                 //标记当前为拖动，避免松开手指后，判定为点击事件
                                 isDragging = true

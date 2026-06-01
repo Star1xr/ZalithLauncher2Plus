@@ -62,6 +62,8 @@ fun PlayerProfile.Cape.capeLocalRes(): Int? {
         "Founder's" -> R.string.cape_name_founder_s
         "Copper" -> R.string.cape_name_copper
         "Zombie Horse" -> R.string.cape_name_zombie_horse
+        "Builder" -> R.string.cape_name_builder
+        "Crafter" -> R.string.cape_name_crafter
         else -> null
     }
 

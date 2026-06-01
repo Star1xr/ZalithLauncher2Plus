@@ -18,37 +18,32 @@
 
 package com.movtery.zalithlauncher.ui.control.mouse
 
+import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
-import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerEvent
-import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.PointerId
-import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
-import androidx.compose.ui.input.pointer.isBackPressed
-import androidx.compose.ui.input.pointer.isForwardPressed
-import androidx.compose.ui.input.pointer.isPrimaryPressed
-import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.isTertiaryPressed
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalViewConfiguration
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
 import com.movtery.zalithlauncher.ui.components.FocusableBox
 import kotlinx.coroutines.Job
@@ -109,7 +104,6 @@ fun TouchpadLayout(
     inputChange: Array<out Any> = arrayOf(Unit),
     requestFocusKey: Any? = null
 ) {
-    val viewConfig = LocalViewConfiguration.current
     val interactionSource = remember { MutableInteractionSource() }
 
     //确保 pointerInput 中总是调用到最新的回调，避免闭包捕获旧值
@@ -157,187 +151,187 @@ fun TouchpadLayout(
                             while (true) {
                                 val event = awaitPointerEvent()
 
-                            event.changes
-                                .filter { it.changedToDown() }
-                                .forEach { change ->
-                                    //刚触摸到屏幕时，触发触摸事件回调
-                                    currentOnTouch()
-
-                                    val pointerId = change.id
-                                    //是否被父级标记为仅处理滑动
-                                    val isMoveOnly = isMoveOnlyPointer(pointerId)
-
-                                    //如果是 moveOnly 指针
-                                    if (isMoveOnly) {
-                                        //如果当前没有活跃指针，则成为活跃指针
-                                        //这样当第一根手指被标记为 moveOnly 后，第二根手指可以接管
-                                        if (activePointer == null) {
-                                            activePointer = pointerId
-                                            dragStates[pointerId] = DragState(startPosition = change.position)
-                                        } else {
-                                            //如果已有活跃指针，仅处理滑动
-                                            moveOnlyPointers.add(pointerId)
-                                        }
-                                    } else if (activePointer == null && !change.isConsumed) {
-                                        //如果没有活跃指针，且当前指针未被消费，则开始处理这个指针
-                                        //fix: 只有真正成为 activePointer 的指针，才标记为已占用
-                                        if (pointerId !in occupiedPointers) {
-                                            onOccupiedPointer(pointerId)
-                                            occupiedPointers.add(pointerId)
-                                        }
-
-                                        activePointer = pointerId
-
-                                        dragStates[pointerId] =
-                                            DragState(startPosition = change.position)
-
-                                        if (currentControlMode == MouseControlMode.SLIDE && currentEnableMouseClick) {
-                                            longPressJobs[pointerId] = launch {
-                                                //只在滑动点击模式下进行长按计时
-                                                val timeout =
-                                                    if (currentLongPressTimeoutMillis > 0) {
-                                                        currentLongPressTimeoutMillis
-                                                    } else {
-                                                        viewConfig.longPressTimeoutMillis
-                                                    }
-                                                delay(timeout)
-
-                                                //检查是否仍在处理此指针且未开始拖动
-                                                if (activePointer == pointerId && dragStates[pointerId]?.isDragging != true) {
-                                                    dragStates[pointerId]?.longPressTriggered = true
-                                                    currentOnLongPress()
-                                                }
-                                            }
-                                        }
-
-                                        if (currentControlMode == MouseControlMode.CLICK) {
-                                            //点击模式下，如果触摸，无论如何都应该更新指针位置
-                                            currentOnPointerMove(change.position, false)
-                                        }
-                                    }
-                                }
-
-                            //处理移动事件，处理活跃指针的移动
-                            activePointer?.let { pointerId ->
                                 event.changes
-                                    .firstOrNull { it.id == pointerId && it.positionChanged() && !it.isConsumed }
-                                    ?.let { moveChange ->
-                                        val dragState = dragStates[pointerId] ?: return@let
+                                    .filter { it.changedToDown() }
+                                    .forEach { change ->
+                                        //刚触摸到屏幕时，触发触摸事件回调
+                                        currentOnTouch()
+
+                                        val pointerId = change.id
                                         //是否被父级标记为仅处理滑动
                                         val isMoveOnly = isMoveOnlyPointer(pointerId)
 
+                                        //如果是 moveOnly 指针
                                         if (isMoveOnly) {
-                                            dragState.isDragging = true
-                                            val delta = moveChange.positionChange()
-                                            currentOnPointerMove(delta, true)
-                                        } else {
-                                            when (currentControlMode) {
-                                                MouseControlMode.SLIDE -> {
-                                                    if (currentEnableMouseClick) {
-                                                        val distanceFromStart =
-                                                            (moveChange.position - dragState.startPosition).getDistance()
+                                            //如果当前没有活跃指针，则成为活跃指针
+                                            //这样当第一根手指被标记为 moveOnly 后，第二根手指可以接管
+                                            if (activePointer == null) {
+                                                activePointer = pointerId
+                                                dragStates[pointerId] = DragState(startPosition = change.position)
+                                            } else {
+                                                //如果已有活跃指针，仅处理滑动
+                                                moveOnlyPointers.add(pointerId)
+                                            }
+                                        } else if (activePointer == null && !change.isConsumed) {
+                                            //如果没有活跃指针，且当前指针未被消费，则开始处理这个指针
+                                            //fix: 只有真正成为 activePointer 的指针，才标记为已占用
+                                            if (pointerId !in occupiedPointers) {
+                                                onOccupiedPointer(pointerId)
+                                                occupiedPointers.add(pointerId)
+                                            }
 
-                                                        if (distanceFromStart > viewConfig.touchSlop && !dragState.isDragging) {
-                                                            //超出了滑动检测距离，说明是真的在进行滑动
-                                                            dragState.isDragging = true
-                                                            longPressJobs.remove(pointerId)
-                                                                ?.cancel() //取消长按计时
+                                            activePointer = pointerId
+
+                                            dragStates[pointerId] =
+                                                DragState(startPosition = change.position)
+
+                                            if (currentControlMode == MouseControlMode.SLIDE && currentEnableMouseClick) {
+                                                longPressJobs[pointerId] = launch {
+                                                    //只在滑动点击模式下进行长按计时
+                                                    val timeout =
+                                                        if (currentLongPressTimeoutMillis > 0) {
+                                                            currentLongPressTimeoutMillis
+                                                        } else {
+                                                            viewConfiguration.longPressTimeoutMillis
                                                         }
+                                                    delay(timeout)
 
-                                                        if (dragState.isDragging || dragState.longPressTriggered) {
-                                                            val delta = moveChange.positionChange()
-                                                            currentOnPointerMove(delta, false)
-                                                        }
-                                                    } else {
-                                                        dragState.isDragging = true
-                                                        val delta = moveChange.positionChange()
-                                                        currentOnPointerMove(delta, false)
-                                                    }
-                                                }
-
-                                                MouseControlMode.CLICK -> {
-                                                    if (!dragState.longPressTriggered) {
-                                                        dragState.longPressTriggered = true
-                                                        longPressJobs.remove(pointerId)?.cancel()
+                                                    //检查是否仍在处理此指针且未开始拖动
+                                                    if (activePointer == pointerId && dragStates[pointerId]?.isDragging != true) {
+                                                        dragStates[pointerId]?.longPressTriggered = true
                                                         currentOnLongPress()
                                                     }
-                                                    currentOnPointerMove(moveChange.position, false)
                                                 }
                                             }
+
+                                            if (currentControlMode == MouseControlMode.CLICK) {
+                                                //点击模式下，如果触摸，无论如何都应该更新指针位置
+                                                currentOnPointerMove(change.position, false)
+                                            }
                                         }
-
-                                        moveChange.consume()
                                     }
-                            }
 
-                            //处理 moveOnly 指针的移动
-                            event.changes
-                                .filter { moveOnlyPointers.contains(it.id) && it.positionChanged() && !it.isConsumed }
-                                .forEach { moveChange ->
-                                    val pointerId = moveChange.id
-                                    val dragState = dragStates[pointerId]
-                                    if (dragState != null) {
-                                        dragState.isDragging = true
-                                        val delta = moveChange.positionChange()
-                                        currentOnPointerMove(delta, true)
-                                        moveChange.consume()
-                                    }
-                                }
+                                //处理移动事件，处理活跃指针的移动
+                                activePointer?.let { pointerId ->
+                                    event.changes
+                                        .firstOrNull { it.id == pointerId && it.positionChanged() && !it.isConsumed }
+                                        ?.let { moveChange ->
+                                            val dragState = dragStates[pointerId] ?: return@let
+                                            //是否被父级标记为仅处理滑动
+                                            val isMoveOnly = isMoveOnlyPointer(pointerId)
 
-                            //释放
-                            event.changes
-                                .filter { it.changedToUpIgnoreConsumed() }
-                                .forEach { change ->
-                                    val pointerId = change.id
-                                    //是否被父级标记为仅处理滑动
-                                    val isMoveOnly = isMoveOnlyPointer(pointerId)
-
-                                    longPressJobs.remove(pointerId)?.cancel()
-                                    val dragState = dragStates.remove(pointerId)
-
-                                    //如果是活跃指针，处理释放逻辑
-                                    if (pointerId == activePointer) {
-                                        if (!isMoveOnly) {
-                                            if (dragState?.longPressTriggered == true) {
-                                                currentOnLongPressEnd()
+                                            if (isMoveOnly) {
+                                                dragState.isDragging = true
+                                                val delta = moveChange.positionChange()
+                                                currentOnPointerMove(delta, true)
                                             } else {
                                                 when (currentControlMode) {
                                                     MouseControlMode.SLIDE -> {
-                                                        if (currentEnableMouseClick && dragState?.isDragging != true) {
-                                                            currentOnTap(change.position)
+                                                        if (currentEnableMouseClick) {
+                                                            val distanceFromStart =
+                                                                (moveChange.position - dragState.startPosition).getDistance()
+
+                                                            if (distanceFromStart > viewConfiguration.touchSlop && !dragState.isDragging) {
+                                                                //超出了滑动检测距离，说明是真的在进行滑动
+                                                                dragState.isDragging = true
+                                                                longPressJobs.remove(pointerId)
+                                                                    ?.cancel() //取消长按计时
+                                                            }
+
+                                                            if (dragState.isDragging || dragState.longPressTriggered) {
+                                                                val delta = moveChange.positionChange()
+                                                                currentOnPointerMove(delta, false)
+                                                            }
+                                                        } else {
+                                                            dragState.isDragging = true
+                                                            val delta = moveChange.positionChange()
+                                                            currentOnPointerMove(delta, false)
                                                         }
                                                     }
 
                                                     MouseControlMode.CLICK -> {
-                                                        //未进入长按，算一次点击事件
-                                                        currentOnTap(change.position)
+                                                        if (!dragState.longPressTriggered) {
+                                                            dragState.longPressTriggered = true
+                                                            longPressJobs.remove(pointerId)?.cancel()
+                                                            currentOnLongPress()
+                                                        }
+                                                        currentOnPointerMove(moveChange.position, false)
                                                     }
                                                 }
                                             }
+
+                                            moveChange.consume()
                                         }
-
-                                        activePointer = null
-                                    }
-
-                                    //从 moveOnly 指针集合中移除
-                                    moveOnlyPointers.remove(pointerId)
-
-                                    if (!isMoveOnly && pointerId in occupiedPointers) {
-                                        occupiedPointers.remove(pointerId)
-                                        onReleasePointer(pointerId)
-                                    }
                                 }
 
-                            if (!event.changes.any { it.pressed }) {
-                                resetTouchState()
+                                //处理 moveOnly 指针的移动
+                                event.changes
+                                    .filter { moveOnlyPointers.contains(it.id) && it.positionChanged() && !it.isConsumed }
+                                    .forEach { moveChange ->
+                                        val pointerId = moveChange.id
+                                        val dragState = dragStates[pointerId]
+                                        if (dragState != null) {
+                                            dragState.isDragging = true
+                                            val delta = moveChange.positionChange()
+                                            currentOnPointerMove(delta, true)
+                                            moveChange.consume()
+                                        }
+                                    }
+
+                                //释放
+                                event.changes
+                                    .filter { it.changedToUpIgnoreConsumed() }
+                                    .forEach { change ->
+                                        val pointerId = change.id
+                                        //是否被父级标记为仅处理滑动
+                                        val isMoveOnly = isMoveOnlyPointer(pointerId)
+
+                                        longPressJobs.remove(pointerId)?.cancel()
+                                        val dragState = dragStates.remove(pointerId)
+
+                                        //如果是活跃指针，处理释放逻辑
+                                        if (pointerId == activePointer) {
+                                            if (!isMoveOnly) {
+                                                if (dragState?.longPressTriggered == true) {
+                                                    currentOnLongPressEnd()
+                                                } else {
+                                                    when (currentControlMode) {
+                                                        MouseControlMode.SLIDE -> {
+                                                            if (currentEnableMouseClick && dragState?.isDragging != true) {
+                                                                currentOnTap(change.position)
+                                                            }
+                                                        }
+
+                                                        MouseControlMode.CLICK -> {
+                                                            //未进入长按，算一次点击事件
+                                                            currentOnTap(change.position)
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            activePointer = null
+                                        }
+
+                                        //从 moveOnly 指针集合中移除
+                                        moveOnlyPointers.remove(pointerId)
+
+                                        if (!isMoveOnly && pointerId in occupiedPointers) {
+                                            occupiedPointers.remove(pointerId)
+                                            onReleasePointer(pointerId)
+                                        }
+                                    }
+
+                                if (!event.changes.any { it.pressed }) {
+                                    resetTouchState()
+                                }
                             }
+                        } finally {
+                            resetTouchState()
                         }
-                    } finally {
-                        resetTouchState()
                     }
                 }
             }
-        }
             .then(
                 Modifier.mouseEventModifier(
                     disabled = requestPointerCapture,
@@ -460,68 +454,80 @@ private fun SimpleMouseCapture(
 private fun Modifier.mouseEventModifier(
     disabled: Boolean,
     inputChange: Array<out Any> = arrayOf(Unit),
-    onMouse: () -> Unit,
-    onMouseMove: (Offset) -> Unit,
-    onMouseScroll: (Offset) -> Unit,
-    onMouseButton: (Int, Boolean) -> Unit
-) = this.pointerInput(*inputChange, disabled) {
-    val previousButtonStates = mutableMapOf<Int, Boolean>()
-
-    if (disabled) return@pointerInput
-
-    awaitEachGesture {
-        while (true) {
-            val event = awaitPointerEvent()
-            val change = event.changes.firstOrNull()
-
-            val pointerType = change?.type
-            if (
-                //过滤掉不是鼠标或者触控笔的类型
-                //触控笔（Chromebook、三星等）
-                !(pointerType == PointerType.Mouse || pointerType == PointerType.Stylus)
-            ) {
-                continue
-            }
-
-            if (event.type == PointerEventType.Move) {
-                onMouse()
-                onMouseMove(change.position)
-            }
-
-            //滚动，但是方向要进行取反
-            if (event.type == PointerEventType.Scroll) {
-                onMouseScroll(-change.scrollDelta)
-            }
-
-            detectButtonChanges(previousButtonStates, event, onMouseButton)
-
-            event.changes.forEach { it.consume() }
-        }
+    onMouse: () -> Unit = {},
+    onMouseMove: (Offset) -> Unit = {},
+    onMouseScroll: (Offset) -> Unit = {},
+    onMouseButton: (Int, Boolean) -> Unit = { _, _ -> },
+) = composed(
+    inspectorInfo = {
+        name = "mouseEventModifier"
+        properties["keys"] = inputChange
     }
-}
-
-private fun detectButtonChanges(
-    previousButtonStates: MutableMap<Int, Boolean>,
-    event: PointerEvent,
-    onMouseButton: (Int, Boolean) -> Unit
 ) {
-    val buttons = event.buttons
+    val currentDisabled by rememberUpdatedState(disabled)
+    val currentOnMouse by rememberUpdatedState(onMouse)
+    val currentOnMouseMove by rememberUpdatedState(onMouseMove)
+    val currentOnMouseScroll by rememberUpdatedState(onMouseScroll)
+    val currentOnMouseButton by rememberUpdatedState(onMouseButton)
 
-    val buttonStates = mapOf(
-        MotionEvent.BUTTON_PRIMARY to buttons.isPrimaryPressed,
-        MotionEvent.BUTTON_SECONDARY to buttons.isSecondaryPressed,
-        MotionEvent.BUTTON_TERTIARY to buttons.isTertiaryPressed,
-        MotionEvent.BUTTON_BACK to buttons.isBackPressed,
-        MotionEvent.BUTTON_FORWARD to buttons.isForwardPressed
-    )
-
-    for ((button, isPressed) in buttonStates) {
-        val previousPressed = previousButtonStates[button] ?: false
-        if (previousPressed != isPressed) {
-            onMouseButton(button, isPressed)
-        }
+    var lastButtons by remember(*inputChange) {
+        //位掩码存储鼠标按键按下状态
+        mutableIntStateOf(0)
     }
 
-    previousButtonStates.clear()
-    previousButtonStates.putAll(buttonStates)
+    pointerInteropFilter { event ->
+        if (currentDisabled) {
+            return@pointerInteropFilter false
+        }
+
+        val isMouse = event.isFromSource(InputDevice.SOURCE_MOUSE)
+        val isStylus = event.isFromSource(InputDevice.SOURCE_STYLUS)
+        //过滤掉不是鼠标或者触控笔的类型
+        //触控笔（Chromebook、三星等）
+        if (!isMouse && !isStylus) {
+            return@pointerInteropFilter false
+        }
+
+        currentOnMouse()
+
+        val buttons = event.buttonState
+        val changed = lastButtons xor buttons
+
+        fun dispatchButton(button: Int) {
+            if (changed and button != 0) {
+                val pressed = buttons and button != 0
+                currentOnMouseButton(button, pressed)
+            }
+        }
+
+        dispatchButton(MotionEvent.BUTTON_PRIMARY)
+        dispatchButton(MotionEvent.BUTTON_SECONDARY)
+        dispatchButton(MotionEvent.BUTTON_TERTIARY)
+        dispatchButton(MotionEvent.BUTTON_BACK)
+        dispatchButton(MotionEvent.BUTTON_FORWARD)
+        dispatchButton(MotionEvent.BUTTON_STYLUS_PRIMARY)
+        dispatchButton(MotionEvent.BUTTON_STYLUS_SECONDARY)
+
+        lastButtons = buttons
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_HOVER_MOVE,
+            MotionEvent.ACTION_MOVE -> {
+                currentOnMouseMove(
+                    Offset(x = event.rawX, y = event.rawY)
+                )
+            }
+
+            MotionEvent.ACTION_SCROLL -> {
+                currentOnMouseScroll(
+                    Offset(
+                        x = event.getAxisValue(MotionEvent.AXIS_HSCROLL),
+                        y = event.getAxisValue(MotionEvent.AXIS_VSCROLL),
+                    )
+                )
+            }
+        }
+
+        true
+    }
 }

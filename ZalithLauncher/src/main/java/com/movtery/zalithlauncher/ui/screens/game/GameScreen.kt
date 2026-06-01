@@ -650,7 +650,7 @@ fun GameScreen(
                 rule = AllSettings.hotbarRule.state,
                 widthPercentage = AllSettings.hotbarWidth.state.hotbarPercentage(),
                 heightPercentage = AllSettings.hotbarHeight.state.hotbarPercentage(),
-                onClickSlot = { keycode ->
+                sendKeycode = { keycode ->
                     CallbackBridge.sendKeyPress(keycode)
                 },
                 isGrabbing = isGrabbing,

@@ -53,6 +53,12 @@ const val HOTBAR_7_VALUE =  "key.keyboard.7"
 const val HOTBAR_8_VALUE =  "key.keyboard.8"
 const val HOTBAR_9_VALUE =  "key.keyboard.9"
 
+const val SWAP_OFFHAND =        "key_key.swapOffhand"
+const val SWAP_OFFHAND_VALUE =  "key.keyboard.f"
+
+const val DROP =        "key.drop"
+const val DROP_VALUE =  "key.keyboard.q"
+
 //Chat
 const val OPEN_CHAT = "key_key.chat"
 const val OPEN_CHAT_VALUE = "key.keyboard.t"

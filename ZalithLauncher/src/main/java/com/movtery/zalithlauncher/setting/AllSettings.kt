@@ -502,6 +502,21 @@ object AllSettings : SettingsRegistry() {
     val hotbarHeight = intSetting("hotbarHeight", 100, 0..1000)
 
     /**
+     * 快捷栏双击与副手交换物品
+     */
+    val hotbarDoubleClick = boolSetting("hotbarDoubleClick", true)
+
+    /**
+     * 快捷栏长按丢弃所选物品
+     */
+    val hotbarLongClick = boolSetting("hotbarLongClick", true)
+
+    /**
+     * 快捷栏长按快捷栏触发延迟
+     */
+    val hotbarLongClickDelay = intSetting("hotbarLongClickDelay", 300, 100..1000)
+
+    /**
      * 游戏内控制布局的整体不透明度
      */
     val controlsOpacity = intSetting("controlsOpacity", 100, 0..100)

@@ -431,64 +431,6 @@ private fun ControlOverview(
                 contentColor = contentColor,
             )
         }
-
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        //快捷栏定位规则
-        item {
-            MenuListLayout(
-                modifier = Modifier.fillMaxWidth(),
-                title = stringResource(R.string.game_menu_option_hotbar_rule),
-                items = HotbarRule.entries,
-                currentItem = AllSettings.hotbarRule.state,
-                onItemChange = { AllSettings.hotbarRule.save(it) },
-                getItemText = { stringResource(it.nameRes) },
-                color = color,
-                contentColor = contentColor,
-            )
-        }
-
-        //快捷栏宽度
-        item {
-            MenuSliderLayout(
-                modifier = Modifier.fillMaxWidth(),
-                title = stringResource(R.string.game_menu_option_hotbar_width),
-                value = AllSettings.hotbarWidth.state / 10f,
-                valueRange = 0f..100f,
-                enabled = AllSettings.hotbarRule.state == HotbarRule.Custom,
-                onValueChange = { value ->
-                    AllSettings.hotbarWidth.updateState((value * 10f).toInt())
-                },
-                onValueChangeFinished = { value ->
-                    AllSettings.hotbarWidth.save((value * 10f).toInt())
-                },
-                suffix = "%",
-                color = color,
-                contentColor = contentColor,
-            )
-        }
-
-        //快捷栏高度
-        item {
-            MenuSliderLayout(
-                modifier = Modifier.fillMaxWidth(),
-                title = stringResource(R.string.game_menu_option_hotbar_height),
-                value = AllSettings.hotbarHeight.state / 10f,
-                valueRange = 0f..100f,
-                enabled = AllSettings.hotbarRule.state == HotbarRule.Custom,
-                onValueChange = { value ->
-                    AllSettings.hotbarHeight.updateState((value * 10f).toInt())
-                },
-                onValueChangeFinished = { value ->
-                    AllSettings.hotbarHeight.save((value * 10f).toInt())
-                },
-                suffix = "%",
-                color = color,
-                contentColor = contentColor,
-            )
-        }
     }
 }
 
@@ -770,6 +712,108 @@ private fun ControlGesture(
                 onValueChange = { AllSettings.gestureLongPressDelay.updateState(it) },
                 onValueChangeFinished = { AllSettings.gestureLongPressDelay.save(it) },
                 suffix = "ms",
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        //快捷栏定位规则
+        item {
+            MenuListLayout(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.game_menu_option_hotbar_rule),
+                items = HotbarRule.entries,
+                currentItem = AllSettings.hotbarRule.state,
+                onItemChange = { AllSettings.hotbarRule.save(it) },
+                getItemText = { stringResource(it.nameRes) },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+
+        //快捷栏宽度
+        item {
+            MenuSliderLayout(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.game_menu_option_hotbar_width),
+                value = AllSettings.hotbarWidth.state / 10f,
+                valueRange = 0f..100f,
+                enabled = AllSettings.hotbarRule.state == HotbarRule.Custom,
+                onValueChange = { value ->
+                    AllSettings.hotbarWidth.updateState((value * 10f).toInt())
+                },
+                onValueChangeFinished = { value ->
+                    AllSettings.hotbarWidth.save((value * 10f).toInt())
+                },
+                suffix = "%",
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+
+        //快捷栏高度
+        item {
+            MenuSliderLayout(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.game_menu_option_hotbar_height),
+                value = AllSettings.hotbarHeight.state / 10f,
+                valueRange = 0f..100f,
+                enabled = AllSettings.hotbarRule.state == HotbarRule.Custom,
+                onValueChange = { value ->
+                    AllSettings.hotbarHeight.updateState((value * 10f).toInt())
+                },
+                onValueChangeFinished = { value ->
+                    AllSettings.hotbarHeight.save((value * 10f).toInt())
+                },
+                suffix = "%",
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+
+        //快捷栏双击与副手交换物品
+        item {
+            MenuSwitchButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.game_menu_option_hotbar_double_click),
+                switch = AllSettings.hotbarDoubleClick.state,
+                onSwitch = { AllSettings.hotbarDoubleClick.save(it) },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+
+        //快捷栏长按丢弃所选物品
+        item {
+            MenuSwitchButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.game_menu_option_hotbar_long_click),
+                switch = AllSettings.hotbarLongClick.state,
+                onSwitch = { AllSettings.hotbarLongClick.save(it) },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+
+        //快捷栏长按快捷栏触发延迟
+        item {
+            MenuSliderLayout(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.game_menu_option_hotbar_long_click_delay),
+                value = AllSettings.hotbarLongClickDelay.state,
+                valueRange = AllSettings.hotbarLongClickDelay.floatRange,
+                onValueChange = { value ->
+                    AllSettings.hotbarLongClickDelay.updateState(value)
+                },
+                onValueChangeFinished = { value ->
+                    AllSettings.hotbarLongClickDelay.save(value)
+                },
+                suffix = "ms",
+                enabled = AllSettings.hotbarLongClick.state,
                 color = color,
                 contentColor = contentColor,
             )
