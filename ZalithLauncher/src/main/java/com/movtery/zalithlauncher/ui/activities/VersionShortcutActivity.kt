@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.activities
 
+import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.movtery.zalithlauncher.game.account.AccountsManager
@@ -17,6 +18,12 @@ class VersionShortcutActivity : BaseAppCompatActivity() {
         val versionName = intent.getStringExtra(EXTRA_LAUNCH_VERSION)
 
         if (versionName == null) {
+            Toast.makeText(
+                this,
+                "Shortcut: versionName NULL",
+                Toast.LENGTH_LONG
+            ).show()
+
             openLauncher()
             return
         }
@@ -24,6 +31,12 @@ class VersionShortcutActivity : BaseAppCompatActivity() {
         val version = VersionsManager.getVersion(versionName)
 
         if (version == null) {
+            Toast.makeText(
+                this,
+                "Shortcut: version NULL",
+                Toast.LENGTH_LONG
+            ).show()
+
             openLauncher()
             return
         }
@@ -45,7 +58,16 @@ class VersionShortcutActivity : BaseAppCompatActivity() {
                     // Skip Vulkan checker for shortcuts
                 },
                 submitError = {
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@VersionShortcutActivity,
+                            "Shortcut: LaunchGame error",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
                     openLauncher()
+                }
                 }
             )
         }
