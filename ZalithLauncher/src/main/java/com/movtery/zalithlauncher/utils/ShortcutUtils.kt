@@ -19,7 +19,16 @@ object ShortcutUtils {
 
         val intent = Intent(context, SplashActivity::class.java).apply {
             action = Intent.ACTION_VIEW
+
             putExtra(EXTRA_LAUNCH_VERSION, version.getVersionName())
+
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+            )
+
+            `package` = context.packageName
         }
 
         val shortcut = ShortcutInfo.Builder(context, "version_${version.getVersionName()}")
