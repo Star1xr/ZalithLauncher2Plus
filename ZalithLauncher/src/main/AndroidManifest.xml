@@ -105,7 +105,13 @@
                 <data android:mimeType="application/json"/>
             </intent-filter>
         </activity-alias>
-
+        
+        <activity
+            android:name=".ui.activities.VersionShortcutActivity"
+            android:exported="true"
+            android:theme="@style/AppTheme.SplashScreen"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
+            android:screenOrientation="sensorLandscape" />
         <activity
             android:name=".ui.activities.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
