@@ -30,19 +30,25 @@ class VersionShortcutActivity : BaseAppCompatActivity() {
 
         VersionsManager.saveVersion(version)
 
-        LaunchGame.launchGame(
-            context = this,
-            version = version,
-            exitActivity = {
-                finish()
-            },
-            waitForVulkanChecker = {
-                // Skip Vulkan checker for shortcuts
-            },
-            submitError = {
-                openLauncher()
-            }
-        )
+        lifecycleScope.launch {
+            
+        AccountsManager.initialize(this@VersionShortcutActivity)
+            AccountsManager.suspendReloadAccounts()
+
+            LaunchGame.launchGame(
+                context = this@VersionShortcutActivity,
+                version = version,
+                exitActivity = {
+                    finish()
+                },
+                waitForVulkanChecker = {
+                    // Skip Vulkan checker for shortcuts
+                },
+                submitError = {
+                    openLauncher()
+                }
+            )
+        }
     }
 
     private fun openLauncher() {
