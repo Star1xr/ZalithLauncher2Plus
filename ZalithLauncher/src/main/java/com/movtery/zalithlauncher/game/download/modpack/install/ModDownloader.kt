@@ -40,6 +40,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "ModDownloader"
 
@@ -146,7 +147,7 @@ class ModDownloader(
                         downloadedFileCount.get(), totalFileCount,
                         formatFileSize(downloadedFileSize.get())
                     )
-                    delay(100)
+                    delay(100L.milliseconds)
                 }
             }
 

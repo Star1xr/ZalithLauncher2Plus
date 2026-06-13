@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_layer
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -138,7 +140,11 @@ fun EditSwitchLayersVisibilityDialog(
                         modifier = Modifier
                             .fadeEdge(state = scrollState)
                             .weight(1f, fill = false)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .scrollbar(
+                                state = scrollState.scrollIndicatorState,
+                                orientation = Orientation.Vertical,
+                            ),
                         state = scrollState,
                         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)

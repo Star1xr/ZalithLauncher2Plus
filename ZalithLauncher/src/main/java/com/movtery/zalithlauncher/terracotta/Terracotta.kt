@@ -33,6 +33,7 @@ import net.burningtnt.terracotta.TerracottaAndroidAPI
 import java.io.IOException
 import java.io.StringWriter
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "Terracotta"
 
@@ -96,7 +97,7 @@ object Terracotta {
                     compareAndSet(current, obj)
                 }
 
-                delay(1L)
+                delay(1L.milliseconds)
             }
         }
 

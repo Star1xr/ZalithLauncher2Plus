@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.ui.control
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +36,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.TextAutoSize
@@ -42,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -367,10 +370,17 @@ fun GamepadSpecialArea(
     refreshed: Any? = null,
     isSelected: (String) -> Boolean
 ) {
+    val scrollState = rememberLazyListState()
     LazyColumn(
-        modifier = modifier.padding(horizontal = 2.dp),
+        modifier = modifier
+            .scrollbar(
+                state = scrollState.scrollIndicatorState,
+                orientation = Orientation.Vertical,
+            )
+            .padding(horizontal = 2.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(all = 12.dp)
+        contentPadding = PaddingValues(all = 12.dp),
+        state = scrollState
     ) {
         //鼠标左键
         item {

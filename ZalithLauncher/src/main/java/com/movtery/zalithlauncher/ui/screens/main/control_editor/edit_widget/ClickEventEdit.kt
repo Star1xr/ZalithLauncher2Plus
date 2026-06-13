@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,15 +30,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,6 +60,7 @@ import com.movtery.zalithlauncher.game.keycodes.ControlEventKeyName
 import com.movtery.zalithlauncher.game.keycodes.ControlEventKeycode
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.control.Keyboard
 import com.movtery.zalithlauncher.ui.control.event.LAUNCHER_EVENT_SCROLL_DOWN
 import com.movtery.zalithlauncher.ui.control.event.LAUNCHER_EVENT_SCROLL_DOWN_SINGLE
@@ -166,7 +169,7 @@ private fun EditBasicEvent(
     Column(
         modifier = modifier
             .padding(horizontal = 2.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScrollWithBar(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Spacer(Modifier)
@@ -297,7 +300,7 @@ private fun EditLauncherEvent(
     Column(
         modifier = modifier
             .padding(horizontal = 2.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScrollWithBar(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Spacer(Modifier)
@@ -474,10 +477,17 @@ private fun EditKeyEvent(
 ) {
     var showKeyboard by remember { mutableStateOf(false) }
 
+    val scrollState = rememberLazyListState()
     LazyColumn(
-        modifier = modifier.padding(horizontal = 2.dp),
+        modifier = modifier
+            .scrollbar(
+                state = scrollState.scrollIndicatorState,
+                orientation = Orientation.Vertical,
+            )
+            .padding(horizontal = 2.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(vertical = 12.dp)
+        contentPadding = PaddingValues(vertical = 12.dp),
+        state = scrollState,
     ) {
         item {
             InfoLayoutTextItem(

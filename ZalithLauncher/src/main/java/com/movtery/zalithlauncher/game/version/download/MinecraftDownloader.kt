@@ -43,6 +43,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "MinecraftDownloader"
 
@@ -170,7 +171,7 @@ class MinecraftDownloader(
                         downloadedFileCount.get(), totalFileCount.get(), //文件个数
                         formatFileSize(currentFileSize), formatFileSize(totalFileSize) //文件大小
                     )
-                    delay(100)
+                    delay(100L.milliseconds)
                 }
             }
 

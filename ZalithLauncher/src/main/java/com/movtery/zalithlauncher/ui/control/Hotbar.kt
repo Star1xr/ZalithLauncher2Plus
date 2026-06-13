@@ -76,6 +76,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 enum class HotbarRule(val nameRes: Int) {
     /**
@@ -180,7 +181,7 @@ fun BoxScope.MinecraftHotbar(
 
                 if (isInitialized) {
                     hotbarUpdateAnim.snapTo(0.5f)
-                    delay(1000)
+                    delay(1000L.milliseconds)
                     hotbarUpdateAnim.animateTo(0f, tween(800))
                 } else {
                     isInitialized = true
@@ -309,7 +310,7 @@ private fun Modifier.mainTouchLogic(
                             //仅启用长按时启动检测
                             if (enableLongClick) {
                                 state.longPressJob = launch {
-                                    delay(longClickDelay)
+                                    delay(longClickDelay.milliseconds)
                                     if (state.isPressed && !state.isMovedBeyondSlop && !state.isLongPressedTriggered) {
                                         state.isLongPressedTriggered = true
                                         //触发长按，使用当前所在的栏位进行回调

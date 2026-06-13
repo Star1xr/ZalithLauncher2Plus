@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -80,6 +79,7 @@ import com.movtery.zalithlauncher.game.version.installed.VersionsManager.isVersi
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
+import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -304,7 +304,7 @@ fun DownloadGameWithAddonScreen(
             AnimatedColumn(
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
-                    .verticalScroll(state = rememberScrollState()),
+                    .verticalScrollWithBar(state = rememberScrollState()),
                 isVisible = isVisible
             ) { scope ->
                 Spacer(Modifier)

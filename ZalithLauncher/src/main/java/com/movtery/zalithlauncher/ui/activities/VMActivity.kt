@@ -109,6 +109,7 @@ import kotlinx.coroutines.withContext
 import org.lwjgl.glfw.CallbackBridge
 import java.io.File
 import java.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
 import android.graphics.Color as NativeColor
 
 
@@ -532,7 +533,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         super.onPostResume()
         lifecycleScope.launch {
             if (vmViewModel.isRunning) {
-                delay(50L)
+                delay(50L.milliseconds)
                 withContext(Dispatchers.Main) {
                     refreshWindowSize(screenSize = vmViewModel.screenSize)
                 }

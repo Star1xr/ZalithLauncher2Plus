@@ -72,6 +72,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "MicrosoftAuth"
 
@@ -151,7 +152,7 @@ suspend fun getTokenResponse(
 
         if (checkIsReallyCancelled()) throw CancellationException("Authentication cancelled")
 
-        delay(pollingInterval).also {
+        delay(pollingInterval.milliseconds).also {
             context.ensureActive()
         }
     }

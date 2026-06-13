@@ -42,6 +42,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 游戏支持库下载器
@@ -136,7 +137,7 @@ class GameLibDownloader(
                         downloadedFileCount.get(), totalFileCount.get(), //文件个数
                         formatFileSize(currentFileSize), formatFileSize(totalFileSize) //文件大小
                     )
-                    delay(100)
+                    delay(100L.milliseconds)
                 }
             }
 

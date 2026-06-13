@@ -126,10 +126,10 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
 
         val logFile = errorMessage.logFile
         val canRestart: Boolean = extras.getBoolean(BUNDLE_CAN_RESTART, true)
+        val logExists = logFile.exists() && logFile.isFile
 
         setContent {
             ZalithLauncherTheme {
-
                 ShareLinkOperation(
                     operation = viewModel.operation,
                     onChange = { viewModel.operation = it },
@@ -149,11 +149,11 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
                 ) {
                     ErrorScreen(
                         crashType = errorMessage.crashType,
-                        shareLogs = logFile.exists() && logFile.isFile,
+                        shareLogs = logExists,
                         canUpload = viewModel.canUpload,
                         canRestart = canRestart,
                         onShareLogsClick = {
-                            if (logFile.exists() && logFile.isFile) {
+                            if (logExists) {
                                 shareFile(this@ErrorActivity, logFile)
                             }
                         },
@@ -163,7 +163,10 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
                         onRestartClick = {
                             ProcessPhoenix.triggerRebirth(this@ErrorActivity)
                         },
-                        onExitClick = { finish() }
+                        onExitClick = { finish() },
+                        onOrientationChanged = {
+                            this@ErrorActivity.requestedOrientation = it
+                        },
                     ) {
                         Text(
                             text = errorMessage.message,

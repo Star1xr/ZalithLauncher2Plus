@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget
 
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -168,6 +170,10 @@ private fun ChoseLayersLayout(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .scrollbar(
+                        state = listState.scrollIndicatorState,
+                        orientation = Orientation.Vertical,
+                    )
                     .padding(vertical = 4.dp),
                 contentPadding = PaddingValues(horizontal = 4.dp),
                 state = listState

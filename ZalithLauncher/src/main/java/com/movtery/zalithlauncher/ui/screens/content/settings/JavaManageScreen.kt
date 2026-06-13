@@ -23,6 +23,7 @@ import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,11 +34,13 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -171,9 +174,16 @@ fun JavaManageScreen(
                 }
             }
 
+            val scrollState = rememberLazyListState()
             LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .scrollbar(
+                        state = scrollState.scrollIndicatorState,
+                        orientation = Orientation.Vertical,
+                    ),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                state = scrollState,
             ) {
                 items(runtimes) { runtime ->
                     JavaRuntimeItem(

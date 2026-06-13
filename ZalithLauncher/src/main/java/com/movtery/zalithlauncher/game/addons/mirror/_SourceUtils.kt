@@ -24,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "SourceUtils"
 
@@ -43,7 +44,7 @@ suspend fun <T> runMirrorable(
     loop@ for (source in sources) {
         ensureActive()
         if (source.delayMillis > 0) {
-            delay(source.delayMillis)
+            delay(source.delayMillis.milliseconds)
         }
         ensureActive()
 

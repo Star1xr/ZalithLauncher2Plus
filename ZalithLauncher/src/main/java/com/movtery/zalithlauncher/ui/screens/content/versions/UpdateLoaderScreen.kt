@@ -18,14 +18,17 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.versions
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -512,10 +515,17 @@ fun UpdateLoaderScreen(
     ) { isVisible ->
         val unLoaded = stringResource(R.string.versions_update_loader_waiting_for_others).takeIf { !viewModel.isLoaded }
 
+        val scrollState = rememberLazyListState()
         AnimatedLazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .scrollbar(
+                    state = scrollState.scrollIndicatorState,
+                    orientation = Orientation.Vertical,
+                ),
             isVisible = isVisible,
-            contentPadding = PaddingValues(all = 12.dp)
+            contentPadding = PaddingValues(all = 12.dp),
+            state = scrollState,
         ) { scope ->
             animatedItem(scope) { yOffset ->
                 ForgeList(

@@ -152,6 +152,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.lwjgl.glfw.CallbackBridge
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "GameScreen"
 
@@ -191,7 +192,7 @@ private class GameViewModel(
                     break
                 }
                 gameFps = CallbackBridge.getCurrentFps()
-                delay(1000L)
+                delay(1000L.milliseconds)
             }
         }
     }
@@ -300,7 +301,7 @@ private class GameViewModel(
             withContext(Dispatchers.Main) {
                 observableLayout = null
                 val layout = withContext(Dispatchers.IO) {
-                    delay(10L) //刻意等待一会再加载
+                    delay(10L.milliseconds) //刻意等待一会再加载
                     currentControlFile = layoutFile
                     getLayout(layoutFile)
                 }
@@ -411,7 +412,7 @@ private class MouseScrollEvent(
                 try {
                     ensureActive()
                     CallbackBridge.sendScroll(0.0, offset)
-                    delay(50)
+                    delay(50L.milliseconds)
                 } catch (_: Exception) {
                     break
                 }
@@ -478,9 +479,9 @@ private class GameTextSender(private val scope: CoroutineScope) {
                 //如果找不到，则忽略这次事件
                 mapToKeycode(OPEN_CHAT, OPEN_CHAT_VALUE)?.let { openChat ->
                     CallbackBridge.sendKeyPress(openChat)
-                    delay(50)
+                    delay(50L.milliseconds)
                     sendText()
-                    delay(50)
+                    delay(50L.milliseconds)
                     LWJGLCharSender.sendEnter()
                 }
             } else {
@@ -853,7 +854,7 @@ fun GameScreen(
                                 key = ControlEventKeycode.GLFW_KEY_ESCAPE
                             )
                             viewModel.onKeyEvent(event, true)
-                            delay(10)
+                            delay(10L.milliseconds)
                             viewModel.onKeyEvent(event, false)
                         }
                     }
