@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.utils
 
+import com.movtery.zalithlauncher.ui.activities.VersionShortcutActivity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
@@ -17,7 +18,7 @@ object ShortcutUtils {
         val manager = context.getSystemService(ShortcutManager::class.java) ?: return
         if (!manager.isRequestPinShortcutSupported) return
 
-        val intent = Intent(context, SplashActivity::class.java).apply {
+        val intent = Intent(context, VersionShortcutActivity::class.java).apply {
             action = Intent.ACTION_VIEW
 
             putExtra(EXTRA_LAUNCH_VERSION, version.getVersionName())
