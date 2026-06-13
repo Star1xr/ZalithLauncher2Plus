@@ -28,49 +28,60 @@ class VersionShortcutActivity : BaseAppCompatActivity() {
             return
         }
 
-        val version = VersionsManager.getVersion(versionName)
-
-        if (version == null) {
-            Toast.makeText(
-                this,
-                "Shortcut: version NULL",
-                Toast.LENGTH_LONG
-            ).show()
-
-            openLauncher()
-            return
-        }
-
-        VersionsManager.saveVersion(version)
-
         lifecycleScope.launch {
             
-        AccountsManager.initialize(this@VersionShortcutActivity)
-            AccountsManager.suspendReloadAccounts()
-
-            LaunchGame.launchGame(
-                context = this@VersionShortcutActivity,
-                version = version,
-                exitActivity = {
-                    finish()
-                },
-                waitForVulkanChecker = {
-                    // Skip Vulkan checker for shortcuts
-                },
-                submitError = {
-                    runOnUiThread {
-                        Toast.makeText(
-                            this@VersionShortcutActivity,
-                            "Shortcut: LaunchGame error",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-
-                    openLauncher()
-                }
+            VersionsManager.refresh(
+                tag = "VersionShortcutActivity",
+                trySetVersion = versionName
             )
-        }
+
+            VersionsManager.waitForRefresh()
+
+            val version = VersionsManager.getVersion(versionName)
+
+            if (version == null) {
+                runOnUiThread {
+                    Toast.makeText(
+                        this@VersionShortcutActivity,
+                        "Shortcut: version refresh failed",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                openLauncher()
+                return@launch
+            }
+
+            VersionsManager.saveVersion(version)
+
+AccountsManager.initialize(this@VersionShortcutActivity)
+        AccountsManager.suspendReloadAccounts()
+
+        LaunchGame.launchGame(
+            context = this@VersionShortcutActivity,
+            version = version,
+            
+            exitActivity = {
+                finish()
+            },
+            
+            waitForVulkanChecker = {
+                // Skip Vulkan checker for shortcuts
+            },
+            submitError = {
+                runOnUiThread {
+                    Toast.makeText(
+                        this@VersionShortcutActivity,
+                        "Shortcut: LaunchGame error",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                openLauncher()
+            }
+        )
     }
+}
 
     private fun openLauncher() {
         startActivity(Intent(this, SplashActivity::class.java))
