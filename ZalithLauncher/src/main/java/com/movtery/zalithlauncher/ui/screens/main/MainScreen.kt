@@ -91,6 +91,7 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.AccountManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.DownloadScreen
+import com.movtery.zalithlauncher.ui.screens.content.FileManagerScreen
 import com.movtery.zalithlauncher.ui.screens.content.FileSelectorScreen
 import com.movtery.zalithlauncher.ui.screens.content.HomePageEditorScreen
 import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
@@ -659,6 +660,9 @@ private fun NavigationUI(
                     GameStatsScreen(
                         backStackViewModel = screenBackStackModel,
                     )
+                }
+                entry<NormalNavKey.FileManager> {
+                    FileManagerScreen()
                 }
             }
         }
