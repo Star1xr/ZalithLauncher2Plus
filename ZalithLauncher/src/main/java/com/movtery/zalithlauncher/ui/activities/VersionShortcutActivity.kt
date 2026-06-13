@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.activities
 
+import com.movtery.zalithlauncher.game.path.GamePathManager
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
