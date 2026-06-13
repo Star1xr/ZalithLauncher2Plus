@@ -81,7 +81,8 @@ fun SideBar(
     isVisible: Boolean,
     onFpsClick: () -> Unit,
     onVersionsClick: () -> Unit,
-    onInfoClick: () -> Unit
+    onInfoClick: () -> Unit,
+    onFileManagerClick: () -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
@@ -169,6 +170,14 @@ fun SideBar(
                                 icon = painterResource(R.drawable.ic_video_settings),
                                 contentDescription = "FPS",
                                 onClick = onFpsClick
+                            )
+                        }
+                        
+                        StaggeredItem(delay = 60) {
+                            SideBarShortcut(
+                                icon = painterResource(R.drawable.ic_folder_outlined),
+                                contentDescription = "File Manager",
+                                onClick = onFileManagerClick
                             )
                         }
 
