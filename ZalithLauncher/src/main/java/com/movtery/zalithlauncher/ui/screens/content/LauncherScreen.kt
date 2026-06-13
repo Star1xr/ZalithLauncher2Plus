@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
@@ -141,12 +142,22 @@ fun LauncherScreen(
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
+
+            val context = LocalContext.current
+            
             SideBar(
                 modifier = Modifier
                     .padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
                 isVisible = isVisible,
                 onFpsClick = {
                     performanceSettingsState = PerformanceSettingsOperation.Fps
+                },
+                onFileManagerClick = {
+                    Toast.makeText(
+                        context,
+                        "File Manager clicked",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 },
                 onVersionsClick = {
                     backStackViewModel.mainScreen.removeAndNavigateTo(
