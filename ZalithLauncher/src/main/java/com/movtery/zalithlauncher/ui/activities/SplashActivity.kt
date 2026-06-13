@@ -251,7 +251,17 @@ class SplashActivity : BaseAppCompatActivity(refreshData = false) {
     }
 
     private fun swapToMain() {
-        startActivity(Intent(this, MainActivity::class.java))
+        val sourceIntent = getIntent()
+
+        val forward = Intent(this, MainActivity::class.java).apply {
+            action = sourceIntent.action
+            sourceIntent.extras?.let(::putExtras)
+
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        startActivity(forward)
         finish()
     }
 
