@@ -30,36 +30,34 @@ class VersionShortcutActivity : BaseAppCompatActivity() {
 
         lifecycleScope.launch {
             
-            VersionsManager.refresh(
-                tag = "VersionShortcutActivity",
-                trySetVersion = versionName
-            )
+        GamePathManager.initialize(this@VersionShortcutActivity)
 
+        AccountsManager.initialize(this@VersionShortcutActivity)
+            AccountsManager.suspendReloadAccounts()
+
+            VersionsManager.refresh("Shortcut Retry", versionName)
             VersionsManager.waitForRefresh()
 
-            val version = VersionsManager.getVersion(versionName)
+            val refreshedVersion = VersionsManager.getVersion(versionName)
 
-            if (version == null) {
+            if (refreshedVersion == null) {
                 runOnUiThread {
                     Toast.makeText(
                         this@VersionShortcutActivity,
                         "Shortcut: version refresh failed",
                         Toast.LENGTH_LONG
-                    ).show()
-                }
-
-                openLauncher()
-                return@launch
+                ).show()
             }
 
-            VersionsManager.saveVersion(version)
+            openLauncher()
+            return@launch
+        }
 
-AccountsManager.initialize(this@VersionShortcutActivity)
-        AccountsManager.suspendReloadAccounts()
-
+        VersionsManager.saveVersion(refreshedVersion)
+            
         LaunchGame.launchGame(
             context = this@VersionShortcutActivity,
-            version = version,
+            version = refreshedVersion,
             
             exitActivity = {
                 finish()
