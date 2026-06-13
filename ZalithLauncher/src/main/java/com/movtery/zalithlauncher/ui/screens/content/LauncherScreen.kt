@@ -153,11 +153,9 @@ fun LauncherScreen(
                     performanceSettingsState = PerformanceSettingsOperation.Fps
                 },
                 onFileManagerClick = {
-                    Toast.makeText(
-                        context,
-                        "File Manager clicked",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    backStackViewModel.mainScreen.navigateTo(
+                        screenKey = NormalNavKey.FileManager
+                    )
                 },
                 onVersionsClick = {
                     backStackViewModel.mainScreen.removeAndNavigateTo(
