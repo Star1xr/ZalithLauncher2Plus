@@ -94,7 +94,7 @@ object AccountsManager {
         _refreshWardrobe.update { !it }
     }
 
-    private suspend fun suspendReloadAccounts() {
+    suspend fun suspendReloadAccounts() {
         val loadedAccounts = accountDao.getAllAccounts()
         _accounts.clear()
         _accounts.addAll(loadedAccounts.sortedWith(
