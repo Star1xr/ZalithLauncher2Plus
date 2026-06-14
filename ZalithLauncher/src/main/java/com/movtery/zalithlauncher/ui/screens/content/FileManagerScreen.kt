@@ -1,5 +1,9 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,10 +22,19 @@ import java.io.File
 
 @Composable
 fun FileManagerScreen() {
-    val files = remember {
-        File(getGameHome())
+    
+    var currentDirectory by remember {
+        mutableStateOf(File(getGameHome()))
+    }
+    val files =
+        currentDirectory
             .listFiles()
-            ?.sortedBy { it.name.lowercase() }
+            ?.sortedWith(
+                compareBy<File>(
+                    { !it.isDirectory },
+                    { it.name.lowercase() }
+                )
+            )
             ?: emptyList()
     }
     
@@ -37,7 +50,7 @@ fun FileManagerScreen() {
         )
 
         Text(
-            text = getGameHome(),
+            text = currentDirectory.absolutePath,
             style = MaterialTheme.typography.bodySmall
         )
 
@@ -51,7 +64,13 @@ fun FileManagerScreen() {
                     } else {
                         "📄 ${file.name}"
                     },
-                    modifier = Modifier.padding(vertical = 6.dp)
+                    modifier = Modifier
+                        .padding(vertical = 6.dp)
+                        .clickable {
+                            if (file.isDirectory) {
+                               currentDirectory = file
+                            }
+                        }
                 )
             }
         }
