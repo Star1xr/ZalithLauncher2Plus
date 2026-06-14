@@ -33,6 +33,9 @@ fun FileManagerScreen() {
     var currentDirectory by remember {
         mutableStateOf(rootDirectory)
     }
+    var refreshCounter by remember {
+        mutableStateOf(0)
+    }
     var selectedFile by remember {
         mutableStateOf<File?>(null)
     }
@@ -45,7 +48,11 @@ fun FileManagerScreen() {
     var renameText by remember {
         mutableStateOf("")
     }
-    val files =
+    var showDeleteDialog by remember {
+        mutableStateOf(false)
+    }
+    val files = remember(currentDirectory, refreshCounter) {
+
         currentDirectory
             .listFiles()
             ?.sortedWith(
@@ -55,6 +62,8 @@ fun FileManagerScreen() {
                 )
             )
             ?: emptyList()
+
+    }
     
     Column(
         modifier = Modifier
@@ -153,7 +162,19 @@ fun FileManagerScreen() {
                         Text("Rename")
                     }
                 },
+                    TextButton(
+                        onClick = {
 
+                            showFileMenu = false
+
+                            showDeleteDialog = true
+
+                        }
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                
                 dismissButton = {
                     TextButton(
                         onClick = {
@@ -236,6 +257,62 @@ fun FileManagerScreen() {
                 }
 
             )
+        }
+
+        if (showDeleteDialog && selectedFile != null) {
+
+            AlertDialog(
+        
+                onDismissRequest = {
+                    showDeleteDialog = false
+                },
+
+                title = {
+                    Text("Delete")
+                },
+
+                text = {
+                    Text(
+                        "Delete \"${selectedFile!!.name}\"?\n\nThis cannot be undone."
+                    )
+                },
+
+                confirmButton = {
+
+                    TextButton(
+
+                        onClick = {
+
+                            selectedFile!!.deleteRecursively()
+
+                            refreshCounter++
+
+                            showDeleteDialog = false
+
+                        }
+
+                    ) {
+                        Text("Delete")
+                      }
+
+                },
+
+                dismissButton = {
+
+                    TextButton(
+
+                        onClick = {
+                            showDeleteDialog = false
+                        }
+
+                    ) {
+                        Text("Cancel")
+                    }
+
+                }
+
+            )
+
         }
     }
 }
