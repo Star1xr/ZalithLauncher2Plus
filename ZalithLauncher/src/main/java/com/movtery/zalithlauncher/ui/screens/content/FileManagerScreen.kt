@@ -17,7 +17,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
-import androidx.compose.foundation.clickable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -187,9 +186,16 @@ fun FileManagerScreen() {
 
                     append("Game Folder")
 
-                    currentDirectory
-                        .relativeToOrSelf(rootDirectory)
-                        .invariantSeparatorsPath
+                    val breadcrumbPath =
+                        try {
+                            currentDirectory
+                                .relativeTo(rootDirectory)
+                                .invariantSeparatorsPath
+                        } catch (_: IllegalArgumentException) {
+                            currentDirectory.absolutePath
+                        }
+
+                    breadcrumbPath
                         .split("/")
                         .filter { it.isNotBlank() }
                         .forEach {
