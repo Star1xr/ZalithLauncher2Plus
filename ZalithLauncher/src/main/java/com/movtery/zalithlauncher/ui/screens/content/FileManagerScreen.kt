@@ -79,418 +79,506 @@ fun FileManagerScreen() {
 
     }
     
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        
-        Text(
-            text = "File Manager",
-            style = MaterialTheme.typography.headlineSmall
-        )
-
-        Text(
-            text = currentDirectory.absolutePath,
-            style = MaterialTheme.typography.bodySmall
-        )
-
-        Text(
-            text = "⬅ Parent Folder",
+        Column(
             modifier = Modifier
-                .padding(vertical = 12.dp)
-                .clickable {
-
-                    currentDirectory.parentFile?.let { parent ->
-
-                        if (
-                            parent.absolutePath.startsWith(
-                                rootDirectory.absolutePath
-                            )
-                        ) {
-                            currentDirectory = parent
-                        }
-
-                    }
-
-                }
-        )
-
-        if (clipboardFile != null) {
-
-            TextButton(
-
-                onClick = {
-
-                    if (clipboardFile != null) {
-
-                        val destination = File(
-                            currentDirectory,
-                            clipboardFile!!.name
-                        )
-
-                        if (clipboardIsCut) {
-
-                            clipboardFile!!.renameTo(
-                                destination
-                            )
-
-                        } else {
-
-                            clipboardFile!!.copyRecursively(
-                                destination,
-                                overwrite = true
-                            )
-
-                        }
-
-                        clipboardFile = null
-
-                        clipboardIsCut = false
-
-                        refreshCounter++
-
-                    }
-
-                }
-
+                .width(320.dp)
+                .fillMaxHeight()
+        ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
+                elevation = CardDefaults.cardElevation(2.dp)
             ) {
 
-                Text(
-                    text = if (clipboardIsCut) {
-                        "📌 Move Here"
-                    } else {
-                        "📌 Paste Here"
+                Column(
+                    modifier = Modifier.padding(20.dp)
+                ) {
+
+                    Text(
+                        text = "Current Folder",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Text(
+                        text = currentDirectory.name.ifEmpty {
+                            "Game Folder"
+                        },
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            Spacer(
+                modifier = Modifier.height(24.dp)
+            )
+
+            TextButton(
+                onClick = {
+                    currentDirectory = rootDirectory
+                }
+            ) {
+                Text("Game Folder")
+            }
+
+            TextButton(
+                onClick = {
+                    File(rootDirectory, "mods")
+                        .takeIf(File::exists)
+                        ?.let {
+                            currentDirectory = it
+                        }
+                }
+            ) {
+                Text("Mods")
+            }
+
+            TextButton(
+                onClick = {
+                    File(rootDirectory, "resourcepacks")
+                        .takeIf(File::exists)
+                        ?.let {
+                            currentDirectory = it
+                        }
+                }
+            ) {
+                Text("Resource Packs")
+            }
+
+            TextButton(
+                onClick = {
+                    File(rootDirectory, "screenshots")
+                        .takeIf(File::exists)
+                        ?.let {
+                            currentDirectory = it
+                        }
+                }
+            ) {
+                Text("Screenshots")
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.width(16.dp)
+        )
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = "File Manager",
+                style = MaterialTheme.typography.headlineSmall
+            )
+
+            Text(
+                text = buildString {
+
+                    append("Game Folder")
+
+                    currentDirectory
+                        .relativeTo(rootDirectory)
+                        .invariantSeparatorsPath
+                        .split("/")
+                        .filter { it.isNotBlank() }
+                        .forEach {
+
+                            append(" > ")
+                            append(it)
+                        }
+                },
+
+                style = MaterialTheme.typography.bodySmall
+            )
+            
+            if (clipboardFile != null) {
+
+                TextButton(
+
+                    onClick = {
+
+                        if (clipboardFile != null) {
+
+                            val destination = File(
+                                currentDirectory,
+                                clipboardFile!!.name
+                            )
+
+                            if (clipboardIsCut) {
+
+                                clipboardFile!!.renameTo(
+                                    destination
+                                )
+
+                            } else {
+
+                                clipboardFile!!.copyRecursively(
+                                    destination,
+                                    overwrite = true
+                                )
+
+                            }
+
+                            clipboardFile = null
+
+                            clipboardIsCut = false
+
+                            refreshCounter++
+
+                        }
+
                     }
+
+                ) {
+
+                    Text(
+                        text = if (clipboardIsCut) {
+                            "📌 Move Here"
+                        } else {
+                            "📌 Paste Here"
+                        }
+                    )
+
+                }
+
+            }
+        
+            LazyColumn {
+            
+                items(files) { file ->
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+
+                        shape = RoundedCornerShape(28.dp),
+
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 2.dp
+                        )
+                    ) {
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .combinedClickable(
+
+                                    onClick = {
+
+                                        if (file.isDirectory) {
+                                            currentDirectory = file
+                                        }
+
+                                    },
+
+                                    onLongClick = {
+
+                                        selectedFile = file
+                                        showFileMenu = true
+
+                                    }
+
+                                )
+                                .padding(
+                                    horizontal = 24.dp,
+                                    vertical = 20.dp
+                        ) {
+
+                            Text(
+                                text = if (file.isDirectory) "📁" else "📄"
+                            )
+
+                            Spacer(
+                                modifier = Modifier.width(16.dp)
+                            )
+
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+
+                                Text(
+                                    text = file.name,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+
+                                Text(
+                                    text = if (file.isDirectory) {
+
+                                        "Folder"
+
+                                    } else {
+
+                                        "${file.length()} bytes"
+
+                                    },
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+
+                            }
+
+                            IconButton(
+                                onClick = {
+
+                                    selectedFile = file
+                                    showFileMenu = true
+
+                                }
+                            ) {
+
+                                Text(
+                                    "⋮",
+                                    style = MaterialTheme.typography.headlineSmall
+                                )
+                            }
+
+                        }
+
+                    }
+                }
+            }
+
+            if (showFileMenu && selectedFile != null) {
+
+                AlertDialog(
+
+                    onDismissRequest = {
+                        showFileMenu = false
+                    },
+
+                    title = {
+                        Text(selectedFile!!.name)
+                    },
+
+                    text = {
+
+                        Column {
+
+                            TextButton(
+
+                                onClick = {
+
+                                    renameText = selectedFile!!.name
+
+                                    showFileMenu = false
+
+                                    showRenameDialog = true
+
+                                }
+
+                            ) {
+
+                                Text("Rename")
+
+                            }
+
+                            TextButton(
+
+                                onClick = {
+
+                                    showFileMenu = false
+
+                                    showDeleteDialog = true
+
+                                }
+
+                            ) {
+
+                                Text("Delete")
+
+                            }
+
+                            TextButton(
+
+                                onClick = {
+
+                                    clipboardFile = selectedFile
+
+                                    clipboardIsCut = false
+
+                                    showFileMenu = false
+
+                                }
+
+                            ) {
+
+                                Text("Copy")
+
+                            }
+                            
+                            TextButton(
+
+                                onClick = {
+                                
+                                    clipboardFile = selectedFile
+
+                                    clipboardIsCut = true
+
+                                    showFileMenu = false
+
+                                }
+
+                            ) {
+
+                                Text("Cut")
+
+                            }
+
+                            TextButton(
+
+                                onClick = {
+
+                                    showFileMenu = false
+
+                                }
+
+                            ) {
+
+                                Text("Cancel")
+
+                            }
+
+                        }
+
+                    },
+
+                    confirmButton = {},
+
+                    dismissButton = {}
+
+                )
+            }
+
+            if (showRenameDialog && selectedFile != null) {
+
+                AlertDialog(
+
+                    onDismissRequest = {
+                        showRenameDialog = false
+                    },
+
+                    title = {
+                        Text("Rename")
+                    },
+
+                    text = {
+
+                        OutlinedTextField(
+                            value = renameText,
+
+                            onValueChange = {
+                                renameText = it
+                            },
+
+                            label = {
+                                Text("New name")
+                            }
+                      
+                        )
+
+                    },
+
+                    confirmButton = {
+
+                        TextButton(
+
+                            onClick = {
+
+                                val renamedFile = File(
+                                    selectedFile!!.parentFile,
+                                    renameText
+                                )
+
+                                selectedFile!!.renameTo(
+                                    renamedFile
+                                )
+
+                                showRenameDialog = false
+
+                            }
+
+                        ) {
+                            Text("OK")
+                        }
+
+                    },
+
+                    dismissButton = {
+
+                        TextButton(
+  
+                            onClick = {
+                                showRenameDialog = false
+                            }
+
+                        ) {
+                            Text("Cancel")
+                        }
+
+                    }
+
+                )
+            }
+
+            if (showDeleteDialog && selectedFile != null) {
+
+                AlertDialog(
+        
+                    onDismissRequest = {
+                        showDeleteDialog = false
+                    },
+
+                    title = {
+                        Text("Delete")
+                    },
+
+                    text = {
+                        Text(
+                            "Delete \"${selectedFile!!.name}\"?\n\nThis cannot be undone."
+                        )
+                    },
+
+                    confirmButton = {
+
+                        TextButton(
+
+                            onClick = {
+
+                                selectedFile!!.deleteRecursively()
+
+                                refreshCounter++
+
+                                showDeleteDialog = false
+
+                            }
+
+                        ) {
+                            Text("Delete")
+                        }
+
+                    },
+
+                    dismissButton = {
+
+                        TextButton(
+
+                            onClick = {
+                                showDeleteDialog = false
+                            }
+
+                        ) {
+                            Text("Cancel")
+                        }
+
+                    }
+
                 )
 
             }
 
         }
 
-        LazyColumn {
-            
-            items(files) { file ->
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 2.dp
-                    )
-                ) {
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .combinedClickable(
-
-                                onClick = {
-
-                                    if (file.isDirectory) {
-                                        currentDirectory = file
-                                    }
-
-                                },
-
-                                onLongClick = {
-
-                                    selectedFile = file
-                                    showFileMenu = true
-
-                                }
-
-                            )
-                            .padding(16.dp)
-                    ) {
-
-                        Text(
-                            text = if (file.isDirectory) "📁" else "📄"
-                        )
-
-                        Spacer(
-                            modifier = Modifier.width(16.dp)
-                        )
-
-                        Column(
-                            Modifier.fillMaxWidth()
-                        ) {
-
-                            Text(
-                                text = file.name,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-
-                            Text(
-                                text = if (file.isDirectory) {
-
-                                    "Folder"
-
-                                } else {
-
-                                    "${file.length()} bytes"
-
-                                },
-                                style = MaterialTheme.typography.bodySmall
-                            )
-
-                        }
-
-                        Text(
-                            text = "⋮",
-                            modifier = Modifier
-                                .combinedClickable(
-                                    onClick = {
-                                        selectedFile = file
-                                        showFileMenu = true
-                                    }
-                                ),
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-
-                    }
-
-                }
-            }
-        }
-
-        if (showFileMenu && selectedFile != null) {
-
-            AlertDialog(
-
-                onDismissRequest = {
-                    showFileMenu = false
-                },
-
-                title = {
-                    Text(selectedFile!!.name)
-                },
-
-                text = {
-
-                    Column {
-
-                        TextButton(
-
-                            onClick = {
-
-                                renameText = selectedFile!!.name
-
-                                showFileMenu = false
-
-                                showRenameDialog = true
-
-                            }
-
-                        ) {
-
-                            Text("Rename")
-
-                        }
-
-                        TextButton(
-
-                            onClick = {
-
-                                showFileMenu = false
-
-                                showDeleteDialog = true
-
-                            }
-
-                        ) {
-
-                            Text("Delete")
-
-                        }
-
-                        TextButton(
-
-                            onClick = {
-
-                                clipboardFile = selectedFile
-
-                                clipboardIsCut = false
-
-                                showFileMenu = false
-
-                            }
-
-                        ) {
-
-                            Text("Copy")
-
-                        }
-
-                        TextButton(
-
-                            onClick = {
-
-                                clipboardFile = selectedFile
-
-                                clipboardIsCut = true
-
-                                showFileMenu = false
-
-                            }
-
-                        ) {
-
-                            Text("Cut")
-
-                        }
-
-                        TextButton(
-
-                            onClick = {
-
-                                showFileMenu = false
-
-                            }
-
-                        ) {
-
-                            Text("Cancel")
-
-                        }
-
-                    }
-
-                },
-
-                confirmButton = {},
-
-                dismissButton = {}
-
-            )
-        }
-
-        if (showRenameDialog && selectedFile != null) {
-
-            AlertDialog(
-
-                onDismissRequest = {
-                    showRenameDialog = false
-                },
-
-                title = {
-                    Text("Rename")
-                },
-
-                text = {
-
-                    OutlinedTextField(
-                        value = renameText,
-
-                        onValueChange = {
-                            renameText = it
-                        },
-
-                        label = {
-                            Text("New name")
-                        }
-
-                    )
-
-                },
-
-                confirmButton = {
-
-                    TextButton(
-
-                        onClick = {
-
-                            val renamedFile = File(
-                                selectedFile!!.parentFile,
-                                renameText
-                            )
-
-                            selectedFile!!.renameTo(
-                                renamedFile
-                            )
-
-                            showRenameDialog = false
-
-                        }
-
-                    ) {
-                        Text("OK")
-                    }
-
-                },
-
-                dismissButton = {
-
-                    TextButton(
-  
-                        onClick = {
-                            showRenameDialog = false
-                        }
-
-                    ) {
-                        Text("Cancel")
-                    }
-
-                }
-
-            )
-        }
-
-        if (showDeleteDialog && selectedFile != null) {
-
-            AlertDialog(
-        
-                onDismissRequest = {
-                    showDeleteDialog = false
-                },
-
-                title = {
-                    Text("Delete")
-                },
-
-                text = {
-                    Text(
-                        "Delete \"${selectedFile!!.name}\"?\n\nThis cannot be undone."
-                    )
-                },
-
-                confirmButton = {
-
-                    TextButton(
-
-                        onClick = {
-
-                            selectedFile!!.deleteRecursively()
-
-                            refreshCounter++
-
-                            showDeleteDialog = false
-
-                        }
-
-                    ) {
-                        Text("Delete")
-                      }
-
-                },
-
-                dismissButton = {
-
-                    TextButton(
-
-                        onClick = {
-                            showDeleteDialog = false
-                        }
-
-                    ) {
-                        Text("Cancel")
-                    }
-
-                }
-
-            )
-
-        }
     }
-}
