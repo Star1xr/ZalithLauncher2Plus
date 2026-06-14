@@ -36,7 +36,6 @@ fun FileManagerScreen() {
                 )
             )
             ?: emptyList()
-    }
     
     Column(
         modifier = Modifier
