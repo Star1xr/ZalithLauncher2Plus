@@ -1,5 +1,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.AlertDialog
@@ -164,29 +166,44 @@ fun FileManagerScreen() {
             
             items(files) { file ->
 
-                Text(
-                    text = if (file.isDirectory) {
-                        "📁 ${file.name}"
-                    } else {
-                        "📄 ${file.name}"
-                    },
+                Card(
                     modifier = Modifier
-                        .padding(vertical = 6.dp)
-                        .combinedClickable(
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 2.dp
+                    )
+                ) {
 
-                            onClick = {
-                                if (file.isDirectory) {
-                                    currentDirectory = file
+                    Text(
+                        text = if (file.isDirectory) {
+                            "📁 ${file.name}"
+                        } else {
+                            "📄 ${file.name}"
+                        },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .combinedClickable(
+
+                                onClick = {
+
+                                    if (file.isDirectory) {
+                                        currentDirectory = file
+                                    }
+
+                                },
+
+                                onLongClick = {
+
+                                    selectedFile = file
+                                    showFileMenu = true
+
                                 }
-                            },
 
-                            onLongClick = {
-                                selectedFile = file
-                                showFileMenu = true
-                            }
+                            )
+                    )
 
-                        )
-                )
+                }
             }
         }
 
