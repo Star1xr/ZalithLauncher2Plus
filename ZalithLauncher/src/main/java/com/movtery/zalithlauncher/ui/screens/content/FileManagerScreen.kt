@@ -135,6 +135,7 @@ fun FileManagerScreen() {
         if (showFileMenu && selectedFile != null) {
 
             AlertDialog(
+
                 onDismissRequest = {
                     showFileMenu = false
                 },
@@ -144,36 +145,66 @@ fun FileManagerScreen() {
                 },
 
                 text = {
-                    Text("Choose an action")
-                },
 
-                confirmButton = {
-                    TextButton(
-                        onClick = {
+                    Column {
 
-                            renameText = selectedFile!!.name
+                        TextButton(
 
-                            showFileMenu = false
+                            onClick = {
 
-                            showRenameDialog = true
+                                renameText = selectedFile!!.name
+
+                                showFileMenu = false
+
+                                showRenameDialog = true
+
+                            }
+
+                        ) {
+
+                            Text("Rename")
 
                         }
-                    ) {
-                        Text("Rename")
-                    }
-                },
-                    
-                dismissButton = {
-                    TextButton(
-                        onClick = {
-                            showFileMenu = false
+
+                        TextButton(
+
+                            onClick = {
+
+                                showFileMenu = false
+
+                                showDeleteDialog = true
+
+                            }
+
+                        ) {
+
+                            Text("Delete")
+
                         }
-                    ) {
-                        Text("Cancel")
+
+                        TextButton(
+
+                            onClick = {
+
+                                showFileMenu = false
+
+                            }
+
+                        ) {
+
+                            Text("Cancel")
+
+                        }
+
                     }
-                }
+
+                },
+
+                confirmButton = {},
+
+                dismissButton = {}
+
             )
-
         }
 
         if (showRenameDialog && selectedFile != null) {
