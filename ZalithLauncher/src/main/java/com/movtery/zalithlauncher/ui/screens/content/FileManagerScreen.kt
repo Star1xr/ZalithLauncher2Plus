@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
