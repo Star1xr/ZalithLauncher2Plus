@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
@@ -37,6 +38,12 @@ fun FileManagerScreen() {
     }
     var showFileMenu by remember {
         mutableStateOf(false)
+    }
+    var showRenameDialog by remember {
+        mutableStateOf(false)
+    }
+    var renameText by remember {
+        mutableStateOf("")
     }
     val files =
         currentDirectory
@@ -134,7 +141,13 @@ fun FileManagerScreen() {
                 confirmButton = {
                     TextButton(
                         onClick = {
+
+                            renameText = selectedFile!!.name
+
                             showFileMenu = false
+
+                            showRenameDialog = true
+
                         }
                     ) {
                         Text("Rename")
@@ -152,6 +165,77 @@ fun FileManagerScreen() {
                 }
             )
 
+        }
+
+        if (showRenameDialog && selectedFile != null) {
+
+            AlertDialog(
+
+                onDismissRequest = {
+                    showRenameDialog = false
+                },
+
+                title = {
+                    Text("Rename")
+                },
+
+                text = {
+
+                    OutlinedTextField(
+                        value = renameText,
+
+                        onValueChange = {
+                            renameText = it
+                        },
+
+                        label = {
+                            Text("New name")
+                        }
+
+                    )
+
+                },
+
+                confirmButton = {
+
+                    TextButton(
+
+                        onClick = {
+
+                            val renamedFile = File(
+                                selectedFile!!.parentFile,
+                                renameText
+                            )
+
+                            selectedFile!!.renameTo(
+                                renamedFile
+                            )
+
+                            showRenameDialog = false
+
+                        }
+
+                    ) {
+                        Text("OK")
+                    }
+
+                },
+
+                dismissButton = {
+
+                    TextButton(
+  
+                        onClick = {
+                            showRenameDialog = false
+                        }
+
+                    ) {
+                        Text("Cancel")
+                    }
+
+                }
+
+            )
         }
     }
 }
