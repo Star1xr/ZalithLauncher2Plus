@@ -276,29 +276,22 @@ fun FileManagerScreen() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .combinedClickable(
-
                                     onClick = {
-
                                         if (file.isDirectory) {
                                             currentDirectory = file
                                         }
-
                                     },
-
                                     onLongClick = {
-
                                         selectedFile = file
                                         showFileMenu = true
-
                                     }
-
                                 )
                                 .padding(
                                     horizontal = 24.dp,
                                     vertical = 20.dp
                                 ),
-                                verticalAlignment = Alignment.CenterVertically
-                                ) {
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
 
                             Text(
                                 text = if (file.isDirectory) "📁" else "📄"
@@ -592,7 +585,3 @@ fun FileManagerScreen() {
                 )
 
             }
-
-        }
-
-    }
