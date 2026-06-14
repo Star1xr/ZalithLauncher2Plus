@@ -1,10 +1,15 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -86,7 +91,10 @@ fun FileManagerScreen() {
     ) {
         Column(
             modifier = Modifier
-                .width(320.dp)
+                .widthIn(
+                    min = 220.dp,
+                    max = 280.dp
+                )
                 .fillMaxHeight()
         ) {
             Card(
@@ -180,7 +188,7 @@ fun FileManagerScreen() {
                     append("Game Folder")
 
                     currentDirectory
-                        .relativeTo(rootDirectory)
+                        .relativeToOrSelf(rootDirectory)
                         .invariantSeparatorsPath
                         .split("/")
                         .filter { it.isNotBlank() }
@@ -202,24 +210,20 @@ fun FileManagerScreen() {
 
                         if (clipboardFile != null) {
 
+                            val source = clipboardFile ?: return@TextButton
+
                             val destination = File(
                                 currentDirectory,
-                                clipboardFile!!.name
+                                source.name
                             )
 
                             if (clipboardIsCut) {
-
-                                clipboardFile!!.renameTo(
-                                    destination
-                                )
-
+                                source.renameTo(destination)
                             } else {
-
-                                clipboardFile!!.copyRecursively(
+                                source.copyRecursively(
                                     destination,
                                     overwrite = true
                                 )
-
                             }
 
                             clipboardFile = null
@@ -286,7 +290,9 @@ fun FileManagerScreen() {
                                 .padding(
                                     horizontal = 24.dp,
                                     vertical = 20.dp
-                        ) {
+                                ),
+                                verticalAlignment = Alignment.CenterVertically
+                                ) {
 
                             Text(
                                 text = if (file.isDirectory) "📁" else "📄"
@@ -495,6 +501,8 @@ fun FileManagerScreen() {
                                 selectedFile!!.renameTo(
                                     renamedFile
                                 )
+
+                                refreshCounter++
 
                                 showRenameDialog = false
 
