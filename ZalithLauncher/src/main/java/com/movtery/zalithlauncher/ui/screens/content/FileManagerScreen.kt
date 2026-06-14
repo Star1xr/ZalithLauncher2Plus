@@ -51,6 +51,12 @@ fun FileManagerScreen() {
     var showDeleteDialog by remember {
         mutableStateOf(false)
     }
+    var clipboardFile by remember {
+        mutableStateOf<File?>(null)
+    }
+    var clipboardIsCut by remember {
+        mutableStateOf(false)
+    }
     val files = remember(currentDirectory, refreshCounter) {
 
         currentDirectory
@@ -101,6 +107,30 @@ fun FileManagerScreen() {
 
                 }
         )
+
+        if (clipboardFile != null) {
+
+            TextButton(
+
+                onClick = {
+
+                    /* Paste logic next build */
+
+                }
+
+            ) {
+
+                Text(
+                    text = if (clipboardIsCut) {
+                        "📌 Move Here"
+                    } else {
+                        "📌 Paste Here"
+                    }
+                )
+
+            }
+
+        }
 
         LazyColumn {
             
@@ -179,6 +209,42 @@ fun FileManagerScreen() {
                         ) {
 
                             Text("Delete")
+
+                        }
+
+                        TextButton(
+
+                            onClick = {
+
+                                clipboardFile = selectedFile
+
+                                clipboardIsCut = false
+
+                                showFileMenu = false
+
+                            }
+
+                        ) {
+
+                            Text("Copy")
+
+                        }
+
+                        TextButton(
+
+                            onClick = {
+
+                                clipboardFile = selectedFile
+
+                                clipboardIsCut = true
+
+                                showFileMenu = false
+
+                            }
+
+                        ) {
+
+                            Text("Cut")
 
                         }
 
