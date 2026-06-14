@@ -1,5 +1,8 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -28,6 +31,12 @@ fun FileManagerScreen() {
     }
     var currentDirectory by remember {
         mutableStateOf(rootDirectory)
+    }
+    var selectedFile by remember {
+        mutableStateOf<File?>(null)
+    }
+    var showFileMenu by remember {
+        mutableStateOf(false)
     }
     val files =
         currentDirectory
@@ -89,13 +98,60 @@ fun FileManagerScreen() {
                     },
                     modifier = Modifier
                         .padding(vertical = 6.dp)
-                        .clickable {
-                            if (file.isDirectory) {
-                               currentDirectory = file
+                        .combinedClickable(
+
+                            onClick = {
+                                if (file.isDirectory) {
+                                    currentDirectory = file
+                                }
+                            },
+
+                            onLongClick = {
+                                selectedFile = file
+                                showFileMenu = true
                             }
-                        }
+
+                        )
                 )
             }
+        }
+
+        if (showFileMenu && selectedFile != null) {
+
+            AlertDialog(
+                onDismissRequest = {
+                    showFileMenu = false
+                },
+
+                title = {
+                    Text(selectedFile!!.name)
+                },
+
+                text = {
+                    Text("Choose an action")
+                },
+
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showFileMenu = false
+                        }
+                    ) {
+                        Text("Rename")
+                    }
+                },
+
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showFileMenu = false
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+
         }
     }
 }
