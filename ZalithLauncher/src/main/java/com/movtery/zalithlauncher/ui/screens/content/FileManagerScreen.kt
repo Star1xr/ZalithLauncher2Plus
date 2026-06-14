@@ -1,5 +1,13 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.weight
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -176,14 +184,9 @@ fun FileManagerScreen() {
                     )
                 ) {
 
-                    Text(
-                        text = if (file.isDirectory) {
-                            "📁 ${file.name}"
-                        } else {
-                            "📄 ${file.name}"
-                        },
+                    Row(
                         modifier = Modifier
-                            .padding(16.dp)
+                            .fillMaxWidth()
                             .combinedClickable(
 
                                 onClick = {
@@ -202,7 +205,58 @@ fun FileManagerScreen() {
                                 }
 
                             )
-                    )
+                            .padding(16.dp)
+                    ) {
+
+                        Text(
+                            text = if (file.isDirectory) "📁" else "📄"
+                        )
+
+                        Spacer(
+                            modifier = Modifier.width(16.dp)
+                        )
+
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+
+                            Text(
+                                text = file.name,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Text(
+                                text = if (file.isDirectory) {
+
+                                    "Folder"
+
+                                } else {
+
+                                    "${file.length()} bytes"
+
+                                },
+                                style = MaterialTheme.typography.bodySmall
+                            )
+
+                        }
+
+                        IconButton(
+                            onClick = {
+
+                                selectedFile = file
+                                showFileMenu = true
+
+                            }
+                        ) {
+
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More"
+                            )
+
+                        }
+
+                    }
 
                 }
             }
