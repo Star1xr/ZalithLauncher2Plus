@@ -114,7 +114,35 @@ fun FileManagerScreen() {
 
                 onClick = {
 
-                    /* Paste logic next build */
+                    if (clipboardFile != null) {
+
+                        val destination = File(
+                            currentDirectory,
+                            clipboardFile!!.name
+                        )
+
+                        if (clipboardIsCut) {
+
+                            clipboardFile!!.renameTo(
+                                destination
+                            )
+
+                        } else {
+
+                            clipboardFile!!.copyRecursively(
+                                destination,
+                                overwrite = true
+                            )
+
+                        }
+
+                        clipboardFile = null
+
+                        clipboardIsCut = false
+
+                        refreshCounter++
+
+                    }
 
                 }
 
