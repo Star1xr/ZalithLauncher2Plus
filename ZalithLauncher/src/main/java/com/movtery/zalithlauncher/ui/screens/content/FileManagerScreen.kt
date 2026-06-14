@@ -22,9 +22,12 @@ import java.io.File
 
 @Composable
 fun FileManagerScreen() {
-    
+
+    val rootDirectory = remember {
+        File(getGameHome())
+    }
     var currentDirectory by remember {
-        mutableStateOf(File(getGameHome()))
+        mutableStateOf(rootDirectory)
     }
     val files =
         currentDirectory
@@ -51,6 +54,27 @@ fun FileManagerScreen() {
         Text(
             text = currentDirectory.absolutePath,
             style = MaterialTheme.typography.bodySmall
+        )
+
+        Text(
+            text = "⬅ Parent Folder",
+            modifier = Modifier
+                .padding(vertical = 12.dp)
+                .clickable {
+
+                    currentDirectory.parentFile?.let { parent ->
+
+                        if (
+                            parent.absolutePath.startsWith(
+                                rootDirectory.absolutePath
+                            )
+                        ) {
+                            currentDirectory = parent
+                        }
+
+                    }
+
+                }
         )
 
         LazyColumn {
