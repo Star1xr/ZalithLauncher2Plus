@@ -162,19 +162,7 @@ fun FileManagerScreen() {
                         Text("Rename")
                     }
                 },
-                    TextButton(
-                        onClick = {
-
-                            showFileMenu = false
-
-                            showDeleteDialog = true
-
-                        }
-                    ) {
-                        Text("Delete")
-                    }
-                },
-                
+                    
                 dismissButton = {
                     TextButton(
                         onClick = {
