@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.weight
 import androidx.compose.material3.IconButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Card
@@ -240,21 +238,17 @@ fun FileManagerScreen() {
 
                         }
 
-                        IconButton(
-                            onClick = {
-
-                                selectedFile = file
-                                showFileMenu = true
-
-                            }
-                        ) {
-
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "More"
-                            )
-
-                        }
+                        Text(
+                            text = "⋮",
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        selectedFile = file
+                                        showFileMenu = true
+                                    }
+                                ),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
 
                     }
 
