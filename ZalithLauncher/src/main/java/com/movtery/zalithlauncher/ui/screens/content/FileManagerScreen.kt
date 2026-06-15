@@ -62,6 +62,9 @@ fun FileManagerScreen() {
     var showDeleteDialog by remember {
         mutableStateOf(false)
     }
+    var showPropertiesDialog by remember {
+        mutableStateOf(false)
+    }
     var clipboardFile by remember {
         mutableStateOf<File?>(null)
     }
@@ -122,6 +125,15 @@ fun FileManagerScreen() {
             Spacer(
                 modifier = Modifier.height(24.dp)
             )
+
+            val modsFolder =
+                File(rootDirectory, "mods")
+
+            val resourcePacksFolder =
+                File(rootDirectory, "resourcepacks")
+
+            val screenshotsFolder =
+                File(rootDirectory, "screenshots")
 
             TextButton(
                 onClick = {
@@ -437,6 +449,22 @@ fun FileManagerScreen() {
 
                                     showFileMenu = false
 
+                                    showPropertiesDialog = true
+
+                                }
+
+                            ) {
+
+                                Text("Properties")
+
+                            }
+
+                            TextButton(
+
+                                onClick = {
+
+                                    showFileMenu = false
+
                                 }
 
                             ) {
@@ -583,6 +611,70 @@ fun FileManagerScreen() {
 
                 )
 
+            }
+
+            if (
+                showPropertiesDialog &&
+                selectedFile != null
+            ) {
+
+                AlertDialog(
+
+                    onDismissRequest = {
+
+                        showPropertiesDialog = false
+
+                    },
+
+                    title = {
+
+                        Text("Properties")
+
+                    },
+
+                    text = {
+
+                        Column {
+
+                            Text(
+                                "Name: ${selectedFile!!.name}"
+                            )
+
+                            Text(
+                                "Type: ${
+                                    if (selectedFile!!.isDirectory)
+                                        "Folder"
+                                    else
+                                        "File"
+                                }"
+                            )
+
+                            Text(
+                                "Size: ${selectedFile!!.length()} bytes"
+                            )
+
+                            Text(
+                                "Path:\n${selectedFile!!.absolutePath}"
+                            )
+                        }
+
+                    },
+
+                    confirmButton = {
+
+                        TextButton(
+                            onClick = {
+                                showPropertiesDialog = false
+                            }
+                        ) {
+
+                            Text("OK")
+
+                        }
+
+                    }
+
+                )
             }
         }
     }
