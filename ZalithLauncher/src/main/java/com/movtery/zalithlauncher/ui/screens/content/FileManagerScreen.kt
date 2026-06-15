@@ -316,13 +316,13 @@ fun FileManagerScreen() {
                         currentDirectory =
                             rootDirectory
 
+                    }
+
+                ) {
+
+                    Text("Game Folder")
+
                 }
-
-            ) {
-
-                Text("Game Folder")
-
-            }
 
                 if (
                     breadcrumbSegments.isNotEmpty()
