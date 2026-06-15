@@ -356,91 +356,172 @@ fun FileManagerScreen() {
         
             LazyColumn {
             
-                items(files) { file ->
+                if (files.isEmpty()) {
 
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                    item {
 
-                        shape = RoundedCornerShape(28.dp),
+                        Card(
 
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 2.dp
-                        )
-                    ) {
-
-                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .combinedClickable(
-                                    onClick = {
-                                        if (file.isDirectory) {
-                                            currentDirectory = file
-                                        }
-                                    },
-                                    onLongClick = {
-                                        selectedFile = file
-                                        showFileMenu = true
-                                    }
-                                )
-                                .padding(
-                                    horizontal = 24.dp,
-                                    vertical = 20.dp
-                                ),
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(vertical = 24.dp),
+
+                            shape = RoundedCornerShape(28.dp),
+
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 2.dp
+                            )
+
                         ) {
 
-                            Text(
-                                text = if (file.isDirectory) "📁" else "📄"
-                            )
-
-                            Spacer(
-                                modifier = Modifier.width(16.dp)
-                            )
-
                             Column(
-                                modifier = Modifier.weight(1f)
+
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+
+                                horizontalAlignment =
+                                    Alignment.CenterHorizontally
+
                             ) {
 
                                 Text(
-                                    text = file.name,
-                                    style = MaterialTheme.typography.titleMedium
+
+                                    text = "📂",
+
+                                    style =
+                                        MaterialTheme.typography
+                                            .displaySmall
+
+                                )
+
+                                Spacer(
+                                    modifier =
+                                        Modifier.height(12.dp)
                                 )
 
                                 Text(
-                                    text = if (file.isDirectory) {
 
-                                        "Folder"
+                                    text = "This folder is empty",
 
-                                    } else {
+                                    style =
+                                        MaterialTheme.typography
+                                            .titleMedium
 
-                                        "${file.length()} bytes"
-
-                                    },
-                                    style = MaterialTheme.typography.bodySmall
                                 )
 
-                            }
-
-                            IconButton(
-                                onClick = {
-
-                                    selectedFile = file
-                                    showFileMenu = true
-
-                                }
-                            ) {
+                                Spacer(
+                                    modifier =
+                                        Modifier.height(4.dp)
+                                )
 
                                 Text(
-                                    "⋮",
-                                    style = MaterialTheme.typography.headlineSmall
+
+                                    text =
+                                        "Import files or create folders.",
+
+                                    style =
+                                        MaterialTheme.typography
+                                            .bodyMedium
+
                                 )
+
                             }
 
                         }
 
                     }
+                    
+                }
+                else {
+
+                    items(files) { file ->
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+
+                            shape = RoundedCornerShape(28.dp),
+
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 2.dp
+                            )
+                        ) {
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            if (file.isDirectory) {
+                                                currentDirectory = file
+                                            }
+                                        },
+                                        onLongClick = {
+                                            selectedFile = file
+                                            showFileMenu = true
+                                        }
+                                    )
+                                    .padding(
+                                        horizontal = 24.dp,
+                                        vertical = 20.dp
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+
+                                Text(
+                                    text = if (file.isDirectory) "📁" else "📄"
+                                )
+
+                                Spacer(
+                                    modifier = Modifier.width(16.dp)
+                                )
+
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+
+                                    Text(
+                                        text = file.name,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+
+                                    Text(
+                                        text = if (file.isDirectory) {
+
+                                            "Folder"
+
+                                        } else {
+
+                                            "${file.length()} bytes"
+
+                                        },
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+
+                                }
+
+                                IconButton(
+                                    onClick = {
+
+                                        selectedFile = file
+                                        showFileMenu = true
+
+                                    }
+                                ) {
+
+                                    Text(
+                                        "⋮",
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                }
+
+                            }
+
+                        }
+                    }
+
                 }
             }
 
