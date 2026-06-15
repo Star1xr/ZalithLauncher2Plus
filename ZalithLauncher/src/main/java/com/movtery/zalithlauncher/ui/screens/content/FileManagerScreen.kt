@@ -284,33 +284,124 @@ fun FileManagerScreen() {
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            Text(
-                text = buildString {
+            val breadcrumbSegments =
 
-                    append("Game Folder")
+                try {
 
-                    val breadcrumbPath =
-                        try {
-                            currentDirectory
-                                .relativeTo(rootDirectory)
-                                .invariantSeparatorsPath
-                        } catch (_: IllegalArgumentException) {
-                            currentDirectory.absolutePath
-                        }
-
-                    breadcrumbPath
+                    currentDirectory
+                        .relativeTo(rootDirectory)
+                        .invariantSeparatorsPath
                         .split("/")
-                        .filter { it.isNotBlank() }
-                        .forEach {
-
-                            append(" > ")
-                            append(it)
+                        .filter {
+                            it.isNotBlank()
                         }
-                },
 
-                style = MaterialTheme.typography.bodySmall
-            )
-            
+                } catch (_: IllegalArgumentException) {
+
+                    emptyList()
+
+                }
+
+            Row(
+
+                verticalAlignment =
+                    Alignment.CenterVertically
+
+            ) {
+
+                TextButton(
+
+                    onClick = {
+
+                        currentDirectory =
+                            rootDirectory
+
+                }
+
+            ) {
+
+                Text("Game Folder")
+
+            }
+
+                if (
+                    breadcrumbSegments.isNotEmpty()
+                ) {
+
+                    Text(
+                         text = " > "
+                    )
+
+                }
+
+                breadcrumbSegments.forEachIndexed {
+
+                    index,
+                    segment ->
+
+                    val isLast =
+                    
+                        index ==
+                            breadcrumbSegments.lastIndex
+
+                    
+                    val targetDirectory =
+
+                        File(
+
+                            rootDirectory,
+
+                            breadcrumbSegments
+                                .take(index + 1)
+                                .joinToString("/")
+
+                        )
+
+                    if (!isLast) {
+
+                        TextButton(
+
+                            onClick = {
+
+                                currentDirectory =
+                                    targetDirectory
+
+                            }
+
+                        ) {
+
+                            Text(segment)
+
+                        }
+                        
+                    }
+                    else {
+
+                        Text(
+
+                            text = segment,
+
+                            style =
+                                MaterialTheme
+                                    .typography
+                                    .bodySmall
+
+                        )
+
+                    }
+
+                    if (!isLast) {
+
+                        Text(
+                            text = " > "
+                        )
+
+                    }
+
+                }
+                
+            }
+                
             if (clipboardFile != null) {
 
                 TextButton(
