@@ -1,5 +1,9 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -385,16 +389,15 @@ fun FileManagerScreen() {
 
                             ) {
 
-                                Text(
-
-                                    text = "📂",
-
-                                    style =
-                                        MaterialTheme.typography
-                                            .displaySmall
-
+                                Icon(
+                                    painter = painterResource(
+                                        id = getFileIcon(file)
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(36.dp),
+                                    tint = LocalContentColor.current
                                 )
-
+                                
                                 Spacer(
                                     modifier =
                                         Modifier.height(12.dp)
@@ -845,5 +848,70 @@ fun FileManagerScreen() {
                 )
             }
         }
+    }
+}
+
+private fun getFileIcon(
+    file: File,
+    selected: Boolean = false
+): Int
+
+    if (file.isDirectory) {
+        return if (selected) {
+            R.drawable.ic_folder_filled
+        } else {
+            R.drawable.ic_folder_outlined
+        }
+    }
+
+    return when (
+        file.extension.lowercase()
+    ) {
+    
+        "jar" -> {
+
+            when (
+                file.parentFile?.name?.lowercase()
+            ) {
+
+                "mods" ->
+
+                    R.drawable.ic_extension_outlined
+
+                "libraries" ->
+
+                    R.drawable.ic_java
+
+                else ->
+
+                    R.drawable.ic_java
+            }
+
+        }
+        
+        "zip" ->
+            R.drawable.ic_folder_zip_outlined
+
+        "png",
+        "jpg",
+        "jpeg",
+        "gif",
+        "webp" ->
+            R.drawable.ic_image_outlined
+
+        "txt" ->
+            R.drawable.ic_article_outlined
+
+        "json" ->
+            R.drawable.ic_code
+
+        "java" ->
+            R.drawable.ic_java
+
+        "log" ->
+            R.drawable.ic_terminal_outlined
+
+        else ->
+            R.drawable.ic_description_outlined
     }
 }
