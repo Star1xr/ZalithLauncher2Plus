@@ -140,43 +140,130 @@ fun FileManagerScreen() {
                     currentDirectory = rootDirectory
                 }
             ) {
-                Text("Game Folder")
+
+                Text(
+                    text =
+                        if (
+                            currentDirectory ==
+                            rootDirectory
+                        ) {
+                            "● Game Folder"
+                        } else {
+                            "○ Game Folder"
+                        }
+                )
+
             }
 
             TextButton(
                 onClick = {
-                    File(rootDirectory, "mods")
+
+                    modsFolder
                         .takeIf(File::exists)
                         ?.let {
                             currentDirectory = it
                         }
+
                 }
             ) {
-                Text("Mods")
+
+                Text(
+
+                    text =
+                        if (
+
+                            currentDirectory
+                                .absolutePath
+                                .startsWith(
+                                    modsFolder.absolutePath
+                                )
+
+                        ) {
+
+                            "● Mods"
+
+                        } else {
+
+                            "○ Mods"
+
+                        }
+
+                )
+
             }
 
             TextButton(
                 onClick = {
-                    File(rootDirectory, "resourcepacks")
+
+                    resourcePacksFolder
                         .takeIf(File::exists)
                         ?.let {
                             currentDirectory = it
                         }
+
                 }
             ) {
-                Text("Resource Packs")
-            }
 
+                Text(
+
+                    text =
+                        if (
+
+                            currentDirectory
+                                .absolutePath
+                                .startsWith(
+                                    resourcePacksFolder.absolutePath
+                                )
+
+                        ) {
+
+                            "● Resource Packs"
+
+                        } else {
+
+                             "○ Resource Packs"
+
+                        }
+
+                )
+
+            }
+            
             TextButton(
                 onClick = {
-                    File(rootDirectory, "screenshots")
+
+                    screenshotsFolder
                         .takeIf(File::exists)
                         ?.let {
                             currentDirectory = it
                         }
+
                 }
             ) {
-                Text("Screenshots")
+
+                Text(
+
+                    text =
+                        if (
+
+                            currentDirectory
+                                .absolutePath
+                                .startsWith(
+                                    screenshotsFolder.absolutePath
+                                )
+
+                        ) {
+
+                            "● Screenshots"
+
+                        } else {
+
+                            "○ Screenshots"
+
+                        }
+
+                )
+
             }
         }
 
