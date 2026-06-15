@@ -862,8 +862,7 @@ fun FileManagerScreen() {
 }
 
 private fun getFileIcon(
-    file: File,
-    selected: Boolean = false
+    file: File
 ): Int {
 
     if (file.isDirectory) {
@@ -872,10 +871,6 @@ private fun getFileIcon(
             file.name.lowercase()
         ) {
 
-            else ->
-
-                R.drawable.ic_folder_outlined
-            
             "mods" ->
 
                 R.drawable.ic_extension_outlined
@@ -888,8 +883,9 @@ private fun getFileIcon(
 
                 R.drawable.ic_image_outlined
 
-            
+            else ->
 
+                R.drawable.ic_folder_outlined
         }
 
     }
@@ -919,22 +915,9 @@ private fun getFileIcon(
 
         }
         
-        "zip" -> {
+        "zip" ->
 
-            when (
-                file.parentFile?.name?.lowercase()
-            ) {
-
-                "resourcepacks" ->
-
-                    R.drawable.ic_folder_zip_outlined
-
-                else ->
-
-                    R.drawable.ic_folder_zip_outlined
-            }
-
-        }
+            R.drawable.ic_folder_zip_outlined
         
         "png",
         "jpg",
