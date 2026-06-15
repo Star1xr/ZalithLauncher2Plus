@@ -889,19 +889,54 @@ private fun getFileIcon(
 
         }
         
-        "zip" ->
-            R.drawable.ic_folder_zip_outlined
+        "zip" -> {
 
+            when (
+                file.parentFile?.name?.lowercase()
+            ) {
+
+                "resourcepacks" ->
+
+                    R.drawable.ic_folder_zip_filled
+
+                else ->
+
+                    R.drawable.ic_folder_zip_outlined
+            }
+
+        }
+        
         "png",
         "jpg",
         "jpeg",
         "gif",
-        "webp" ->
-            R.drawable.ic_image_outlined
+        "webp" -> {
 
+            when (
+                file.parentFile?.name?.lowercase()
+            ) {
+
+                "screenshots" ->
+
+                    R.drawable.ic_image_outlined
+
+                else ->
+
+                    R.drawable.ic_image_outlined
+            }
+
+        }
         "txt" ->
             R.drawable.ic_article_outlined
 
+        "toml",
+        "yml",
+        "yaml",
+        "cfg",
+        "properties" ->
+
+            R.drawable.ic_code
+        
         "json" ->
             R.drawable.ic_code
 
@@ -910,6 +945,23 @@ private fun getFileIcon(
 
         "log" ->
             R.drawable.ic_terminal_outlined
+
+        "dat" -> {
+
+            when (
+                file.name.lowercase()
+            ) {
+
+                "level.dat" ->
+
+                    R.drawable.ic_package_2_outlined
+
+                else ->
+
+                    R.drawable.ic_description_outlined
+            }
+
+        }
 
         else ->
             R.drawable.ic_description_outlined
