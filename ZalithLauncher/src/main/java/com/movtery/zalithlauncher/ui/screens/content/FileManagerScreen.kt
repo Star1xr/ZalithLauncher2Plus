@@ -391,7 +391,7 @@ fun FileManagerScreen() {
 
                                 Icon(
                                     painter = painterResource(
-                                        id = getFileIcon(file)
+                                        id = R.drawable.ic_folder_outlined
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(36.dp),
@@ -854,14 +854,36 @@ fun FileManagerScreen() {
 private fun getFileIcon(
     file: File,
     selected: Boolean = false
-): Int
+): Int {
 
     if (file.isDirectory) {
-        return if (selected) {
-            R.drawable.ic_folder_filled
-        } else {
-            R.drawable.ic_folder_outlined
+
+        return when (
+            file.name.lowercase()
+        ) {
+
+            "mods" ->
+
+                R.drawable.ic_extension_outlined
+
+            "resourcepacks" ->
+
+                R.drawable.ic_folder_zip_filled
+
+            "screenshots" ->
+
+                R.drawable.ic_image_outlined
+
+            else ->
+
+                if (selected) {
+                    R.drawable.ic_folder_outlined
+                } else {
+                    R.drawable.ic_folder_outlined
+                }
+
         }
+
     }
 
     return when (
