@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 import com.movtery.zalithlauncher.game.path.getGameHome
+import com.movtery.zalithlauncher.R
 
 import java.io.File
 
