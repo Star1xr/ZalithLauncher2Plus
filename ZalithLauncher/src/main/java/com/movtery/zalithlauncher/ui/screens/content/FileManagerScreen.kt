@@ -473,8 +473,18 @@ fun FileManagerScreen() {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
 
-                                Text(
-                                    text = if (file.isDirectory) "📁" else "📄"
+                                Icon(
+                                    painter = painterResource(
+                                        id = getFileIcon(file)
+                                    ),
+                                    contentDescription =
+                                        if (file.isDirectory) {
+                                            "Folder"
+                                        } else {
+                                            "${file.extension} file"
+                                        },
+                                    modifier = Modifier.size(36.dp),
+                                    tint = LocalContentColor.current
                                 )
 
                                 Spacer(
@@ -862,25 +872,23 @@ private fun getFileIcon(
             file.name.lowercase()
         ) {
 
+            else ->
+
+                R.drawable.ic_folder_outlined
+            
             "mods" ->
 
                 R.drawable.ic_extension_outlined
 
             "resourcepacks" ->
 
-                R.drawable.ic_folder_zip_filled
+                R.drawable.ic_folder_zip_outlined
 
             "screenshots" ->
 
                 R.drawable.ic_image_outlined
 
-            else ->
-
-                if (selected) {
-                    R.drawable.ic_folder_outlined
-                } else {
-                    R.drawable.ic_folder_outlined
-                }
+            
 
         }
 
@@ -919,7 +927,7 @@ private fun getFileIcon(
 
                 "resourcepacks" ->
 
-                    R.drawable.ic_folder_zip_filled
+                    R.drawable.ic_folder_zip_outlined
 
                 else ->
 
@@ -932,22 +940,10 @@ private fun getFileIcon(
         "jpg",
         "jpeg",
         "gif",
-        "webp" -> {
+        "webp" ->
 
-            when (
-                file.parentFile?.name?.lowercase()
-            ) {
-
-                "screenshots" ->
-
-                    R.drawable.ic_image_outlined
-
-                else ->
-
-                    R.drawable.ic_image_outlined
-            }
-
-        }
+            R.drawable.ic_image_outlined
+        
         "txt" ->
             R.drawable.ic_article_outlined
 
