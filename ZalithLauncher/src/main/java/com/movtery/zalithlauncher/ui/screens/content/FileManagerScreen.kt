@@ -550,7 +550,7 @@ fun FileManagerScreen() {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    combinedClickable(
+                                    .combinedClickable(
                                         onClick = {
                                             if (file.isDirectory) {
                                                 currentDirectory = file
@@ -611,7 +611,7 @@ fun FileManagerScreen() {
 
                                         selectedFile = file
                                         
-                                        showFileMenu = true
+                                        menuExpanded = true
 
                                     }
                                 ) {
