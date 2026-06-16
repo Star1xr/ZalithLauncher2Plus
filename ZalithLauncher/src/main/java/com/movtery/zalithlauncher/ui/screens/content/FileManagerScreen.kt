@@ -22,6 +22,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -644,6 +645,20 @@ fun FileManagerScreen() {
 
                                         DropdownMenuItem(
 
+                                            leadingIcon = {
+
+                                                  Icon(
+
+                                                      painter = painterResource(
+                                                          id = R.drawable.ic_edit_outlined
+                                                      ),
+
+                                                      contentDescription = null
+
+                                                  )
+
+                                            },
+
                                             text = {
 
                                                 Text("Rename")
@@ -666,25 +681,19 @@ fun FileManagerScreen() {
 
                                         DropdownMenuItem(
 
-                                            text = {
+                                            leadingIcon = {
 
-                                                Text("Delete")
+                                                Icon(
+
+                                                    painter = painterResource(
+                                                        id = R.drawable.ic_copy_all_outlined
+                                                    ),
+
+                                                    contentDescription = null
+
+                                                )
 
                                             },
-
-                                            onClick = {
-
-                                                selectedFile = file
-
-                                                menuExpanded = false
-
-                                                showDeleteDialog = true
-
-                                            }
-
-                                        )
-
-                                        DropdownMenuItem(
 
                                             text = {
 
@@ -706,6 +715,20 @@ fun FileManagerScreen() {
 
                                         DropdownMenuItem(
 
+                                            leadingIcon = {
+
+                                                Icon(
+
+                                                    painter = painterResource(
+                                                        id = R.drawable.ic_file_copy_filled
+                                                    ),
+
+                                                    contentDescription = null
+
+                                                )
+
+                                            },
+
                                             text = {
 
                                                 Text("Cut")
@@ -726,6 +749,20 @@ fun FileManagerScreen() {
 
                                         DropdownMenuItem(
 
+                                            leadingIcon = {
+
+                                                Icon(
+
+                                                    painter = painterResource(
+                                                        id = R.drawable.ic_info_outlined
+                                                    ),
+
+                                                    contentDescription = null
+
+                                                )
+
+                                            },
+
                                             text = {
 
                                                 Text("Properties")
@@ -739,6 +776,42 @@ fun FileManagerScreen() {
                                                 menuExpanded = false
 
                                                 showPropertiesDialog = true
+
+                                            }
+
+                                        )
+
+                                        HorizontalDivider()
+
+                                        DropdownMenuItem(
+
+                                            leadingIcon = {
+
+                                                Icon(
+
+                                                    painter = painterResource(
+                                                        id = R.drawable.ic_delete_outlined
+                                                    ),
+
+                                                    contentDescription = null
+
+                                                )
+
+                                            },
+
+                                            text = {
+
+                                                Text("Delete")
+
+                                            },
+
+                                            onClick = {
+
+                                                selectedFile = file
+
+                                                menuExpanded = false
+
+                                                showDeleteDialog = true
 
                                             }
 
