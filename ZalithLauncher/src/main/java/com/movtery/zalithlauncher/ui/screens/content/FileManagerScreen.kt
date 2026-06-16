@@ -634,12 +634,16 @@ fun FileManagerScreen() {
 
                                         expanded = menuExpanded,
 
+                                        shape = MaterialTheme.shapes.large,
+
+                                        shadowElevation = 3.dp,
+
                                         onDismissRequest = {
 
                                             menuExpanded = false
 
                                         }
-
+    
                                     ) {
 
                                         DropdownMenuItem(
