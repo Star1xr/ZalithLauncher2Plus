@@ -1,5 +1,10 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.ui.platform.LocalContext
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.Button
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Icon
@@ -50,6 +55,8 @@ fun FileManagerScreen() {
     val rootDirectory = remember {
         File(getGameHome())
     }
+    val context = LocalContext.current
+    
     var currentDirectory by remember {
         mutableStateOf(rootDirectory)
     }
@@ -83,6 +90,78 @@ fun FileManagerScreen() {
     var clipboardIsCut by remember {
         mutableStateOf(false)
     }
+    fun importFile(uri: Uri) {
+
+        val fileName =
+
+            context.contentResolver
+                .query(
+                    uri,
+                    null,
+                    null,
+                    null,
+                    null
+                )
+                ?.use { cursor ->
+
+                    val index =        
+                        cursor.getColumnIndex(
+                            android.provider.OpenableColumns.DISPLAY_NAME
+                        )
+
+                    if (
+                        cursor.moveToFirst() &&
+                        index >= 0
+                    ) {
+
+                        cursor.getString(index)
+
+                    } else {
+
+                        null
+
+                    }
+
+                }
+
+                ?: "ImportedFile"
+
+        val destination = File(
+            currentDirectory,
+            fileName
+        )
+
+        context.contentResolver
+            .openInputStream(uri)
+            ?.use { input ->
+
+                destination.outputStream().use { output ->
+
+                    input.copyTo(output)
+
+                }
+
+            }
+
+    }
+    val importLauncher =
+
+        rememberLauncherForActivityResult(
+
+            contract =
+    ActivityResultContracts.OpenMultipleDocuments()
+
+        ) { uris ->
+
+            uris.forEach {
+
+                importFile(it)
+
+            }
+
+            refreshCounter++
+
+    }
     val files = remember(currentDirectory, refreshCounter) {
 
         currentDirectory
@@ -96,7 +175,7 @@ fun FileManagerScreen() {
             ?: emptyList()
 
     }
-    
+
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -297,6 +376,28 @@ fun FileManagerScreen() {
             ) {
 
                 Text("New Folder")
+
+            }
+
+            Spacer(
+                modifier = Modifier.height(12.dp)
+            )
+
+            Button(
+
+                onClick = {
+
+                    importLauncher.launch(
+                        arrayOf("*/*")
+                    )
+
+                },
+
+                modifier = Modifier.fillMaxWidth()
+
+            ) {
+
+                Text("Import Files")
 
             }
             
