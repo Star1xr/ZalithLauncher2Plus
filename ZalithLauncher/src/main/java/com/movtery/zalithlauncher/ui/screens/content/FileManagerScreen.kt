@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.IconButton
@@ -606,135 +607,146 @@ fun FileManagerScreen() {
 
                                 }
 
-                                IconButton(
-                                    onClick = {
+                                Box(
 
-                                        selectedFile = file
-                                        
-                                        menuExpanded = true
+                                    contentAlignment =
+                                        Alignment.TopEnd
 
-                                    }
                                 ) {
 
-                                    Text(
-                                        "⋮",
-                                        style = MaterialTheme.typography.headlineSmall
-                                    )
                                 }
 
-                                DropdownMenu(
+                                    IconButton(
+                                        onClick = {
 
-                                    expanded = menuExpanded,
+                                            selectedFile = file
 
-                                    onDismissRequest = {
+                                            menuExpanded = true
 
-                                        menuExpanded = false
+                                        }
+                                    ) {
 
+                                        Text(
+                                            "⋮",
+                                            style = MaterialTheme.typography.headlineSmall
+                                        )
                                     }
 
-                                ) {
+                                    DropdownMenu(
 
-                                    DropdownMenuItem(
+                                        expanded = menuExpanded,
 
-                                        text = {
-
-                                            Text("Rename")
-
-                                        },
-
-                                        onClick = {
-
-                                            renameText = file.name
-
-                                            selectedFile = file
-
-                                            menuExpanded = false
-
-                                            showRenameDialog = true
-
-                                        }
-
-                                    )
-
-                                    DropdownMenuItem(
-
-                                        text = {
-
-                                            Text("Delete")
-
-                                        },
-
-                                        onClick = {
-
-                                            selectedFile = file
-
-                                            menuExpanded = false
-
-                                            showDeleteDialog = true
-
-                                        }
-
-                                    )
-
-                                    DropdownMenuItem(
-
-                                        text = {
-
-                                            Text("Copy")
-
-                                        },
-
-                                        onClick = {
-
-                                            clipboardFile = file
-
-                                            clipboardIsCut = false
+                                        onDismissRequest = {
 
                                             menuExpanded = false
 
                                         }
 
-                                    )
+                                    ) {
 
-                                    DropdownMenuItem(
+                                        DropdownMenuItem(
 
-                                        text = {
+                                            text = {
 
-                                            Text("Cut")
+                                                Text("Rename")
 
-                                        },
+                                            },
 
-                                        onClick = {
+                                            onClick = {
 
-                                            clipboardFile = file
+                                                renameText = file.name
 
-                                            clipboardIsCut = true
+                                                selectedFile = file
 
-                                            menuExpanded = false
+                                                menuExpanded = false
 
-                                        }
+                                                showRenameDialog = true
 
-                                    )
+                                            }
 
-                                    DropdownMenuItem(
+                                        )
 
-                                        text = {
+                                        DropdownMenuItem(
 
-                                            Text("Properties")
+                                            text = {
 
-                                        },
+                                                Text("Delete")
 
-                                        onClick = {
+                                            },
 
-                                            selectedFile = file
+                                            onClick = {
 
-                                            menuExpanded = false
+                                                selectedFile = file
 
-                                            showPropertiesDialog = true
+                                                menuExpanded = false
 
-                                        }
+                                                showDeleteDialog = true
 
-                                    )
+                                            }
+
+                                        )
+
+                                        DropdownMenuItem(
+
+                                            text = {
+
+                                                Text("Copy")
+
+                                            },
+
+                                            onClick = {
+
+                                                clipboardFile = file
+
+                                                clipboardIsCut = false
+
+                                                menuExpanded = false
+
+                                            }
+
+                                        )
+
+                                        DropdownMenuItem(
+
+                                            text = {
+
+                                                Text("Cut")
+
+                                            },
+
+                                            onClick = {
+
+                                                clipboardFile = file
+
+                                                clipboardIsCut = true
+
+                                                menuExpanded = false
+
+                                            }
+
+                                        )
+
+                                        DropdownMenuItem(
+
+                                            text = {
+
+                                                Text("Properties")
+
+                                            },
+
+                                            onClick = {
+
+                                                selectedFile = file
+
+                                                menuExpanded = false
+
+                                                showPropertiesDialog = true
+
+                                            }
+
+                                        )
+
+                                    }
 
                                 }
 
