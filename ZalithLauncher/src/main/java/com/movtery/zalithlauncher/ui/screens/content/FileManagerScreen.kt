@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.material3.Button
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
@@ -69,6 +70,12 @@ fun FileManagerScreen() {
     }
     var showPropertiesDialog by remember {
         mutableStateOf(false)
+    }
+    var showCreateFolderDialog by remember {
+        mutableStateOf(false)
+    }
+    var newFolderName by remember {
+        mutableStateOf("")
     }
     var clipboardFile by remember {
         mutableStateOf<File?>(null)
@@ -270,6 +277,29 @@ fun FileManagerScreen() {
                 )
 
             }
+
+            Spacer(
+                modifier = Modifier.height(24.dp)
+            )
+
+            Button(
+
+                onClick = {
+
+                    newFolderName = ""
+
+                    showCreateFolderDialog = true
+
+                },
+
+                modifier = Modifier.fillMaxWidth()
+
+            ) {
+
+                Text("New Folder")
+
+            }
+            
         }
 
         Spacer(
@@ -1022,6 +1052,134 @@ fun FileManagerScreen() {
 
                 )
             }
+
+            if (showCreateFolderDialog) {
+
+                AlertDialog(
+
+                    onDismissRequest = {
+
+                        showCreateFolderDialog = false
+
+                    },
+
+                    title = {
+
+                        Text("Create Folder")
+
+                    },
+
+                    text = {
+
+                        OutlinedTextField(
+
+                            value = newFolderName,
+
+                            onValueChange = {
+
+                                newFolderName = it
+
+                            },
+
+                            label = {
+
+                                Text("Folder Name")
+
+                            },
+
+                            singleLine = true
+
+                        )
+
+                    },
+
+                    confirmButton = {
+
+                        TextButton(
+
+                            onClick = {
+
+                                val folderName =
+                                    newFolderName.trim()
+
+                                if (
+
+                                    folderName.isNotEmpty() &&
+
+                                    !folderName.contains("/") &&
+
+                                    !folderName.contains("\\")
+
+                                ) {
+
+                                    val newFolder =
+
+                                        File(
+
+                                            currentDirectory,
+
+                                            folderName
+
+                                        )
+
+                                    if (
+
+                                        !newFolder.exists()
+
+                                    ) {
+
+                                        newFolder.mkdir()
+
+                                    }
+
+                                    files =
+
+                                        currentDirectory
+                                            .listFiles()
+                                            ?.sortedBy {
+
+                                                it.name.lowercase()
+
+                                            }
+
+                                            ?: emptyList()
+    
+                                }
+
+                                showCreateFolderDialog = false
+
+                            }
+
+                        ) {
+
+                            Text("Create")
+
+                        }
+
+                    },
+
+                    dismissButton = {
+
+                        TextButton(
+
+                            onClick = {
+
+                                showCreateFolderDialog = false
+
+                            }
+
+                        ) {
+
+                            Text("Cancel")
+
+                        }
+
+                    }
+
+                )
+
+            }
+            
         }
     }
 }
