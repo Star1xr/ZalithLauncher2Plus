@@ -22,7 +22,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -780,8 +779,6 @@ fun FileManagerScreen() {
                                             }
 
                                         )
-
-                                        HorizontalDivider()
 
                                         DropdownMenuItem(
 
