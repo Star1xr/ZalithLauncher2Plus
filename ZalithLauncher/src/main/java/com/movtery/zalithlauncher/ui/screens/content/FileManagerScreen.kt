@@ -19,6 +19,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -54,9 +56,6 @@ fun FileManagerScreen() {
     }
     var selectedFile by remember {
         mutableStateOf<File?>(null)
-    }
-    var showFileMenu by remember {
-        mutableStateOf(false)
     }
     var showRenameDialog by remember {
         mutableStateOf(false)
@@ -532,6 +531,10 @@ fun FileManagerScreen() {
 
                     items(files) { file ->
 
+                        var menuExpanded by remember(file) {
+                            mutableStateOf(false)
+                        }
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -547,15 +550,11 @@ fun FileManagerScreen() {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .combinedClickable(
+                                    combinedClickable(
                                         onClick = {
                                             if (file.isDirectory) {
                                                 currentDirectory = file
                                             }
-                                        },
-                                        onLongClick = {
-                                            selectedFile = file
-                                            showFileMenu = true
                                         }
                                     )
                                     .padding(
@@ -611,6 +610,7 @@ fun FileManagerScreen() {
                                     onClick = {
 
                                         selectedFile = file
+                                        
                                         showFileMenu = true
 
                                     }
@@ -622,139 +622,128 @@ fun FileManagerScreen() {
                                     )
                                 }
 
+                                DropdownMenu(
+
+                                    expanded = menuExpanded,
+
+                                    onDismissRequest = {
+
+                                        menuExpanded = false
+
+                                    }
+
+                                ) {
+
+                                    DropdownMenuItem(
+
+                                        text = {
+
+                                            Text("Rename")
+
+                                        },
+
+                                        onClick = {
+
+                                            renameText = file.name
+
+                                            selectedFile = file
+
+                                            menuExpanded = false
+
+                                            showRenameDialog = true
+
+                                        }
+
+                                    )
+
+                                    DropdownMenuItem(
+
+                                        text = {
+
+                                            Text("Delete")
+
+                                        },
+
+                                        onClick = {
+
+                                            selectedFile = file
+
+                                            menuExpanded = false
+
+                                            showDeleteDialog = true
+
+                                        }
+
+                                    )
+
+                                    DropdownMenuItem(
+
+                                        text = {
+
+                                            Text("Copy")
+
+                                        },
+
+                                        onClick = {
+
+                                            clipboardFile = file
+
+                                            clipboardIsCut = false
+
+                                            menuExpanded = false
+
+                                        }
+
+                                    )
+
+                                    DropdownMenuItem(
+
+                                        text = {
+
+                                            Text("Cut")
+
+                                        },
+
+                                        onClick = {
+
+                                            clipboardFile = file
+
+                                            clipboardIsCut = true
+
+                                            menuExpanded = false
+
+                                        }
+
+                                    )
+
+                                    DropdownMenuItem(
+
+                                        text = {
+
+                                            Text("Properties")
+
+                                        },
+
+                                        onClick = {
+
+                                            selectedFile = file
+
+                                            menuExpanded = false
+
+                                            showPropertiesDialog = true
+
+                                        }
+
+                                    )
+
+                                }
+
                             }
 
                         }
                     }
 
                 }
-            }
-
-            if (showFileMenu && selectedFile != null) {
-
-                AlertDialog(
-
-                    onDismissRequest = {
-                        showFileMenu = false
-                    },
-
-                    title = {
-                        Text(selectedFile!!.name)
-                    },
-
-                    text = {
-
-                        Column {
-
-                            TextButton(
-
-                                onClick = {
-
-                                    renameText = selectedFile!!.name
-
-                                    showFileMenu = false
-
-                                    showRenameDialog = true
-
-                                }
-
-                            ) {
-
-                                Text("Rename")
-
-                            }
-
-                            TextButton(
-
-                                onClick = {
-
-                                    showFileMenu = false
-
-                                    showDeleteDialog = true
-
-                                }
-
-                            ) {
-
-                                Text("Delete")
-
-                            }
-
-                            TextButton(
-
-                                onClick = {
-
-                                    clipboardFile = selectedFile
-
-                                    clipboardIsCut = false
-
-                                    showFileMenu = false
-
-                                }
-
-                            ) {
-
-                                Text("Copy")
-
-                            }
-                            
-                            TextButton(
-
-                                onClick = {
-                                
-                                    clipboardFile = selectedFile
-
-                                    clipboardIsCut = true
-
-                                    showFileMenu = false
-
-                                }
-
-                            ) {
-
-                                Text("Cut")
-
-                            }
-
-                            TextButton(
-
-                                onClick = {
-
-                                    showFileMenu = false
-
-                                    showPropertiesDialog = true
-
-                                }
-
-                            ) {
-
-                                Text("Properties")
-
-                            }
-
-                            TextButton(
-
-                                onClick = {
-
-                                    showFileMenu = false
-
-                                }
-
-                            ) {
-
-                                Text("Cancel")
-
-                            }
-
-                        }
-
-                    },
-
-                    confirmButton = {},
-
-                    dismissButton = {}
-
-                )
             }
 
             if (showRenameDialog && selectedFile != null) {
