@@ -1132,17 +1132,7 @@ fun FileManagerScreen() {
 
                                     }
 
-                                    files =
-
-                                        currentDirectory
-                                            .listFiles()
-                                            ?.sortedBy {
-
-                                                it.name.lowercase()
-
-                                            }
-
-                                            ?: emptyList()
+                                    refreshCounter++
     
                                 }
 
