@@ -614,8 +614,6 @@ fun FileManagerScreen() {
 
                                 ) {
 
-                                }
-
                                     IconButton(
                                         onClick = {
 
