@@ -1,11 +1,9 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.material3.RadioButton
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.platform.LocalContext
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -262,6 +260,21 @@ fun FileManagerScreen() {
                     rootDirectory.absolutePath
                 )
 
+            val modsSelected =
+                currentDirectory.absolutePath.startsWith(
+                    modsFolder.absolutePath
+                )
+
+            val resourcePacksSelected =
+                currentDirectory.absolutePath.startsWith(
+                    resourcePacksFolder.absolutePath
+                )
+
+            val screenshotsSelected =
+                currentDirectory.absolutePath.startsWith(
+                    screenshotsFolder.absolutePath
+                )
+
             TextButton(
                 onClick = {
                     currentDirectory = rootDirectory
@@ -272,13 +285,15 @@ fun FileManagerScreen() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    Text(
-                        text =
-                            if (gameFolderSelected)
-                                "◉"
-                            else
-                                "○"
-                    )
+                    Box(
+                        modifier = Modifier.size(20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        
+                        RadioButton(
+                            selected = gameFolderSelected,
+                            onClick = null
+                        )
 
                     Spacer(
                         modifier = Modifier.width(8.dp)
@@ -308,28 +323,27 @@ fun FileManagerScreen() {
                 }
             ) {
 
-                Text(
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
-                    text =
-                        if (
+                    Box(
+                        modifier = Modifier.size(20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                    
+                        RadioButton(
+                            selected = modsSelected,
+                            onClick = null
+                        )
 
-                            currentDirectory
-                                .absolutePath
-                                .startsWith(
-                                    modsFolder.absolutePath
-                                )
+                    Spacer(
+                        modifier = Modifier.width(8.dp)
+                    )
 
-                        ) {
+                    Text("Mods")
 
-                            "● Mods"
-
-                        } else {
-
-                            "○ Mods"
-
-                        }
-
-                )
+                }
 
             }
 
@@ -349,28 +363,27 @@ fun FileManagerScreen() {
                 }
             ) {
 
-                Text(
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
-                    text =
-                        if (
+                    Box(
+                        modifier = Modifier.size(20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        
+                        RadioButton(
+                            selected = resourcePacksSelected,
+                            onClick = null "○"
+                        )
 
-                            currentDirectory
-                                .absolutePath
-                                .startsWith(
-                                    resourcePacksFolder.absolutePath
-                                )
+                    Spacer(
+                        modifier = Modifier.width(8.dp)
+                    )
 
-                        ) {
+                    Text("Resource Packs")
 
-                            "● Resource Packs"
-
-                        } else {
-
-                             "○ Resource Packs"
-
-                        }
-
-                )
+                }
 
             }
 
@@ -390,28 +403,27 @@ fun FileManagerScreen() {
                 }
             ) {
 
-                Text(
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
-                    text =
-                        if (
+                    Box(
+                        modifier = Modifier.size(20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                    
+                        RadioButton(
+                            selected = screenshotsSelected,
+                            onClick = null
+                        )
 
-                            currentDirectory
-                                .absolutePath
-                                .startsWith(
-                                    screenshotsFolder.absolutePath
-                                )
+                    Spacer(
+                        modifier = Modifier.width(8.dp)
+                    )
+                
+                    Text("Screenshots")
 
-                        ) {
-
-                            "● Screenshots"
-
-                        } else {
-
-                            "○ Screenshots"
-
-                        }
-
-                )
+                }
 
             }
 
@@ -839,12 +851,12 @@ fun FileManagerScreen() {
                                         } else {
                                             "${file.extension} file"
                                         },
-                                    modifier = Modifier.size(36.dp),
+                                    modifier = Modifier.size(30.dp),
                                     tint = LocalContentColor.current
                                 )
 
                                 Spacer(
-                                    modifier = Modifier.width(16.dp)
+                                    modifier = Modifier.width(12.dp)
                                 )
 
                                 Column(
