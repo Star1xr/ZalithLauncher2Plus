@@ -60,7 +60,7 @@ sealed interface NormalNavKey : TitledNavKey {
         val saveKey: TitledNavKey,
         val onSelected: (path: String) -> Unit
     ) : NormalNavKey {
-        override val title: Int = R.string.page_title_select_files
+        override val title: Int = R.string.page_title_file_manager
     }
     /** 多人联机屏幕 */
     @Serializable data object Multiplayer: NormalNavKey {
