@@ -525,7 +525,7 @@ fun FileManagerScreen() {
 
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(56.dp),
 
                 colors = TextFieldDefaults.colors(
 
