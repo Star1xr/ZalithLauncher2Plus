@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.foundation.background
@@ -243,7 +244,7 @@ fun FileManagerScreen() {
             }
 
             Spacer(
-                modifier = Modifier.height(24.dp)
+                modifier = Modifier.height(16.dp)
             )
 
             val modsFolder =
@@ -256,24 +257,34 @@ fun FileManagerScreen() {
                 File(rootDirectory, "screenshots")
 
             TextButton(
-                onClick = {
-                    currentDirectory = rootDirectory
-                }
+                onClick = { ... }
             ) {
 
-                Text(
-                    text =
-                        if (
-                            currentDirectory ==
-                            rootDirectory
-                        ) {
-                            "● Game Folder"
-                        } else {
-                            "○ Game Folder"
-                        }
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        text =
+                            if (selected) "◉"
+                            else "○"
+                    )
+
+                    Spacer(
+                        modifier = Modifier.width(8.dp)
+                    )
+
+                    Text(
+                        text = "Game Folder"
+                    )
+
+                }
 
             }
+
+            Spacer(
+                modifier = Modifier.height(4.dp)
+            )
 
             TextButton(
                 onClick = {
@@ -312,6 +323,10 @@ fun FileManagerScreen() {
 
             }
 
+            Spacer(
+                modifier = Modifier.height(4.dp)
+            )
+            
             TextButton(
                 onClick = {
 
@@ -348,6 +363,10 @@ fun FileManagerScreen() {
                 )
 
             }
+
+            Spacer(
+                modifier = Modifier.height(4.dp)
+            )
             
             TextButton(
                 onClick = {
@@ -649,8 +668,24 @@ fun FileManagerScreen() {
                 }
 
             }
+
+            Card(
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+
+                shape = RoundedCornerShape(32.dp),
+
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 2.dp
+                )
+
+            ) {
         
-            LazyColumn {
+            LazyColumn(
+                contentPadding = PaddingValues(12.dp)
+            ) {
             
                 if (displayedFiles.isEmpty()) {
 
@@ -1047,6 +1082,7 @@ fun FileManagerScreen() {
                     }
 
                 }
+            }
             }
 
             if (showRenameDialog && selectedFile != null) {
