@@ -357,7 +357,7 @@ fun FileManagerScreen() {
             }
 
             Spacer(
-                modifier = Modifier.height(24.dp)
+                modifier = Modifier.weight(1f)
             )
 
             Button(
