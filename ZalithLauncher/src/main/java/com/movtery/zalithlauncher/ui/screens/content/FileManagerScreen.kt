@@ -942,10 +942,13 @@ fun FileManagerScreen() {
                                         }
                                     ) {
 
-                                        Text(
-                                            "⋮",
-                                            style = MaterialTheme.typography.headlineSmall
+                                        Icon(
+                                            painter = painterResource(
+                                                id = R.drawable.ic_more_vert
+                                            ),
+                                            contentDescription = "More options"
                                         )
+
                                     }
 
                                     DropdownMenu(
