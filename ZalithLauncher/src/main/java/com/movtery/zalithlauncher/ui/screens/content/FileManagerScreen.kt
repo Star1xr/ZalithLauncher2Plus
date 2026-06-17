@@ -295,6 +295,8 @@ fun FileManagerScreen() {
                             onClick = null
                         )
 
+                    }
+
                     Spacer(
                         modifier = Modifier.width(8.dp)
                     )
@@ -337,6 +339,8 @@ fun FileManagerScreen() {
                             onClick = null
                         )
 
+                    }
+
                     Spacer(
                         modifier = Modifier.width(8.dp)
                     )
@@ -377,6 +381,8 @@ fun FileManagerScreen() {
                             onClick = null "○"
                         )
 
+                    }
+
                     Spacer(
                         modifier = Modifier.width(8.dp)
                     )
@@ -416,6 +422,8 @@ fun FileManagerScreen() {
                             selected = screenshotsSelected,
                             onClick = null
                         )
+
+                    }
 
                     Spacer(
                         modifier = Modifier.width(8.dp)
