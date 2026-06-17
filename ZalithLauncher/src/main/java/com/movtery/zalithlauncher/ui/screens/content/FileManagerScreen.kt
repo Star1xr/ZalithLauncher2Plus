@@ -1,7 +1,6 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.ui.platform.LocalContext
-import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
