@@ -378,7 +378,7 @@ fun FileManagerScreen() {
                         
                         RadioButton(
                             selected = resourcePacksSelected,
-                            onClick = null "○"
+                            onClick = null
                         )
 
                     }
