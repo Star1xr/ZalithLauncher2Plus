@@ -1,5 +1,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.platform.LocalContext
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -429,42 +431,48 @@ fun FileManagerScreen() {
         }
 
         Spacer(
-            modifier = Modifier.width(16.dp)
+            modifier = Modifier.width(12.dp)
         )
 
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            Text(
-                text = "File Manager",
-                style = MaterialTheme.typography.headlineSmall
-            )
-
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
-
-            OutlinedTextField(
-
-                value = searchQuery,
-        
-                onValueChange = {
-
-                    searchQuery = it
-
-                },
+            
+            Card(
 
                 modifier = Modifier.fillMaxWidth(),
 
-                label = {
+                shape = RoundedCornerShape(50.dp),
 
-                    Text("Search files")
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 1.dp
+                )
 
-                },
+            ) {
 
-                singleLine = true
+                OutlinedTextField(
 
-            )
+                    value = searchQuery,
+
+                    onValueChange = {
+
+                        searchQuery = it
+        
+                    },
+
+                    modifier = Modifier.fillMaxWidth(),
+
+                    placeholder = {
+
+                        Text("Search")
+        
+                    },
+
+                    singleLine = true
+
+                )
+
+            }
 
             Spacer(
                 modifier = Modifier.height(12.dp)
@@ -672,7 +680,7 @@ fun FileManagerScreen() {
                                         id = R.drawable.ic_folder_outlined
                                     ),
                                     contentDescription = null,
-                                    modifier = Modifier.size(36.dp),
+                                    modifier = Modifier.size(30.dp),
                                     tint = LocalContentColor.current
                                 )
                                 
@@ -744,7 +752,7 @@ fun FileManagerScreen() {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = 6.dp),
 
                             shape = RoundedCornerShape(28.dp),
 
@@ -764,8 +772,8 @@ fun FileManagerScreen() {
                                         }
                                     )
                                     .padding(
-                                        horizontal = 24.dp,
-                                        vertical = 20.dp
+                                        horizontal = 18.dp,
+                                        vertical = 12.dp
                                     ),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
