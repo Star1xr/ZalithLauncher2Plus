@@ -499,9 +499,23 @@ fun FileManagerScreen() {
 
                 },
 
+                leadingIcon = {
+
+                    Icon(
+
+                        painter = painterResource(
+                            id = R.drawable.ic_search
+                        ),
+
+                        contentDescription = null
+
+                    )
+
+               },
+
                 placeholder = {
 
-                    Text("Search")
+                    Text("Search files")
 
                 },
 
@@ -509,7 +523,9 @@ fun FileManagerScreen() {
 
                 shape = RoundedCornerShape(50.dp),
 
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
 
                 colors = TextFieldDefaults.colors(
 
