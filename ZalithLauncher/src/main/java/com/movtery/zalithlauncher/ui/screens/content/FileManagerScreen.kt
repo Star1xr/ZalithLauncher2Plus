@@ -199,7 +199,7 @@ fun FileManagerScreen() {
 
             }
 
-    }
+        }
 
     Row(
         modifier = Modifier
