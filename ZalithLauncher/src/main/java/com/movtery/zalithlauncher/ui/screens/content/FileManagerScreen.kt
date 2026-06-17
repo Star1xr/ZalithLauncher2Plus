@@ -225,13 +225,31 @@ fun FileManagerScreen() {
             ) {
 
                 Column(
-                    modifier = Modifier.padding(20.dp)
+                    modifier = Modifier.padding(16.dp)
                 ) {
+
+                    Row(
+                       verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Icon(
+                        painter = painterResource(
+                            id = R.drawable.ic_folder_outlined
+                        ),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    Spacer(
+                        modifier = Modifier.width(8.dp)
+                    )
 
                     Text(
                         text = "Current Folder",
                         style = MaterialTheme.typography.titleMedium
                     )
+
+                }
 
                     Text(
                         text = currentDirectory.name.ifEmpty {
