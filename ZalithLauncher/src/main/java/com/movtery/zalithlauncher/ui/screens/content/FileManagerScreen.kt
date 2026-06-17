@@ -83,6 +83,9 @@ fun FileManagerScreen() {
     var newFolderName by remember {
         mutableStateOf("")
     }
+    var searchQuery by remember {
+        mutableStateOf("")
+    }
     var clipboardFile by remember {
         mutableStateOf<File?>(null)
     }
@@ -172,6 +175,29 @@ fun FileManagerScreen() {
                 )
             )
             ?: emptyList()
+
+    }
+
+    val displayedFiles =
+
+        if (
+
+            searchQuery.isBlank()
+
+        ) {
+
+            files
+
+        } else {
+
+            files.filter {
+
+                it.name.contains(
+                    searchQuery,
+                    ignoreCase = true
+                )
+
+            }
 
     }
 
@@ -414,6 +440,36 @@ fun FileManagerScreen() {
                 style = MaterialTheme.typography.headlineSmall
             )
 
+            Spacer(
+                modifier = Modifier.height(12.dp)
+            )
+
+            OutlinedTextField(
+
+                value = searchQuery,
+        
+                onValueChange = {
+
+                    searchQuery = it
+
+                },
+
+                modifier = Modifier.fillMaxWidth(),
+
+                label = {
+
+                    Text("Search files")
+
+                },
+
+                singleLine = true
+
+            )
+
+            Spacer(
+                modifier = Modifier.height(12.dp)
+            )
+
             val breadcrumbSegments =
 
                 try {
@@ -582,7 +638,7 @@ fun FileManagerScreen() {
         
             LazyColumn {
             
-                if (files.isEmpty()) {
+                if (displayedFiles.isEmpty()) {
 
                     item {
 
@@ -627,11 +683,21 @@ fun FileManagerScreen() {
 
                                 Text(
 
-                                    text = "This folder is empty",
+                                    text =
 
-                                    style =
-                                        MaterialTheme.typography
-                                            .titleMedium
+                                        if (
+
+                                            searchQuery.isBlank()
+
+                                        ) {
+
+                                            "This folder is empty"
+
+                                        } else {
+
+                                            "No matching files"
+
+                                        }
 
                                 )
 
@@ -643,11 +709,20 @@ fun FileManagerScreen() {
                                 Text(
 
                                     text =
-                                        "Import files or create folders.",
 
-                                    style =
-                                        MaterialTheme.typography
-                                            .bodyMedium
+                                        if (
+
+                                            searchQuery.isBlank()
+
+                                        ) {
+
+                                            "Import files or create folders."
+
+                                        } else {
+
+                                            "Try a different search term."
+
+                                        }
 
                                 )
 
@@ -660,7 +735,7 @@ fun FileManagerScreen() {
                 }
                 else {
 
-                    items(files) { file ->
+                    items(displayedFiles) { file ->
 
                         var menuExpanded by remember(file) {
                             mutableStateOf(false)
