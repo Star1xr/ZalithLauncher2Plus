@@ -286,7 +286,7 @@ fun FileManagerScreen() {
                 ) {
 
                     Box(
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         
@@ -330,7 +330,7 @@ fun FileManagerScreen() {
                 ) {
 
                     Box(
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
                     
@@ -372,7 +372,7 @@ fun FileManagerScreen() {
                 ) {
 
                     Box(
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         
@@ -414,7 +414,7 @@ fun FileManagerScreen() {
                 ) {
 
                     Box(
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
                     
