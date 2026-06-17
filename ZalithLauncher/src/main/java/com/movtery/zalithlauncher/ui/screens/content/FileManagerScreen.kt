@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -256,8 +257,15 @@ fun FileManagerScreen() {
             val screenshotsFolder =
                 File(rootDirectory, "screenshots")
 
+            val gameFolderSelected =
+                currentDirectory.absolutePath.startsWith(
+                    rootDirectory.absolutePath
+                )
+
             TextButton(
-                onClick = { ... }
+                onClick = {
+                    currentDirectory = rootDirectory
+                }
             ) {
 
                 Row(
@@ -266,8 +274,10 @@ fun FileManagerScreen() {
 
                     Text(
                         text =
-                            if (selected) "◉"
-                            else "○"
+                            if (gameFolderSelected)
+                                "◉"
+                            else
+                                "○"
                     )
 
                     Spacer(
