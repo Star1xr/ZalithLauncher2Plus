@@ -1,5 +1,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.platform.LocalContext
@@ -437,43 +439,47 @@ fun FileManagerScreen() {
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            
-            Card(
 
-                modifier = Modifier.fillMaxWidth(),
+            TextField(
+
+                value = searchQuery,
+
+                onValueChange = {
+
+                    searchQuery = it
+
+                },
+
+                placeholder = {
+
+                    Text("Search")
+
+                },
+
+                singleLine = true,
 
                 shape = RoundedCornerShape(50.dp),
 
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 1.dp
+                modifier = Modifier.fillMaxWidth(),
+
+                colors = TextFieldDefaults.colors(
+
+                    focusedContainerColor =
+                        MaterialTheme.colorScheme.surfaceVariant,
+
+                    unfocusedContainerColor =
+                        MaterialTheme.colorScheme.surfaceVariant,
+        
+                    focusedIndicatorColor =
+                        androidx.compose.ui.graphics.Color.Transparent,
+
+                    unfocusedIndicatorColor =
+                        androidx.compose.ui.graphics.Color.Transparent
+            
                 )
 
-            ) {
-
-                OutlinedTextField(
-
-                    value = searchQuery,
-
-                    onValueChange = {
-
-                        searchQuery = it
-        
-                    },
-
-                    modifier = Modifier.fillMaxWidth(),
-
-                    placeholder = {
-
-                        Text("Search")
-        
-                    },
-
-                    singleLine = true
-
-                )
-
-            }
-
+            )
+            
             Spacer(
                 modifier = Modifier.height(12.dp)
             )
