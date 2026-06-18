@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionChunkBackground
 import androidx.compose.material3.RadioButton
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.TextField
@@ -503,68 +504,74 @@ fun FileManagerScreen() {
             modifier = Modifier.width(12.dp)
         )
 
-        Column(
-            modifier = Modifier.weight(1f)
+        VersionChunkBackground(
+            modifier = Modifier
+                .fillMaxSize(),
+            paddingValues = PaddingValues()
         ) {
 
-            TextField(
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
 
-                value = searchQuery,
+                TextField(
 
-                onValueChange = {
+                    value = searchQuery,
 
-                    searchQuery = it
+                    onValueChange = {
 
-                },
+                        searchQuery = it
 
-                leadingIcon = {
+                    },
 
-                    Icon(
+                    leadingIcon = {
 
-                        painter = painterResource(
-                            id = R.drawable.ic_search
-                        ),
+                        Icon(
 
-                        contentDescription = null
+                            painter = painterResource(
+                                id = R.drawable.ic_search
+                            ),
 
+                            contentDescription = null
+
+                        )
+    
+                    },
+
+                    placeholder = {
+
+                        Text("Search files")
+
+                    },
+
+                    singleLine = true,
+
+                    shape = RoundedCornerShape(50.dp),
+
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+
+                    colors = TextFieldDefaults.colors(
+
+                        focusedContainerColor =
+                            MaterialTheme.colorScheme.surfaceVariant,
+
+                        unfocusedContainerColor =
+                            MaterialTheme.colorScheme.surfaceVariant,
+        
+                        focusedIndicatorColor =
+                            androidx.compose.ui.graphics.Color.Transparent,
+
+                        unfocusedIndicatorColor =
+                            androidx.compose.ui.graphics.Color.Transparent
+            
                     )
 
-               },
-
-                placeholder = {
-
-                    Text("Search files")
-
-                },
-
-                singleLine = true,
-
-                shape = RoundedCornerShape(50.dp),
-
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-
-                colors = TextFieldDefaults.colors(
-
-                    focusedContainerColor =
-                        MaterialTheme.colorScheme.surfaceVariant,
-
-                    unfocusedContainerColor =
-                        MaterialTheme.colorScheme.surfaceVariant,
-        
-                    focusedIndicatorColor =
-                        androidx.compose.ui.graphics.Color.Transparent,
-
-                    unfocusedIndicatorColor =
-                        androidx.compose.ui.graphics.Color.Transparent
-            
                 )
-
-            )
             
             Spacer(
-                modifier = Modifier.height(12.dp)
+                modifier = Modifier.height(8.dp)
             )
 
             val breadcrumbSegments =
@@ -733,8 +740,6 @@ fun FileManagerScreen() {
 
             }
 
-            Card(
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -745,7 +750,7 @@ fun FileManagerScreen() {
                     defaultElevation = 2.dp
                 )
 
-            ) {
+            {
         
             LazyColumn(
                 contentPadding = PaddingValues(12.dp)
