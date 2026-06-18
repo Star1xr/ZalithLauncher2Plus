@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.material3.HorizontalDivider
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionChunkBackground
 import androidx.compose.material3.RadioButton
 import androidx.compose.foundation.layout.PaddingValues
@@ -854,6 +855,8 @@ fun FileManagerScreen() {
                     }
                     
                 }
+                
+            }
                 else {
 
                     items(displayedFiles) { file ->
