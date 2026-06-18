@@ -511,9 +511,11 @@ fun FileManagerScreen() {
         ) {
 
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.padding(
+                    horizontal = 12.dp,
+                    vertical = 10.dp
+                )
             ) {
-
                 TextField(
 
                     value = searchQuery,
@@ -569,30 +571,34 @@ fun FileManagerScreen() {
                     )
 
                 )
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                )
             
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
+                Spacer(
+                    modifier = Modifier.height(6.dp)
+                )
 
-            val breadcrumbSegments =
+                val breadcrumbSegments =
 
-                try {
+                    try {
 
-                    currentDirectory
-                        .relativeTo(rootDirectory)
-                        .invariantSeparatorsPath
-                        .split("/")
-                        .filter {
-                            it.isNotBlank()
-                        }
+                        currentDirectory
+                            .relativeTo(rootDirectory)
+                            .invariantSeparatorsPath
+                            .split("/")
+                            .filter {
+                                it.isNotBlank()
+                            }
 
-                } catch (_: IllegalArgumentException) {
+                    } catch (_: IllegalArgumentException) {
 
-                    emptyList()
+                        emptyList()
 
-                }
+                    }
 
-            Row(
+                Row(
 
                 verticalAlignment =
                     Alignment.CenterVertically
@@ -692,7 +698,7 @@ fun FileManagerScreen() {
                 
             }
                 
-            if (clipboardFile != null) {
+                if (clipboardFile != null) {
 
                 TextButton(
 
@@ -739,7 +745,8 @@ fun FileManagerScreen() {
                 }
 
             }
-
+            
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -750,10 +757,19 @@ fun FileManagerScreen() {
                     defaultElevation = 2.dp
                 )
 
-            {
-        
-            LazyColumn(
-                contentPadding = PaddingValues(12.dp)
+            ) {
+                
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+
+                LazyColumn(
+                contentPadding = PaddingValues(
+                    horizontal = 12.dp,
+                    vertical = 10.dp
+                )
             ) {
             
                 if (displayedFiles.isEmpty()) {
@@ -1154,7 +1170,7 @@ fun FileManagerScreen() {
                     }
 
                 }
-            }
+                }
             }
 
             if (showRenameDialog && selectedFile != null) {
