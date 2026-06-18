@@ -512,10 +512,12 @@ fun FileManagerScreen() {
         ) {
 
             Column(
-                modifier = Modifier.padding(
-                    horizontal = 12.dp,
-                    vertical = 10.dp
-                )
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        horizontal = 12.dp,
+                        vertical = 10.dp
+                   )
             ) {
                 TextField(
 
@@ -671,7 +673,6 @@ fun FileManagerScreen() {
 
                         }
                         
-                    }
                     else {
 
                         Text(
