@@ -577,7 +577,7 @@ fun FileManagerScreen() {
                 )
             
                 Spacer(
-                    modifier = Modifier.height(6.dp)
+                    modifier = Modifier.height(8.dp)
                 )
 
                 val breadcrumbSegments =
@@ -745,20 +745,7 @@ fun FileManagerScreen() {
                 }
 
             }
-            
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-
-                shape = RoundedCornerShape(32.dp),
-
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 2.dp
-                )
-
-            ) {
-                
+        
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
