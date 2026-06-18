@@ -1477,8 +1477,6 @@ fun FileManagerScreen() {
     }
 }
 
-}
-
 private fun getFileIcon(
     file: File
 ): Int {
