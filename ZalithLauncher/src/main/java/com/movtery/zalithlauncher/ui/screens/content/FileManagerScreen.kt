@@ -673,7 +673,7 @@ fun FileManagerScreen() {
 
                         }
                         
-                    else {
+                    } else {
 
                         Text(
 
@@ -857,7 +857,6 @@ fun FileManagerScreen() {
                     
                 }
                 
-            }
                 else {
 
                     items(displayedFiles) { file ->
