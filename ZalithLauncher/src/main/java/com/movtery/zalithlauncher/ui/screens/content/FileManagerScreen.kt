@@ -512,13 +512,16 @@ fun FileManagerScreen() {
         ) {
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        horizontal = 12.dp,
-                        vertical = 10.dp
-                   )
+                modifier = Modifier.fillMaxSize()
             ) {
+
+              Column(
+                  modifier = Modifier.padding(
+                      horizontal = 12.dp,
+                      vertical = 10.dp
+                  )
+              ) {
+                
                 TextField(
 
                     value = searchQuery,
@@ -573,14 +576,6 @@ fun FileManagerScreen() {
             
                     )
 
-                )
-
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                )
-            
-                Spacer(
-                    modifier = Modifier.height(8.dp)
                 )
 
                 val breadcrumbSegments =
@@ -746,19 +741,22 @@ fun FileManagerScreen() {
 
                 }
 
+              }
+
+              HorizontalDivider(
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+              )
+              
             }
         
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .weight(1f)
+                    .padding(top = 4.dp)
             ) {
 
                 LazyColumn(
-                contentPadding = PaddingValues(
-                    horizontal = 12.dp,
-                    vertical = 10.dp
-                )
+                    contentPadding = PaddingValues(12.dp)
             ) {
             
                 if (displayedFiles.isEmpty()) {
