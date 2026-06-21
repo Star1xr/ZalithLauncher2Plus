@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.game.account.microsoft
 
+import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountType
@@ -85,16 +86,19 @@ const val XBL_AUTH_URL = "https://user.auth.xboxlive.com"
 const val XSTS_AUTH_URL = "https://xsts.auth.xboxlive.com"
 const val MINECRAFT_SERVICES_URL = "https://api.minecraftservices.com"
 
+private fun debugLog(message: String) {
+    if (BuildConfig.DEBUG) Logger.debug(TAG, message)
+}
+
 /**
  * 从 Microsoft 身份验证终端节点获取设备代码响应
  * 设备代码用于在单独的设备或浏览器上授权用户
  */
 suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeResponse = coroutineScope {
-    val url = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/devicecode"
-    Logger.debug(TAG, "Fetching device code from: $url")
+    debugLog("Stage: OAuth device code — POST $MICROSOFT_AUTH_URL/$TENANT/oauth2/v2.0/devicecode")
     withRetry {
         submitForm(
-            url = url,
+            url = "$MICROSOFT_AUTH_URL/$TENANT/oauth2/v2.0/devicecode",
             parameters = Parameters.build {
                 append("client_id", BuildKeys.OAUTH_CLIENT_ID)
                 append("scope", SCOPES.joinToString(" "))
@@ -115,8 +119,7 @@ suspend fun getTokenResponse(
 ): TokenResponse = coroutineScope {
     var pollingInterval = codeResponse.interval * 1000L
     val expireTime = System.currentTimeMillis() + codeResponse.expiresIn * 1000L
-    val tokenUrl = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token"
-    Logger.debug(TAG, "Polling token endpoint: $tokenUrl (interval=${pollingInterval}ms, expires in ${codeResponse.expiresIn}s)")
+    debugLog("Stage: OAuth token poll — POST $MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token (interval=${pollingInterval}ms)")
 
     var cancelled = 0
     suspend fun checkIsReallyCancelled(): Boolean {
@@ -129,7 +132,7 @@ suspend fun getTokenResponse(
 
         try {
             val response: JsonObject = submitForm(
-                tokenUrl,
+                "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token",
                 parameters = Parameters.build {
                     append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
                     append("device_code", codeResponse.deviceCode)
@@ -140,7 +143,7 @@ suspend fun getTokenResponse(
             )
 
             if (response["token_type"]?.jsonPrimitive?.content == "Bearer") {
-                Logger.debug(TAG, "Token obtained successfully")
+                debugLog("Stage: OAuth token poll — token received")
                 return@coroutineScope TokenResponse(
                     accessToken = response["access_token"].text(),
                     refreshToken = response["refresh_token"].text(),
@@ -148,10 +151,12 @@ suspend fun getTokenResponse(
                 )
             }
         } catch (e: ClientRequestException) {
-            val errorBody = runCatching { e.response.safeBodyAsJson<JsonObject>() }.getOrNull()
-            val errorCode = errorBody?.get("error")?.jsonPrimitive?.content
-            val errorDesc = errorBody?.get("error_description")?.jsonPrimitive?.content
-            Logger.debug(TAG, "Token poll error: code=$errorCode status=${e.response.status.value} desc=$errorDesc")
+            if (BuildConfig.DEBUG) {
+                val errorCode = runCatching {
+                    e.response.safeBodyAsJson<JsonObject>()["error"]?.jsonPrimitive?.content
+                }.getOrNull()
+                debugLog("Stage: OAuth token poll — HTTP ${e.response.status.value} error=$errorCode")
+            }
             handleClientRequestException(e, pollingInterval)
             pollingInterval = adjustPollingInterval(e, pollingInterval)
         } catch (e: CancellationException) {
@@ -216,32 +221,25 @@ suspend fun microsoftAuthAsync(
     return@coroutineScope createAccount(authResponse, newRefreshToken, xblToken.second, statusUpdate)
 }
 
-/**
- * 使用 AAD v2 端点刷新访问令牌。
- * 注意：必须使用与获取原始令牌相同的端点 (login.microsoftonline.com)，
- * 不能使用 login.live.com/oauth20_token.srf，否则会返回 400 错误。
- */
 private suspend fun refreshAccessToken(
     refreshToken: String,
     update: (AsyncStatus) -> Unit,
     context: CoroutineContext
 ): Pair<String, String> {
     update(AsyncStatus.GETTING_ACCESS_TOKEN)
-    val url = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token"
-    Logger.debug(TAG, "Refreshing access token via AAD v2 endpoint: $url")
+    debugLog("Stage: OAuth refresh — POST $LIVE_AUTH_URL/oauth20_token.srf")
 
     return withRetry {
         val response = submitForm<JsonObject>(
-            url = url,
+            url = "$LIVE_AUTH_URL/oauth20_token.srf",
             parameters = Parameters.build {
                 append("client_id", BuildKeys.OAUTH_CLIENT_ID)
                 append("refresh_token", refreshToken)
                 append("grant_type", "refresh_token")
-                append("scope", SCOPES.joinToString(" "))
             },
             context = context
         )
-        Logger.debug(TAG, "Access token refreshed successfully")
+        debugLog("Stage: OAuth refresh — access token refreshed")
         Pair(
             response["access_token"].text(),
             response["refresh_token"]?.jsonPrimitive?.content ?: refreshToken
@@ -251,9 +249,7 @@ private suspend fun refreshAccessToken(
 
 private suspend fun authenticateXBL(accessToken: String, update: (AsyncStatus) -> Unit): Pair<String, String> {
     update(AsyncStatus.GETTING_XBL_TOKEN)
-    val url = "$XBL_AUTH_URL/user/authenticate"
-    Logger.debug(TAG, "Authenticating with XBL: $url")
-
+    debugLog("Stage: Xbox Live (XBL) — POST $XBL_AUTH_URL/user/authenticate")
     val requestBody = XBLRequest(
         properties = XBLProperties(
             authMethod = "RPS",
@@ -265,7 +261,7 @@ private suspend fun authenticateXBL(accessToken: String, update: (AsyncStatus) -
     )
 
     return withRetry {
-        val response = GLOBAL_CLIENT.post(url) {
+        val response = GLOBAL_CLIENT.post("$XBL_AUTH_URL/user/authenticate") {
             contentType(ContentType.Application.Json)
             setBody(requestBody)
         }.safeBodyAsJson<JsonObject>()
@@ -276,16 +272,11 @@ private suspend fun authenticateXBL(accessToken: String, update: (AsyncStatus) -
             ?.get("uhs")?.jsonPrimitive
             ?.content ?: throw Exception("Missing uhs in XBL response")
 
-        Logger.debug(TAG, "XBL authentication successful, got uhs")
+        debugLog("Stage: XBL — token obtained")
         Pair(response["Token"].text(), uhs)
     }
 }
 
-/**
- * 使用 XSTS 进行身份验证。
- * XSTS 在错误时返回 HTTP 401 并在 JSON body 中包含 XErr 错误码。
- * 由于 Ktor 的 expectSuccess=true，需要捕获异常并从错误响应中读取 XErr。
- */
 private suspend fun authenticateXSTS(
     xblToken: String,
     uhs: String,
@@ -293,45 +284,40 @@ private suspend fun authenticateXSTS(
     context: CoroutineContext
 ): XSTSAuthResult {
     update(AsyncStatus.GETTING_XSTS_TOKEN)
-    val url = "$XSTS_AUTH_URL/xsts/authorize"
-    Logger.debug(TAG, "Authenticating with XSTS: $url")
+    debugLog("Stage: XSTS — POST $XSTS_AUTH_URL/xsts/authorize")
 
     return withRetry {
-        try {
-            val response = httpPostJson<JsonObject>(
-                url = url,
-                body = XSTSRequest(
-                    properties = XSTSProperties(
-                        sandboxId = "RETAIL",
-                        userTokens = listOf(xblToken)
-                    ),
-                    relyingParty = "rp://api.minecraftservices.com/",
-                    tokenType = "JWT"
+        val response = httpPostJson<JsonObject>(
+            url = "$XSTS_AUTH_URL/xsts/authorize",
+            body = XSTSRequest(
+                properties = XSTSProperties(
+                    sandboxId = "RETAIL",
+                    userTokens = listOf(xblToken)
                 ),
-                context = context
-            )
+                relyingParty = "rp://api.minecraftservices.com/",
+                tokenType = "JWT"
+            ),
+            context = context
+        )
 
-            Logger.debug(TAG, "XSTS authentication successful")
-            XSTSAuthResult(token = response["Token"].text(), uhs = uhs)
-        } catch (e: ClientRequestException) {
-            /* XSTS returns HTTP 401 with XErr in the JSON body for account-level errors.
-             * We catch the exception and parse XErr to throw the appropriate typed exception. */
-            val errorBody = runCatching { e.response.safeBodyAsJson<JsonObject>() }.getOrNull()
-            val xErr = errorBody?.get("XErr").text()
-            Logger.debug(TAG, "XSTS error: XErr=$xErr status=${e.response.status.value}")
-            //Reference: https://github.com/PrismarineJS/prismarine-auth/blob/1aef6e1/src/common/Constants.js#L50-L59
-            when (xErr) {
-                "2148916227" -> throw XboxLoginException(BANNED)
-                "2148916229" -> throw XboxLoginException(RESTRICTED)
-                "2148916233" -> throw XboxLoginException(UNREGISTERED)
-                "2148916234" -> throw XboxLoginException(NOT_ACCEPTED_SERVICE)
-                "2148916235" -> throw XboxLoginException(BLOCKED_REGION)
-                "2148916236" -> throw XboxLoginException(REQUIRES_PROOF_OF_AGE)
-                "2148916237" -> throw XboxLoginException(REACHED_PLAYTIME_LIMIT)
-                "2148916238" -> throw XboxLoginException(UNDERAGE)
-                else -> throw e
-            }
+        val xerr = response["XErr"].text()
+        if (xerr.isNotEmpty()) {
+            debugLog("Stage: XSTS — XErr=$xerr")
         }
+        //Reference : https://github.com/PrismarineJS/prismarine-auth/blob/1aef6e1/src/common/Constants.js#L50-L59
+        when (xerr) {
+            "2148916227" -> throw XboxLoginException(BANNED)
+            "2148916229" -> throw XboxLoginException(RESTRICTED)
+            "2148916233" -> throw XboxLoginException(UNREGISTERED)
+            "2148916234" -> throw XboxLoginException(NOT_ACCEPTED_SERVICE)
+            "2148916235" -> throw XboxLoginException(BLOCKED_REGION)
+            "2148916236" -> throw XboxLoginException(REQUIRES_PROOF_OF_AGE)
+            "2148916237" -> throw XboxLoginException(REACHED_PLAYTIME_LIMIT)
+            "2148916238" -> throw XboxLoginException(UNDERAGE)
+        }
+
+        debugLog("Stage: XSTS — token obtained")
+        XSTSAuthResult(token = response["Token"].text(), uhs = uhs)
     }
 }
 
@@ -341,20 +327,19 @@ private suspend fun authenticateMinecraft(
     context: CoroutineContext
 ): MinecraftAuthResponse {
     update(AsyncStatus.AUTHENTICATE_MINECRAFT)
-    val url = "$MINECRAFT_SERVICES_URL/authentication/login_with_xbox"
-    Logger.debug(TAG, "Authenticating with Minecraft: $url")
+    debugLog("Stage: Minecraft Services — POST $MINECRAFT_SERVICES_URL/authentication/login_with_xbox")
 
     return withRetry {
         runCatching {
             httpPostJson<MinecraftAuthResponse>(
-                url = url,
+                url = "$MINECRAFT_SERVICES_URL/authentication/login_with_xbox",
                 body = mapOf("identityToken" to "XBL3.0 x=${xstsResult.uhs};${xstsResult.token}"),
                 context = context
             )
         }.onFailure { e ->
             if (e is ResponseException) {
                 val status = e.response.status.value
-                Logger.debug(TAG, "Minecraft auth error: HTTP $status")
+                debugLog("Stage: Minecraft Services — HTTP $status")
                 when (status) {
                     429 -> throw MinecraftProfileException(FREQUENT)
                     403 -> throw MinecraftProfileException(BLOCKED_IP)
@@ -366,19 +351,17 @@ private suspend fun authenticateMinecraft(
 
 private suspend fun verifyGameOwnership(accessToken: String, update: (AsyncStatus) -> Unit) {
     update(AsyncStatus.VERIFY_GAME_OWNERSHIP)
-    val url = "$MINECRAFT_SERVICES_URL/entitlements/mcstore"
-    Logger.debug(TAG, "Verifying game ownership: $url")
-
+    debugLog("Stage: Game ownership — GET $MINECRAFT_SERVICES_URL/entitlements/mcstore")
     withRetry {
-        val response = GLOBAL_CLIENT.get(url) {
+        val response = GLOBAL_CLIENT.get("$MINECRAFT_SERVICES_URL/entitlements/mcstore") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
         }
         val items = response.safeBodyAsJson<JsonObject>()["items"]?.jsonArray
         if (items?.isEmpty() != false) {
-            Logger.debug(TAG, "No Minecraft entitlements found")
+            debugLog("Stage: Game ownership — no entitlements found")
             throw NotPurchasedMinecraftException()
         }
-        Logger.debug(TAG, "Game ownership verified (${items.size} entitlement(s))")
+        debugLog("Stage: Game ownership — verified (${items.size} entitlement(s))")
     }
 }
 
@@ -389,7 +372,7 @@ private suspend fun createAccount(
     statusUpdate: (AsyncStatus) -> Unit
 ): Account {
     statusUpdate(AsyncStatus.GETTING_PLAYER_PROFILE)
-    Logger.debug(TAG, "Fetching Minecraft player profile")
+    debugLog("Stage: Minecraft Profile API — GET $MINECRAFT_SERVICES_URL/minecraft/profile")
 
     val profile = getPlayerProfile(
         apiUrl = MINECRAFT_SERVICES_URL,
@@ -397,9 +380,10 @@ private suspend fun createAccount(
     )
 
     val profileId = profile.id
+    //避免同一个账号反复添加
     val account = AccountsManager.loadFromProfileID(profileId, AccountType.MICROSOFT.tag) ?: Account()
 
-    Logger.debug(TAG, "Account created/updated for profile: ${profile.name}")
+    debugLog("Stage: Profile — account created for ${profile.name}")
     return account.apply {
         this.username = profile.name
         this.accessToken = authResponse.accessToken
