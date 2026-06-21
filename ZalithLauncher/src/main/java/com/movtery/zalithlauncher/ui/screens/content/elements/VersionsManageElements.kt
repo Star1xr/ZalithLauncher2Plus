@@ -100,6 +100,10 @@ import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import kotlinx.coroutines.Dispatchers
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material3.FilledTonalButton
 
 private const val TAG = "VersionsManageElements"
 
@@ -679,7 +683,8 @@ class VersionItemCallbacks(
     val onExportClick: () -> Unit,
     val onDeleteClick: () -> Unit,
     val onPinned: () -> Unit,
-    val onAddShortcutClick: () -> Unit
+    val onAddShortcutClick: () -> Unit,
+    val onLaunchClick: () -> Unit
 )
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -724,6 +729,18 @@ fun VersionItemLayout(
                 modifier = Modifier.weight(1f),
                 version = version
             )
+
+            IconButton(
+                onClick = callbacks.onLaunchClick,
+                enabled = version.isValid()
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(R.drawable.ic_play_arrow_filled),
+                    contentDescription = stringResource(R.string.versions_manage_launch),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
 
             val saveFailedText = stringResource(R.string.versions_config_failed_to_save)
             IconButton(
@@ -1064,3 +1081,205 @@ private fun getLoaderIconRes(version: Version): Int {
         else -> R.drawable.img_minecraft
     }
 }
+
+  @OptIn(ExperimentalLayoutApi::class)
+  @Composable
+  fun VersionGridItemLayout(
+      version: Version,
+      selected: Boolean,
+      callbacks: VersionItemCallbacks,
+      modifier: Modifier = Modifier,
+      color: Color = itemColor(),
+      contentColor: Color = onItemColor()
+  ) {
+      val scale = remember { Animatable(initialValue = 0.92f) }
+      LaunchedEffect(Unit) {
+          scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
+      }
+
+      Surface(
+          modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+          color = color,
+          contentColor = contentColor,
+          shape = MaterialTheme.shapes.large,
+          onClick = {
+              if (selected) return@Surface
+              callbacks.onSelected()
+          }
+      ) {
+          Column(
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(12.dp),
+              verticalArrangement = Arrangement.spacedBy(6.dp)
+          ) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                  VersionIconImage(version = version, modifier = Modifier.size(40.dp))
+                  Spacer(modifier = Modifier.weight(1f))
+                  RadioButton(
+                      selected = selected,
+                      onClick = { if (!selected) callbacks.onSelected() }
+                  )
+              }
+
+              Text(
+                  modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                  text = version.getVersionName(),
+                  style = MaterialTheme.typography.labelLarge,
+                  maxLines = 1
+              )
+
+              val versionInfo = remember(version) { version.getVersionInfo() }
+              if (versionInfo != null) {
+                  FlowRow(
+                      modifier = Modifier.alpha(0.7f),
+                      horizontalArrangement = Arrangement.spacedBy(8.dp)
+                  ) {
+                      Text(text = versionInfo.minecraftVersion, style = MaterialTheme.typography.labelSmall)
+                      versionInfo.loaderInfo?.let { loaderInfo ->
+                          Text(text = loaderInfo.loader.displayName, style = MaterialTheme.typography.labelSmall)
+                          Text(text = loaderInfo.version, style = MaterialTheme.typography.labelSmall)
+                      }
+                  }
+              }
+
+              PlayTimeInfoRow(versionName = remember(version) { version.getVersionName() })
+
+              Spacer(modifier = Modifier.height(4.dp))
+
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                  val saveFailedText = stringResource(R.string.versions_config_failed_to_save)
+                  IconButton(
+                      onClick = {
+                          val cur = version.pinnedState
+                          runCatching { version.setPinnedAndSave(!cur) }
+                              .onFailure { e ->
+                                  Logger.error(TAG, "Failed to save version config!", e)
+                                  callbacks.submitError(ErrorViewModel.ThrowableMessage(title = saveFailedText, message = e.getMessageOrToString()))
+                              }
+                              .onSuccess { callbacks.onPinned() }
+                      },
+                      enabled = version.isValid()
+                  ) {
+                      Crossfade(targetState = version.pinnedState) { pinned ->
+                          Icon(
+                              modifier = Modifier.rotate(45.0f),
+                              painter = if (pinned) painterResource(R.drawable.ic_pinned_filled) else painterResource(R.drawable.ic_pinned_outlined),
+                              contentDescription = stringResource(R.string.versions_manage_pin)
+                          )
+                      }
+                  }
+
+                  IconButton(onClick = callbacks.onSettingsClick, enabled = version.isValid()) {
+                      Icon(modifier = Modifier.size(24.dp), painter = painterResource(R.drawable.ic_settings_filled), contentDescription = stringResource(R.string.versions_manage_settings))
+                  }
+
+                  Spacer(modifier = Modifier.weight(1f))
+
+                  var gridMenuExpanded by remember { mutableStateOf(false) }
+                  Box {
+                      IconButton(onClick = { gridMenuExpanded = !gridMenuExpanded }) {
+                          Icon(modifier = Modifier.size(24.dp), painter = painterResource(R.drawable.ic_more_horiz), contentDescription = stringResource(R.string.generic_more))
+                      }
+                      DropdownMenu(expanded = gridMenuExpanded, shape = MaterialTheme.shapes.large, shadowElevation = 3.dp, onDismissRequest = { gridMenuExpanded = false }) {
+                          DropdownMenuItem(text = { Text(stringResource(R.string.generic_rename)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_edit_filled), null) }, onClick = { callbacks.onRenameClick(); gridMenuExpanded = false })
+                          DropdownMenuItem(text = { Text(stringResource(R.string.generic_copy)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_file_copy_filled), null) }, onClick = { callbacks.onCopyClick(); gridMenuExpanded = false })
+                          DropdownMenuItem(text = { Text(stringResource(R.string.versions_export)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_folder_zip_filled), null) }, onClick = { callbacks.onExportClick(); gridMenuExpanded = false })
+                          DropdownMenuItem(text = { Text(stringResource(R.string.versions_manage_add_shortcut)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_add_box_outlined), null) }, onClick = { callbacks.onAddShortcutClick(); gridMenuExpanded = false })
+                          DropdownMenuItem(text = { Text(stringResource(R.string.generic_delete)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_delete_filled), null) }, onClick = { callbacks.onDeleteClick(); gridMenuExpanded = false })
+                      }
+                  }
+              }
+
+              FilledTonalButton(
+                  onClick = callbacks.onLaunchClick,
+                  enabled = version.isValid(),
+                  modifier = Modifier.fillMaxWidth()
+              ) {
+                  Icon(modifier = Modifier.size(18.dp), painter = painterResource(R.drawable.ic_play_arrow_filled), contentDescription = null)
+                  Spacer(modifier = Modifier.width(6.dp))
+                  MarqueeText(text = stringResource(R.string.versions_manage_launch))
+              }
+          }
+      }
+  }
+
+  @Composable
+  fun VersionCompactItemLayout(
+      version: Version,
+      selected: Boolean,
+      callbacks: VersionItemCallbacks,
+      modifier: Modifier = Modifier,
+      color: Color = itemColor(),
+      contentColor: Color = onItemColor()
+  ) {
+      val scale = remember { Animatable(initialValue = 0.97f) }
+      LaunchedEffect(Unit) {
+          scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
+      }
+
+      Surface(
+          modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+          color = color,
+          contentColor = contentColor,
+          shape = MaterialTheme.shapes.medium,
+          onClick = {
+              if (selected) return@Surface
+              callbacks.onSelected()
+          }
+      ) {
+          Row(
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(horizontal = 10.dp, vertical = 5.dp),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp)
+          ) {
+              VersionIconImage(version = version, modifier = Modifier.size(24.dp))
+
+              Column(modifier = Modifier.weight(1f)) {
+                  Text(
+                      modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                      text = version.getVersionName(),
+                      style = MaterialTheme.typography.labelMedium,
+                      maxLines = 1
+                  )
+                  if (version.isValid() && version.isSummaryValid()) {
+                      Text(
+                          modifier = Modifier
+                              .basicMarquee(iterations = Int.MAX_VALUE)
+                              .alpha(0.65f),
+                          text = remember(version) { version.getVersionSummary() },
+                          style = MaterialTheme.typography.labelSmall,
+                          maxLines = 1
+                      )
+                  }
+              }
+
+              IconButton(onClick = callbacks.onLaunchClick, enabled = version.isValid()) {
+                  Icon(
+                      modifier = Modifier.size(20.dp),
+                      painter = painterResource(R.drawable.ic_play_arrow_filled),
+                      contentDescription = stringResource(R.string.versions_manage_launch),
+                      tint = MaterialTheme.colorScheme.primary
+                  )
+              }
+
+              var compactMenuExpanded by remember { mutableStateOf(false) }
+              Box {
+                  IconButton(onClick = { compactMenuExpanded = !compactMenuExpanded }) {
+                      Icon(modifier = Modifier.size(18.dp), painter = painterResource(R.drawable.ic_more_horiz), contentDescription = stringResource(R.string.generic_more))
+                  }
+                  DropdownMenu(expanded = compactMenuExpanded, shape = MaterialTheme.shapes.large, shadowElevation = 3.dp, onDismissRequest = { compactMenuExpanded = false }) {
+                      DropdownMenuItem(text = { Text(stringResource(R.string.generic_rename)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_edit_filled), null) }, onClick = { callbacks.onRenameClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.generic_copy)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_file_copy_filled), null) }, onClick = { callbacks.onCopyClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.versions_export)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_folder_zip_filled), null) }, onClick = { callbacks.onExportClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.versions_manage_settings)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_settings_filled), null) }, onClick = { callbacks.onSettingsClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.versions_manage_add_shortcut)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_add_box_outlined), null) }, onClick = { callbacks.onAddShortcutClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.generic_delete)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_delete_filled), null) }, onClick = { callbacks.onDeleteClick(); compactMenuExpanded = false })
+                  }
+              }
+          }
+      }
+  }
+  
