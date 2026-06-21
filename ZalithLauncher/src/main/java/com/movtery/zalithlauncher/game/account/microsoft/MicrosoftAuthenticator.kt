@@ -91,10 +91,26 @@ private fun debugLog(message: String) {
 }
 
 /**
+ * Thrown when the build was produced without a valid OAUTH_CLIENT_ID.
+ * This happens when the GitHub Actions secret OAUTH_CLIENT_ID is not set
+ * in the repository settings before building.
+ */
+class MissingOAuthClientIdException : IllegalStateException(
+    "Microsoft login is not configured: OAUTH_CLIENT_ID is empty.\n" +
+    "To fix this:\n" +
+    "1. Register an Azure App at https://entra.microsoft.com\n" +
+    "2. Add the client ID as a GitHub Actions secret named OAUTH_CLIENT_ID\n" +
+    "3. Rebuild the APK from GitHub Actions."
+)
+
+/**
  * 从 Microsoft 身份验证终端节点获取设备代码响应
  * 设备代码用于在单独的设备或浏览器上授权用户
  */
 suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeResponse = coroutineScope {
+    if (BuildKeys.OAUTH_CLIENT_ID.isBlank()) {
+        throw MissingOAuthClientIdException()
+    }
     debugLog("Stage: OAuth device code — POST $MICROSOFT_AUTH_URL/$TENANT/oauth2/v2.0/devicecode")
     withRetry {
         submitForm(
