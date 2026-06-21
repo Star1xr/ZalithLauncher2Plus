@@ -38,6 +38,7 @@ import com.movtery.zalithlauncher.game.account.isMicrosoftAccount
 import com.movtery.zalithlauncher.game.account.localLogin
 import com.movtery.zalithlauncher.game.account.microsoft.MINECRAFT_SERVICES_URL
 import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileException
+import com.movtery.zalithlauncher.game.account.microsoft.MissingOAuthClientIdException
 import com.movtery.zalithlauncher.game.account.microsoft.NotPurchasedMinecraftException
 import com.movtery.zalithlauncher.game.account.microsoft.XboxLoginException
 import com.movtery.zalithlauncher.game.account.microsoft.toLocal
@@ -877,6 +878,7 @@ class AccountManageViewModel @Inject constructor(
      * @return 格式化后的错误提示
      */
     fun formatAccountError(th: Throwable): String = when (th) {
+        is MissingOAuthClientIdException -> th.message ?: "OAUTH_CLIENT_ID not configured"
         is NotPurchasedMinecraftException -> toLocal(context)
         is MinecraftProfileException -> th.toLocal(context)
         is XboxLoginException -> th.toLocal(context)
