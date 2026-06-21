@@ -95,6 +95,16 @@ fun AboutDialog(
                 )
 
                 Text(
+                    text = stringResource(R.string.about_launcher_author_rami1l_title),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(R.string.about_launcher_author_rami1l_text),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.alpha(0.7f)
+                )
+
+                                Text(
                     text = stringResource(R.string.about_launcher_author_star1xr_title),
                     style = MaterialTheme.typography.titleMedium
                 )
