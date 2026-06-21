@@ -1182,11 +1182,11 @@ private fun getLoaderIconRes(version: Version): Int {
                           Icon(modifier = Modifier.size(24.dp), painter = painterResource(R.drawable.ic_more_horiz), contentDescription = stringResource(R.string.generic_more))
                       }
                       DropdownMenu(expanded = gridMenuExpanded, shape = MaterialTheme.shapes.large, shadowElevation = 3.dp, onDismissRequest = { gridMenuExpanded = false }) {
-                          DropdownMenuItem(text = { Text(stringResource(R.string.generic_rename)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_edit_filled), null) }, onClick = { callbacks.onRenameClick(); gridMenuExpanded = false })
-                          DropdownMenuItem(text = { Text(stringResource(R.string.generic_copy)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_file_copy_filled), null) }, onClick = { callbacks.onCopyClick(); gridMenuExpanded = false })
-                          DropdownMenuItem(text = { Text(stringResource(R.string.versions_export)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_folder_zip_filled), null) }, onClick = { callbacks.onExportClick(); gridMenuExpanded = false })
-                          DropdownMenuItem(text = { Text(stringResource(R.string.versions_manage_add_shortcut)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_add_box_outlined), null) }, onClick = { callbacks.onAddShortcutClick(); gridMenuExpanded = false })
-                          DropdownMenuItem(text = { Text(stringResource(R.string.generic_delete)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_delete_filled), null) }, onClick = { callbacks.onDeleteClick(); gridMenuExpanded = false })
+                          DropdownMenuItem(text = { Text(stringResource(R.string.generic_rename)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_edit_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onRenameClick(); gridMenuExpanded = false })
+                          DropdownMenuItem(text = { Text(stringResource(R.string.generic_copy)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_file_copy_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onCopyClick(); gridMenuExpanded = false })
+                          DropdownMenuItem(text = { Text(stringResource(R.string.versions_export)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_folder_zip_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onExportClick(); gridMenuExpanded = false })
+                          DropdownMenuItem(text = { Text(stringResource(R.string.versions_manage_add_shortcut)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_add_box_outlined), null, Modifier.size(20.dp)) }, onClick = { callbacks.onAddShortcutClick(); gridMenuExpanded = false })
+                          DropdownMenuItem(text = { Text(stringResource(R.string.generic_delete)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_delete_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onDeleteClick(); gridMenuExpanded = false })
                       }
                   }
               }
@@ -1271,12 +1271,12 @@ private fun getLoaderIconRes(version: Version): Int {
                       Icon(modifier = Modifier.size(18.dp), painter = painterResource(R.drawable.ic_more_horiz), contentDescription = stringResource(R.string.generic_more))
                   }
                   DropdownMenu(expanded = compactMenuExpanded, shape = MaterialTheme.shapes.large, shadowElevation = 3.dp, onDismissRequest = { compactMenuExpanded = false }) {
-                      DropdownMenuItem(text = { Text(stringResource(R.string.generic_rename)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_edit_filled), null) }, onClick = { callbacks.onRenameClick(); compactMenuExpanded = false })
-                      DropdownMenuItem(text = { Text(stringResource(R.string.generic_copy)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_file_copy_filled), null) }, onClick = { callbacks.onCopyClick(); compactMenuExpanded = false })
-                      DropdownMenuItem(text = { Text(stringResource(R.string.versions_export)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_folder_zip_filled), null) }, onClick = { callbacks.onExportClick(); compactMenuExpanded = false })
-                      DropdownMenuItem(text = { Text(stringResource(R.string.versions_manage_settings)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_settings_filled), null) }, onClick = { callbacks.onSettingsClick(); compactMenuExpanded = false })
-                      DropdownMenuItem(text = { Text(stringResource(R.string.versions_manage_add_shortcut)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_add_box_outlined), null) }, onClick = { callbacks.onAddShortcutClick(); compactMenuExpanded = false })
-                      DropdownMenuItem(text = { Text(stringResource(R.string.generic_delete)) }, leadingIcon = { Icon(Modifier.size(20.dp), painterResource(R.drawable.ic_delete_filled), null) }, onClick = { callbacks.onDeleteClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.generic_rename)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_edit_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onRenameClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.generic_copy)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_file_copy_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onCopyClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.versions_export)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_folder_zip_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onExportClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.versions_manage_settings)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_settings_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onSettingsClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.versions_manage_add_shortcut)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_add_box_outlined), null, Modifier.size(20.dp)) }, onClick = { callbacks.onAddShortcutClick(); compactMenuExpanded = false })
+                      DropdownMenuItem(text = { Text(stringResource(R.string.generic_delete)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_delete_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onDeleteClick(); compactMenuExpanded = false })
                   }
               }
           }
