@@ -1274,7 +1274,7 @@
     <string name="about_launcher_project_link">GitHub Link</string>
     <string name="about_sponsor">Sponsorship Support</string>
     <string name="disclaimer_title">Unofficial Version</string>
-    <string name="disclaimer_content">This is an unofficial modified version of Zalith Launcher 2.</string>
+    <string name="disclaimer_content">Zeryth Launcher is an unofficial fork of Zalith Launcher 2.</string>
     <string name="disclaimer_original_repo">Original Repo</string>
     <string name="launcher_fork_subtitle">A fork of Zalith Launcher 2</string>
     <string name="settings_renderer_external_driver">External Driver</string>
