@@ -49,6 +49,7 @@ import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.httpPostJson
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
+import com.movtery.zalithlauncher.utils.network.safeBodyAsText
 import com.movtery.zalithlauncher.utils.network.submitForm
 import com.movtery.zalithlauncher.utils.string.toUuidStr
 import io.ktor.client.plugins.ClientRequestException
@@ -288,8 +289,16 @@ private suspend fun authenticateXBL(accessToken: String, update: (AsyncStatus) -
             ?.get("uhs")?.jsonPrimitive
             ?.content ?: throw Exception("Missing uhs in XBL response")
 
-        debugLog("Stage: XBL — token obtained")
-        Pair(response["Token"].text(), uhs)
+        val xblToken = response["Token"].text()
+        if (xblToken.isEmpty()) {
+            Logger.error(TAG, "Stage: XBL — Token field is empty in XBL response. " +
+                "This usually means the Azure App is missing the XboxLive.signin API permission " +
+                "in the Entra Portal (App ID: 000000004C12AE6F). " +
+                "Response keys: ${response.keys}")
+            throw Exception("XBL token is empty — check Azure App XboxLive.signin API permission")
+        }
+        debugLog("Stage: XBL — token obtained (length=${xblToken.length}, uhs length=${uhs.length})")
+        Pair(xblToken, uhs)
     }
 }
 
@@ -332,8 +341,16 @@ private suspend fun authenticateXSTS(
             "2148916238" -> throw XboxLoginException(UNDERAGE)
         }
 
-        debugLog("Stage: XSTS — token obtained")
-        XSTSAuthResult(token = response["Token"].text(), uhs = uhs)
+        val xstsToken = response["Token"].text()
+        if (xstsToken.isEmpty()) {
+            Logger.error(TAG, "Stage: XSTS — Token field is empty in XSTS response. " +
+                "XErr=${response["XErr"].text()}, response keys: ${response.keys}. " +
+                "An unrecognised XErr code may have caused silent fall-through; " +
+                "passing an empty XSTS token to login_with_xbox would produce HTTP 403.")
+            throw Exception("XSTS token is empty — check response for unknown XErr code")
+        }
+        debugLog("Stage: XSTS — token obtained (length=${xstsToken.length})")
+        XSTSAuthResult(token = xstsToken, uhs = uhs)
     }
 }
 
@@ -344,6 +361,7 @@ private suspend fun authenticateMinecraft(
 ): MinecraftAuthResponse {
     update(AsyncStatus.AUTHENTICATE_MINECRAFT)
     debugLog("Stage: Minecraft Services — POST $MINECRAFT_SERVICES_URL/authentication/login_with_xbox")
+    debugLog("Stage: Minecraft Services — XSTS token length=${xstsResult.token.length}, UHS length=${xstsResult.uhs.length}")
 
     return withRetry {
         runCatching {
@@ -355,7 +373,15 @@ private suspend fun authenticateMinecraft(
         }.onFailure { e ->
             if (e is ResponseException) {
                 val status = e.response.status.value
-                debugLog("Stage: Minecraft Services — HTTP $status")
+                debugLog("Stage: Minecraft Services — HTTP $status from login_with_xbox")
+                val errorBody = runCatching { e.response.safeBodyAsText() }
+                    .getOrElse { "<body unreadable: ${it.message}>" }
+                Logger.warning(TAG,
+                    "Stage: Minecraft Services — login_with_xbox returned HTTP $status. " +
+                    "Response body: $errorBody. " +
+                    "If HTTP 403: possible causes are (1) Azure App missing XboxLive.signin " +
+                    "API permission in Entra Portal, (2) XSTS token invalid, " +
+                    "(3) account not linked to Xbox Live, or (4) genuine IP/region block.")
                 when (status) {
                     429 -> throw MinecraftProfileException(FREQUENT)
                     403 -> throw MinecraftProfileException(BLOCKED_IP)
