@@ -73,7 +73,6 @@ import com.movtery.zalithlauncher.R
 import kotlinx.coroutines.delay
 import androidx.compose.animation.Crossfade
 import androidx.compose.ui.res.stringResource
-import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.enums.VersionListViewMode
 
 private val CollapsedWidth = 56.dp
