@@ -98,6 +98,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.VersionListViewMode
+import com.movtery.zalithlauncher.ui.screens.content.elements.VersionCompactItemLayout
+import com.movtery.zalithlauncher.ui.screens.content.elements.VersionGridItemLayout
 
 private class VersionsScreenViewModel : ViewModel() {
     /** 版本类别分类 */
@@ -260,7 +272,8 @@ fun VersionsManageScreen(
     navigateToVersions: (Version) -> Unit,
     navigateToExport: (Version) -> Unit,
     eventViewModel: EventViewModel,
-    submitError: (ErrorViewModel.ThrowableMessage) -> Unit
+    submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
+    onLaunchGame: (Version) -> Unit = {}
 ) {
     val viewModel = rememberVersionViewModel()
     val context = LocalContext.current
@@ -331,7 +344,8 @@ fun VersionsManageScreen(
                 },
                 onInstall = {
                     backScreenViewModel.navigateToDownload()
-                }
+                },
+                onLaunchGame = onLaunchGame
             )
 
             CleanupOperation(
@@ -472,6 +486,7 @@ private fun VersionsLayout(
     onRefresh: () -> Unit,
     onVersionPinned: () -> Unit,
     onInstall: () -> Unit,
+    onLaunchGame: (Version) -> Unit = {},
 ) {
     val context = LocalContext.current
     val surfaceYOffset by swapAnimateDpAsState(
@@ -492,6 +507,8 @@ private fun VersionsLayout(
             }
         } else {
             var versionsOperation by remember { mutableStateOf<VersionsOperation>(VersionsOperation.None) }
+            var viewModeIndex by rememberSaveable { mutableIntStateOf(AllSettings.versionListViewMode.getValue()) }
+            val viewMode: VersionListViewMode = VersionListViewMode.entries[viewModeIndex.coerceIn(0, VersionListViewMode.entries.size - 1)]
             VersionsOperation(
                 versionsOperation = versionsOperation,
                 updateVersionsOperation = { versionsOperation = it },
@@ -526,6 +543,28 @@ private fun VersionsLayout(
                             contentDescription = stringResource(R.string.versions_manage_install_new),
                             text = stringResource(R.string.versions_manage_install_new),
                         )
+                          IconTextButton(
+                              onClick = {
+                                  val nextMode = viewMode.next()
+                                  viewModeIndex = nextMode.ordinal
+                                  AllSettings.versionListViewMode.save(nextMode.ordinal)
+                              },
+                              painter = painterResource(
+                                  when (viewMode) {
+                                      VersionListViewMode.LIST -> R.drawable.ic_list_alt_check_outlined
+                                      VersionListViewMode.GRID -> R.drawable.ic_card
+                                      VersionListViewMode.COMPACT -> R.drawable.ic_list_down
+                                  }
+                              ),
+                              contentDescription = stringResource(R.string.launcher_view_mode_toggle),
+                              text = stringResource(
+                                  when (viewMode) {
+                                      VersionListViewMode.LIST -> R.string.versions_manage_view_mode_list
+                                      VersionListViewMode.GRID -> R.string.versions_manage_view_mode_grid
+                                      VersionListViewMode.COMPACT -> R.string.versions_manage_view_mode_compact
+                                  }
+                              )
+                          )
                         //版本分类
                         VersionCategoryItem(
                             value = VersionCategory.ALL,
@@ -549,44 +588,132 @@ private fun VersionsLayout(
                 }
 
                 if (versions.isNotEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .clipToBounds(),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        items(versions, key = { it.toString() }) { version ->
-                            val callbacks = remember(version) {
-                                VersionItemCallbacks(
-                                    submitError = submitError,
-                                    onSelected = {
-                                        if (version == currentVersion) return@VersionItemCallbacks
-                                        if (!VersionsManager.saveVersion(version)) {
-                                            //不允许选择无效版本
-                                            versionsOperation = VersionsOperation.InvalidDelete(version)
-                                        }
-                                    },
-                                    onSettingsClick = { navigateToVersions(version) },
-                                    onRenameClick = { versionsOperation = VersionsOperation.Rename(version) },
-                                    onCopyClick = { versionsOperation = VersionsOperation.Copy(version) },
-                                    onExportClick = { navigateToExport(version) },
-                                    onDeleteClick = { versionsOperation = VersionsOperation.Delete(version) },
-                                    onPinned = onVersionPinned,
-                                    onAddShortcutClick = { ShortcutUtils.pinVersion(context, version) }
-                                )
-                            }
-                            VersionItemLayout(
-                                version = version,
-                                selected = version == currentVersion,
-                                callbacks = callbacks,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 6.dp)
-                                    .animateItem()
-                            )
-                        }
-                    }
+                      AnimatedContent(
+                          targetState = viewMode,
+                          transitionSpec = { fadeIn() togetherWith fadeOut() },
+                          label = "viewModeTransition",
+                          modifier = Modifier.fillMaxWidth().weight(1f)
+                      ) { mode ->
+                          when (mode) {
+                              VersionListViewMode.LIST -> {
+                                  LazyColumn(
+                                      modifier = Modifier
+                                          .fillMaxSize()
+                                          .clipToBounds(),
+                                      contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                  ) {
+                                      items(versions, key = { it.toString() }) { version ->
+                                          val callbacks = remember(version) {
+                                              VersionItemCallbacks(
+                                                  submitError = submitError,
+                                                  onSelected = {
+                                                      if (version == currentVersion) return@VersionItemCallbacks
+                                                      if (!VersionsManager.saveVersion(version)) {
+                                                          versionsOperation = VersionsOperation.InvalidDelete(version)
+                                                      }
+                                                  },
+                                                  onSettingsClick = { navigateToVersions(version) },
+                                                  onRenameClick = { versionsOperation = VersionsOperation.Rename(version) },
+                                                  onCopyClick = { versionsOperation = VersionsOperation.Copy(version) },
+                                                  onExportClick = { navigateToExport(version) },
+                                                  onDeleteClick = { versionsOperation = VersionsOperation.Delete(version) },
+                                                  onPinned = onVersionPinned,
+                                                  onAddShortcutClick = { ShortcutUtils.pinVersion(context, version) },
+                                                  onLaunchClick = { onLaunchGame(version) }
+                                              )
+                                          }
+                                          VersionItemLayout(
+                                              version = version,
+                                              selected = version == currentVersion,
+                                              callbacks = callbacks,
+                                              modifier = Modifier
+                                                  .fillMaxWidth()
+                                                  .padding(vertical = 6.dp)
+                                                  .animateItem()
+                                          )
+                                      }
+                                  }
+                              }
+                              VersionListViewMode.GRID -> {
+                                  LazyVerticalGrid(
+                                      columns = GridCells.Adaptive(minSize = 220.dp),
+                                      modifier = Modifier
+                                          .fillMaxSize()
+                                          .clipToBounds(),
+                                      contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                      horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                      verticalArrangement = Arrangement.spacedBy(8.dp)
+                                  ) {
+                                      gridItems(versions, key = { it.toString() }) { version ->
+                                          val callbacks = remember(version) {
+                                              VersionItemCallbacks(
+                                                  submitError = submitError,
+                                                  onSelected = {
+                                                      if (version == currentVersion) return@VersionItemCallbacks
+                                                      if (!VersionsManager.saveVersion(version)) {
+                                                          versionsOperation = VersionsOperation.InvalidDelete(version)
+                                                      }
+                                                  },
+                                                  onSettingsClick = { navigateToVersions(version) },
+                                                  onRenameClick = { versionsOperation = VersionsOperation.Rename(version) },
+                                                  onCopyClick = { versionsOperation = VersionsOperation.Copy(version) },
+                                                  onExportClick = { navigateToExport(version) },
+                                                  onDeleteClick = { versionsOperation = VersionsOperation.Delete(version) },
+                                                  onPinned = onVersionPinned,
+                                                  onAddShortcutClick = { ShortcutUtils.pinVersion(context, version) },
+                                                  onLaunchClick = { onLaunchGame(version) }
+                                              )
+                                          }
+                                          VersionGridItemLayout(
+                                              version = version,
+                                              selected = version == currentVersion,
+                                              callbacks = callbacks,
+                                              modifier = Modifier.animateItem()
+                                          )
+                                      }
+                                  }
+                              }
+                              VersionListViewMode.COMPACT -> {
+                                  LazyColumn(
+                                      modifier = Modifier
+                                          .fillMaxSize()
+                                          .clipToBounds(),
+                                      contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                  ) {
+                                      items(versions, key = { it.toString() }) { version ->
+                                          val callbacks = remember(version) {
+                                              VersionItemCallbacks(
+                                                  submitError = submitError,
+                                                  onSelected = {
+                                                      if (version == currentVersion) return@VersionItemCallbacks
+                                                      if (!VersionsManager.saveVersion(version)) {
+                                                          versionsOperation = VersionsOperation.InvalidDelete(version)
+                                                      }
+                                                  },
+                                                  onSettingsClick = { navigateToVersions(version) },
+                                                  onRenameClick = { versionsOperation = VersionsOperation.Rename(version) },
+                                                  onCopyClick = { versionsOperation = VersionsOperation.Copy(version) },
+                                                  onExportClick = { navigateToExport(version) },
+                                                  onDeleteClick = { versionsOperation = VersionsOperation.Delete(version) },
+                                                  onPinned = onVersionPinned,
+                                                  onAddShortcutClick = { ShortcutUtils.pinVersion(context, version) },
+                                                  onLaunchClick = { onLaunchGame(version) }
+                                              )
+                                          }
+                                          VersionCompactItemLayout(
+                                              version = version,
+                                              selected = version == currentVersion,
+                                              callbacks = callbacks,
+                                              modifier = Modifier
+                                                  .fillMaxWidth()
+                                                  .padding(vertical = 2.dp)
+                                                  .animateItem()
+                                          )
+                                      }
+                                  }
+                              }
+                          }
+                      }
                 } else {
                     Box(
                         modifier = Modifier

@@ -599,7 +599,12 @@ private fun NavigationUI(
                         navigateToVersions = navigateToVersions,
                         navigateToExport = navigateToExport,
                         eventViewModel = eventViewModel,
-                        submitError = submitError
+                        submitError = submitError,
+                        onLaunchGame = { version ->
+                            eventViewModel.sendEvent(
+                                EventViewModel.Event.Launch.Game(version)
+                            )
+                        }
                     )
                 }
                 entry<NormalNavKey.FileSelector> { key ->

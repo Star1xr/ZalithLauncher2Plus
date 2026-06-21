@@ -71,6 +71,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.movtery.zalithlauncher.R
 import kotlinx.coroutines.delay
+import androidx.compose.animation.Crossfade
+import androidx.compose.ui.res.stringResource
+import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.setting.enums.VersionListViewMode
 
 private val CollapsedWidth = 56.dp
 private val ExpandedWidth = 84.dp
@@ -79,6 +83,10 @@ private val ExpandedWidth = 84.dp
 fun SideBar(
     modifier: Modifier = Modifier,
     isVisible: Boolean,
+    showStats: Boolean,
+    onStatsToggle: () -> Unit,
+    versionListViewMode: VersionListViewMode,
+    onViewModeToggle: () -> Unit,
     onFpsClick: () -> Unit,
     onVersionsClick: () -> Unit,
     onInfoClick: () -> Unit,
@@ -199,7 +207,45 @@ fun SideBar(
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                SideBarToggle(
+                SideBarControlButton(
+                      icon = {
+                          Crossfade(targetState = showStats) { showing ->
+                              if (showing) {
+                                  Icon(
+                                      modifier = Modifier.size(24.dp),
+                                      painter = painterResource(R.drawable.ic_dashboard_filled),
+                                      contentDescription = stringResource(R.string.launcher_stats_toggle)
+                                  )
+                              } else {
+                                  Icon(
+                                      modifier = Modifier.size(24.dp),
+                                      painter = painterResource(R.drawable.ic_dashboard_outlined),
+                                      contentDescription = stringResource(R.string.launcher_stats_toggle)
+                                  )
+                              }
+                          }
+                      },
+                      onClick = onStatsToggle
+                  )
+                  Spacer(modifier = Modifier.height(6.dp))
+                  SideBarControlButton(
+                      icon = {
+                          Icon(
+                              modifier = Modifier.size(24.dp),
+                              painter = painterResource(
+                                  when (versionListViewMode) {
+                                      VersionListViewMode.LIST -> R.drawable.ic_list_alt_check_outlined
+                                      VersionListViewMode.GRID -> R.drawable.ic_card
+                                      VersionListViewMode.COMPACT -> R.drawable.ic_list_down
+                                  }
+                              ),
+                              contentDescription = stringResource(R.string.launcher_view_mode_toggle)
+                          )
+                      },
+                      onClick = onViewModeToggle
+                  )
+                  Spacer(modifier = Modifier.height(6.dp))
+                                  SideBarToggle(
                     expanded = expanded,
                     onClick = { expanded = !expanded }
                 )
@@ -361,4 +407,46 @@ private fun SideBarShortcut(
     }
 }
 
+  @Composable
+  private fun SideBarControlButton(
+      icon: @Composable () -> Unit,
+      onClick: () -> Unit
+  ) {
+      val interactionSource = remember { MutableInteractionSource() }
+      val isPressed by interactionSource.collectIsPressedAsState()
+      val scale by animateFloatAsState(
+          targetValue = if (isPressed) 0.85f else 1f,
+          animationSpec = spring(
+              dampingRatio = Spring.DampingRatioMediumBouncy,
+              stiffness = Spring.StiffnessHigh
+          ),
+          label = "controlBtnScale"
+      )
 
+      Surface(
+          modifier = Modifier
+              .size(58.dp)
+              .scale(scale)
+              .shadow(
+                  elevation = 6.dp,
+                  shape = RoundedCornerShape(14.dp),
+                  ambientColor = MaterialTheme.colorScheme.primaryContainer,
+                  spotColor = MaterialTheme.colorScheme.primaryContainer
+              )
+              .clip(shape = RoundedCornerShape(14.dp))
+              .clickable(
+                  interactionSource = interactionSource,
+                  indication = null,
+                  onClick = onClick
+              ),
+          color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+      ) {
+          Box(
+              modifier = Modifier.fillMaxSize(),
+              contentAlignment = Alignment.Center
+          ) {
+              icon()
+          }
+      }
+  }
+  

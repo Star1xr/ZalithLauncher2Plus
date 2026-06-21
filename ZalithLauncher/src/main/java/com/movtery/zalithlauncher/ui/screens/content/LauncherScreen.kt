@@ -112,6 +112,13 @@ import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.HomePageState
 import com.movtery.zalithlauncher.viewmodel.LocalHomePageViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @Composable
 fun LauncherScreen(
@@ -129,6 +136,10 @@ fun LauncherScreen(
     ) { isVisible ->
         var showAboutDialog by remember { mutableStateOf(false) }
         var performanceSettingsState by remember { mutableStateOf<PerformanceSettingsOperation>(PerformanceSettingsOperation.None) }
+
+          var showStats by rememberSaveable { mutableStateOf(com.movtery.zalithlauncher.setting.AllSettings.showTodayStats.getValue()) }
+          var viewModeIndex by rememberSaveable { mutableIntStateOf(com.movtery.zalithlauncher.setting.AllSettings.versionListViewMode.getValue()) }
+          val versionListViewMode = com.movtery.zalithlauncher.setting.enums.VersionListViewMode.entries[viewModeIndex.coerceIn(0, com.movtery.zalithlauncher.setting.enums.VersionListViewMode.entries.size - 1)]
 
         if (showAboutDialog) {
             AboutDialog(onDismissRequest = { showAboutDialog = false })
@@ -149,6 +160,18 @@ fun LauncherScreen(
                 modifier = Modifier
                     .padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
                 isVisible = isVisible,
+                showStats = showStats,
+                onStatsToggle = {
+                    val next = !showStats
+                    showStats = next
+                    com.movtery.zalithlauncher.setting.AllSettings.showTodayStats.save(next)
+                },
+                versionListViewMode = versionListViewMode,
+                onViewModeToggle = {
+                    val nextMode = versionListViewMode.next()
+                    viewModeIndex = nextMode.ordinal
+                    com.movtery.zalithlauncher.setting.AllSettings.versionListViewMode.save(nextMode.ordinal)
+                },
                 onFpsClick = {
                     performanceSettingsState = PerformanceSettingsOperation.Fps
                 },
@@ -178,6 +201,7 @@ fun LauncherScreen(
                 ContentMenu(
                     modifier = Modifier.weight(7f),
                     isVisible = isVisible,
+                    showStats = showStats,
                     onHomePageEvent = onHomePageEvent,
                     onNavigateToStats = onNavigateToStats,
                     onNavigateToLog = onNavigateToLog
@@ -220,6 +244,7 @@ fun LauncherScreen(
 @Composable
 private fun ContentMenu(
     isVisible: Boolean,
+    showStats: Boolean,
     onHomePageEvent: (MarkdownBlock.Button.Event) -> Unit,
     onNavigateToStats: () -> Unit,
     onNavigateToLog: (String) -> Unit,
@@ -267,12 +292,18 @@ private fun ContentMenu(
             }
         }
 
-        // Stats grid fills remaining space — no scroll
-        StatsGrid(
-            modifier = Modifier.weight(1f),
-            onNavigateToStats = onNavigateToStats,
-            onNavigateToLog = onNavigateToLog
-        )
+        // Stats grid — hidden by default, toggled via SideBar button
+          AnimatedVisibility(
+              visible = showStats,
+              enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
+              exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
+          ) {
+              StatsGrid(
+                  modifier = Modifier.weight(1f),
+                  onNavigateToStats = onNavigateToStats,
+                  onNavigateToLog = onNavigateToLog
+              )
+          }
 
         // Home page content below (only shown when configured)
         when (val state = pageState) {
