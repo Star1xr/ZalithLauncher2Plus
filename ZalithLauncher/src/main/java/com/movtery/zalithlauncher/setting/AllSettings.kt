@@ -416,15 +416,9 @@ object AllSettings : SettingsRegistry() {
     val homePageURL = stringSetting("homePageURL", "")
 
       /**
-       * 版本列表视图模式：0=LIST, 1=GRID, 2=COMPACT
-       */
-      val versionListViewMode = intSetting("versionListViewMode", 0, 0..2)
-
-      /**
-       * 今日统计面板默认可见性（false = 隐藏）
-       */
-      val showTodayStats = boolSetting("showTodayStats", false)
-
+         * 仪表盘模式：0=统计(STATS), 1=列表(LIST), 2=网格(GRID), 3=紧凑(COMPACT)
+         */
+        val dashboardMode = intSetting("dashboardMode", 0, 0..3)
     /**
      * 启动器上次检查更新时，用户选择忽略的版本号
      */
