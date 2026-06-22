@@ -38,6 +38,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.ButtonDefaults
@@ -60,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -112,11 +116,10 @@ import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.HomePageState
 import com.movtery.zalithlauncher.viewmodel.LocalHomePageViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 
@@ -137,9 +140,8 @@ fun LauncherScreen(
         var showAboutDialog by remember { mutableStateOf(false) }
         var performanceSettingsState by remember { mutableStateOf<PerformanceSettingsOperation>(PerformanceSettingsOperation.None) }
 
-          var showStats by rememberSaveable { mutableStateOf(com.movtery.zalithlauncher.setting.AllSettings.showTodayStats.getValue()) }
-          var viewModeIndex by rememberSaveable { mutableIntStateOf(com.movtery.zalithlauncher.setting.AllSettings.versionListViewMode.getValue()) }
-          val versionListViewMode = com.movtery.zalithlauncher.setting.enums.VersionListViewMode.entries[viewModeIndex.coerceIn(0, com.movtery.zalithlauncher.setting.enums.VersionListViewMode.entries.size - 1)]
+        var dashboardModeOrdinal by rememberSaveable { mutableIntStateOf(com.movtery.zalithlauncher.setting.AllSettings.dashboardMode.getValue()) }
+        val dashboardMode = com.movtery.zalithlauncher.setting.enums.DashboardMode.entries[dashboardModeOrdinal.coerceIn(0, com.movtery.zalithlauncher.setting.enums.DashboardMode.entries.size - 1)]
 
         if (showAboutDialog) {
             AboutDialog(onDismissRequest = { showAboutDialog = false })
@@ -160,17 +162,11 @@ fun LauncherScreen(
                 modifier = Modifier
                     .padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
                 isVisible = isVisible,
-                showStats = showStats,
-                onStatsToggle = {
-                    val next = !showStats
-                    showStats = next
-                    com.movtery.zalithlauncher.setting.AllSettings.showTodayStats.save(next)
-                },
-                versionListViewMode = versionListViewMode,
-                onViewModeToggle = {
-                    val nextMode = versionListViewMode.next()
-                    viewModeIndex = nextMode.ordinal
-                    com.movtery.zalithlauncher.setting.AllSettings.versionListViewMode.save(nextMode.ordinal)
+                dashboardMode = dashboardMode,
+                onDashboardModeToggle = {
+                    val next = dashboardMode.next()
+                    dashboardModeOrdinal = next.ordinal
+                    com.movtery.zalithlauncher.setting.AllSettings.dashboardMode.save(next.ordinal)
                 },
                 onFpsClick = {
                     performanceSettingsState = PerformanceSettingsOperation.Fps
@@ -201,7 +197,9 @@ fun LauncherScreen(
                 ContentMenu(
                     modifier = Modifier.weight(7f),
                     isVisible = isVisible,
-                    showStats = showStats,
+                    dashboardMode = dashboardMode,
+                    onLaunchGame = { version -> onLaunchGame(version) },
+                    onNavigateToVersionSettings = navigateToVersions,
                     onHomePageEvent = onHomePageEvent,
                     onNavigateToStats = onNavigateToStats,
                     onNavigateToLog = onNavigateToLog
@@ -244,7 +242,9 @@ fun LauncherScreen(
 @Composable
 private fun ContentMenu(
     isVisible: Boolean,
-    showStats: Boolean,
+    dashboardMode: com.movtery.zalithlauncher.setting.enums.DashboardMode,
+    onLaunchGame: (com.movtery.zalithlauncher.game.version.installed.Version) -> Unit,
+    onNavigateToVersionSettings: (com.movtery.zalithlauncher.game.version.installed.Version) -> Unit,
     onHomePageEvent: (MarkdownBlock.Button.Event) -> Unit,
     onNavigateToStats: () -> Unit,
     onNavigateToLog: (String) -> Unit,
@@ -292,17 +292,166 @@ private fun ContentMenu(
             }
         }
 
-        // Stats grid — hidden by default, toggled via SideBar button
-          AnimatedVisibility(
-              visible = showStats,
-              enter = slideInVertically(initialOffsetY = { -it / 2 }) + fadeIn(),
-              exit = slideOutVertically(targetOffsetY = { -it / 2 }) + fadeOut()
-          ) {
-              StatsGrid(
-                  modifier = Modifier.weight(1f),
-                  onNavigateToStats = onNavigateToStats,
-                  onNavigateToLog = onNavigateToLog
+        // Dashboard content area — switches between Stats, List, Grid, Compact
+          val currentVersion by com.movtery.zalithlauncher.game.version.installed.VersionsManager.currentVersion.collectAsStateWithLifecycle()
+          var dashboardVersions by remember {
+              mutableStateOf(
+                  com.movtery.zalithlauncher.game.version.installed.VersionsManager.versions
+                      .sortedWith(com.movtery.zalithlauncher.game.version.installed.VersionComparator)
               )
+          }
+          DisposableEffect(Unit) {
+              val listener: suspend (List<com.movtery.zalithlauncher.game.version.installed.Version>) -> Unit = { vList ->
+                  dashboardVersions = vList.sortedWith(com.movtery.zalithlauncher.game.version.installed.VersionComparator)
+              }
+              com.movtery.zalithlauncher.game.version.installed.VersionsManager.registerListener(listener)
+              onDispose { com.movtery.zalithlauncher.game.version.installed.VersionsManager.unregisterListener(listener) }
+          }
+          AnimatedContent(
+              targetState = dashboardMode,
+              transitionSpec = {
+                  fadeIn(androidx.compose.animation.core.tween(300)) togetherWith
+                      fadeOut(androidx.compose.animation.core.tween(200))
+              },
+              label = "dashboardTransition",
+              modifier = Modifier.fillMaxWidth().weight(1f)
+          ) { mode ->
+              when (mode) {
+                  com.movtery.zalithlauncher.setting.enums.DashboardMode.STATS -> StatsGrid(
+                      modifier = Modifier.fillMaxSize(),
+                      onNavigateToStats = onNavigateToStats,
+                      onNavigateToLog = onNavigateToLog
+                  )
+                  com.movtery.zalithlauncher.setting.enums.DashboardMode.LIST -> {
+                      if (dashboardVersions.isEmpty()) {
+                          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                              Text(
+                                  text = stringResource(R.string.versions_manage_no_versions),
+                                  style = MaterialTheme.typography.bodyMedium,
+                                  modifier = Modifier.alpha(0.6f)
+                              )
+                          }
+                      } else {
+                          LazyColumn(
+                              modifier = Modifier.fillMaxSize().clipToBounds(),
+                              contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                          ) {
+                              items(dashboardVersions, key = { it.toString() }) { version ->
+                                  val callbacks = remember(version) {
+                                      com.movtery.zalithlauncher.ui.screens.content.elements.VersionItemCallbacks(
+                                          submitError = {},
+                                          onSelected = { com.movtery.zalithlauncher.game.version.installed.VersionsManager.saveVersion(version) },
+                                          onSettingsClick = { onNavigateToVersionSettings(version) },
+                                          onRenameClick = {},
+                                          onCopyClick = {},
+                                          onExportClick = {},
+                                          onDeleteClick = {},
+                                          onPinned = {
+                                              dashboardVersions = com.movtery.zalithlauncher.game.version.installed.VersionsManager.versions
+                                                  .sortedWith(com.movtery.zalithlauncher.game.version.installed.VersionComparator)
+                                          },
+                                          onAddShortcutClick = {},
+                                          onLaunchClick = { onLaunchGame(version) }
+                                      )
+                                  }
+                                  com.movtery.zalithlauncher.ui.screens.content.elements.VersionItemLayout(
+                                      version = version,
+                                      selected = version == currentVersion,
+                                      callbacks = callbacks,
+                                      modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).animateItem()
+                                  )
+                              }
+                          }
+                      }
+                  }
+                  com.movtery.zalithlauncher.setting.enums.DashboardMode.GRID -> {
+                      if (dashboardVersions.isEmpty()) {
+                          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                              Text(
+                                  text = stringResource(R.string.versions_manage_no_versions),
+                                  style = MaterialTheme.typography.bodyMedium,
+                                  modifier = Modifier.alpha(0.6f)
+                              )
+                          }
+                      } else {
+                          LazyVerticalGrid(
+                              columns = GridCells.Adaptive(minSize = 220.dp),
+                              modifier = Modifier.fillMaxSize().clipToBounds(),
+                              contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                              horizontalArrangement = Arrangement.spacedBy(8.dp),
+                              verticalArrangement = Arrangement.spacedBy(8.dp)
+                          ) {
+                              gridItems(dashboardVersions, key = { it.toString() }) { version ->
+                                  val callbacks = remember(version) {
+                                      com.movtery.zalithlauncher.ui.screens.content.elements.VersionItemCallbacks(
+                                          submitError = {},
+                                          onSelected = { com.movtery.zalithlauncher.game.version.installed.VersionsManager.saveVersion(version) },
+                                          onSettingsClick = { onNavigateToVersionSettings(version) },
+                                          onRenameClick = {},
+                                          onCopyClick = {},
+                                          onExportClick = {},
+                                          onDeleteClick = {},
+                                          onPinned = {
+                                              dashboardVersions = com.movtery.zalithlauncher.game.version.installed.VersionsManager.versions
+                                                  .sortedWith(com.movtery.zalithlauncher.game.version.installed.VersionComparator)
+                                          },
+                                          onAddShortcutClick = {},
+                                          onLaunchClick = { onLaunchGame(version) }
+                                      )
+                                  }
+                                  com.movtery.zalithlauncher.ui.screens.content.elements.VersionGridItemLayout(
+                                      version = version,
+                                      selected = version == currentVersion,
+                                      callbacks = callbacks,
+                                      modifier = Modifier.animateItem()
+                                  )
+                              }
+                          }
+                      }
+                  }
+                  com.movtery.zalithlauncher.setting.enums.DashboardMode.COMPACT -> {
+                      if (dashboardVersions.isEmpty()) {
+                          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                              Text(
+                                  text = stringResource(R.string.versions_manage_no_versions),
+                                  style = MaterialTheme.typography.bodyMedium,
+                                  modifier = Modifier.alpha(0.6f)
+                              )
+                          }
+                      } else {
+                          LazyColumn(
+                              modifier = Modifier.fillMaxSize().clipToBounds(),
+                              contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                          ) {
+                              items(dashboardVersions, key = { it.toString() }) { version ->
+                                  val callbacks = remember(version) {
+                                      com.movtery.zalithlauncher.ui.screens.content.elements.VersionItemCallbacks(
+                                          submitError = {},
+                                          onSelected = { com.movtery.zalithlauncher.game.version.installed.VersionsManager.saveVersion(version) },
+                                          onSettingsClick = { onNavigateToVersionSettings(version) },
+                                          onRenameClick = {},
+                                          onCopyClick = {},
+                                          onExportClick = {},
+                                          onDeleteClick = {},
+                                          onPinned = {
+                                              dashboardVersions = com.movtery.zalithlauncher.game.version.installed.VersionsManager.versions
+                                                  .sortedWith(com.movtery.zalithlauncher.game.version.installed.VersionComparator)
+                                          },
+                                          onAddShortcutClick = {},
+                                          onLaunchClick = { onLaunchGame(version) }
+                                      )
+                                  }
+                                  com.movtery.zalithlauncher.ui.screens.content.elements.VersionCompactItemLayout(
+                                      version = version,
+                                      selected = version == currentVersion,
+                                      callbacks = callbacks,
+                                      modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp).animateItem()
+                                  )
+                              }
+                          }
+                      }
+                  }
+              }
           }
 
         // Home page content below (only shown when configured)
