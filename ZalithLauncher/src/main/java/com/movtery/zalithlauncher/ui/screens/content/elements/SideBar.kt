@@ -73,7 +73,7 @@ import com.movtery.zalithlauncher.R
 import kotlinx.coroutines.delay
 import androidx.compose.animation.Crossfade
 import androidx.compose.ui.res.stringResource
-import com.movtery.zalithlauncher.setting.enums.VersionListViewMode
+import com.movtery.zalithlauncher.setting.enums.DashboardMode
 
 private val CollapsedWidth = 56.dp
 private val ExpandedWidth = 84.dp
@@ -82,10 +82,8 @@ private val ExpandedWidth = 84.dp
 fun SideBar(
     modifier: Modifier = Modifier,
     isVisible: Boolean,
-    showStats: Boolean,
-    onStatsToggle: () -> Unit,
-    versionListViewMode: VersionListViewMode,
-    onViewModeToggle: () -> Unit,
+    dashboardMode: DashboardMode,
+    onDashboardModeToggle: () -> Unit,
     onFpsClick: () -> Unit,
     onVersionsClick: () -> Unit,
     onInfoClick: () -> Unit,
@@ -208,50 +206,46 @@ fun SideBar(
                 Spacer(modifier = Modifier.weight(1f))
                 SideBarControlButton(
                       icon = {
-                          Crossfade(targetState = showStats) { showing ->
-                              if (showing) {
-                                  Icon(
-                                      modifier = Modifier.size(24.dp),
+                          Crossfade(targetState = dashboardMode, label = "dashboardModeIcon") { mode ->
+                              when (mode) {
+                                  DashboardMode.STATS -> Icon(
                                       painter = painterResource(R.drawable.ic_dashboard_filled),
-                                      contentDescription = stringResource(R.string.launcher_stats_toggle)
+                                      contentDescription = "Dashboard",
+                                      modifier = Modifier.size(28.dp),
+                                      tint = MaterialTheme.colorScheme.onPrimaryContainer
                                   )
-                              } else {
-                                  Icon(
-                                      modifier = Modifier.size(24.dp),
-                                      painter = painterResource(R.drawable.ic_dashboard_outlined),
-                                      contentDescription = stringResource(R.string.launcher_stats_toggle)
+                                  DashboardMode.LIST -> Icon(
+                                      painter = painterResource(R.drawable.ic_list_alt_check_outlined),
+                                      contentDescription = "Version List",
+                                      modifier = Modifier.size(28.dp),
+                                      tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                  )
+                                  DashboardMode.GRID -> Icon(
+                                      painter = painterResource(R.drawable.ic_card),
+                                      contentDescription = "Version Grid",
+                                      modifier = Modifier.size(28.dp),
+                                      tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                  )
+                                  DashboardMode.COMPACT -> Icon(
+                                      painter = painterResource(R.drawable.ic_list_down),
+                                      contentDescription = "Version Compact",
+                                      modifier = Modifier.size(28.dp),
+                                      tint = MaterialTheme.colorScheme.onPrimaryContainer
                                   )
                               }
                           }
                       },
-                      onClick = onStatsToggle
+                      onClick = onDashboardModeToggle
                   )
                   Spacer(modifier = Modifier.height(6.dp))
-                  SideBarControlButton(
-                      icon = {
-                          Icon(
-                              modifier = Modifier.size(24.dp),
-                              painter = painterResource(
-                                  when (versionListViewMode) {
-                                      VersionListViewMode.LIST -> R.drawable.ic_list_alt_check_outlined
-                                      VersionListViewMode.GRID -> R.drawable.ic_card
-                                      VersionListViewMode.COMPACT -> R.drawable.ic_list_down
-                                  }
-                              ),
-                              contentDescription = stringResource(R.string.launcher_view_mode_toggle)
-                          )
-                      },
-                      onClick = onViewModeToggle
+                  SideBarToggle(
+                      expanded = expanded,
+                      onClick = { expanded = !expanded }
                   )
-                  Spacer(modifier = Modifier.height(6.dp))
-                                  SideBarToggle(
-                    expanded = expanded,
-                    onClick = { expanded = !expanded }
-                )
-            }
-        }
-    }
-}
+              }
+          }
+      }
+  }
 
 @Composable
 private fun StaggeredItem(
