@@ -1098,7 +1098,9 @@ private fun getLoaderIconRes(version: Version): Int {
       }
 
       Surface(
-          modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+          modifier = modifier
+              .fillMaxSize()
+              .graphicsLayer(scaleY = scale.value, scaleX = scale.value),
           color = color,
           contentColor = contentColor,
           shape = MaterialTheme.shapes.large,
@@ -1109,12 +1111,13 @@ private fun getLoaderIconRes(version: Version): Int {
       ) {
           Column(
               modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(12.dp),
-              verticalArrangement = Arrangement.spacedBy(6.dp)
+                  .fillMaxSize()
+                  .padding(horizontal = 12.dp, vertical = 10.dp),
+              verticalArrangement = Arrangement.spacedBy(5.dp)
           ) {
+              // ── Header: icon + selection indicator ───────────────────────────
               Row(verticalAlignment = Alignment.CenterVertically) {
-                  VersionIconImage(version = version, modifier = Modifier.size(40.dp))
+                  VersionIconImage(version = version, modifier = Modifier.size(44.dp))
                   Spacer(modifier = Modifier.weight(1f))
                   RadioButton(
                       selected = selected,
@@ -1122,6 +1125,7 @@ private fun getLoaderIconRes(version: Version): Int {
                   )
               }
 
+              // ── Version name ─────────────────────────────────────────────────
               Text(
                   modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
                   text = version.getVersionName(),
@@ -1129,24 +1133,28 @@ private fun getLoaderIconRes(version: Version): Int {
                   maxLines = 1
               )
 
+              // ── MC version + loader info ──────────────────────────────────────
               val versionInfo = remember(version) { version.getVersionInfo() }
               if (versionInfo != null) {
                   FlowRow(
-                      modifier = Modifier.alpha(0.7f),
-                      horizontalArrangement = Arrangement.spacedBy(8.dp)
+                      modifier = Modifier.alpha(0.68f),
+                      horizontalArrangement = Arrangement.spacedBy(6.dp)
                   ) {
                       Text(text = versionInfo.minecraftVersion, style = MaterialTheme.typography.labelSmall)
                       versionInfo.loaderInfo?.let { loaderInfo ->
+                          Text(text = "•", style = MaterialTheme.typography.labelSmall)
                           Text(text = loaderInfo.loader.displayName, style = MaterialTheme.typography.labelSmall)
                           Text(text = loaderInfo.version, style = MaterialTheme.typography.labelSmall)
                       }
                   }
               }
 
+              // ── Last played / play time ───────────────────────────────────────
               PlayTimeInfoRow(versionName = remember(version) { version.getVersionName() })
 
-              Spacer(modifier = Modifier.height(4.dp))
+              Spacer(modifier = Modifier.weight(1f))
 
+              // ── Actions row: pin, settings, overflow ─────────────────────────
               Row(verticalAlignment = Alignment.CenterVertically) {
                   val saveFailedText = stringResource(R.string.versions_config_failed_to_save)
                   IconButton(
@@ -1163,15 +1171,20 @@ private fun getLoaderIconRes(version: Version): Int {
                   ) {
                       Crossfade(targetState = version.pinnedState) { pinned ->
                           Icon(
-                              modifier = Modifier.rotate(45.0f),
-                              painter = if (pinned) painterResource(R.drawable.ic_pinned_filled) else painterResource(R.drawable.ic_pinned_outlined),
+                              modifier = Modifier.size(20.dp).rotate(45.0f),
+                              painter = if (pinned) painterResource(R.drawable.ic_pinned_filled)
+                                        else painterResource(R.drawable.ic_pinned_outlined),
                               contentDescription = stringResource(R.string.versions_manage_pin)
                           )
                       }
                   }
 
                   IconButton(onClick = callbacks.onSettingsClick, enabled = version.isValid()) {
-                      Icon(modifier = Modifier.size(24.dp), painter = painterResource(R.drawable.ic_settings_filled), contentDescription = stringResource(R.string.versions_manage_settings))
+                      Icon(
+                          modifier = Modifier.size(20.dp),
+                          painter = painterResource(R.drawable.ic_settings_filled),
+                          contentDescription = stringResource(R.string.versions_manage_settings)
+                      )
                   }
 
                   Spacer(modifier = Modifier.weight(1f))
@@ -1179,9 +1192,18 @@ private fun getLoaderIconRes(version: Version): Int {
                   var gridMenuExpanded by remember { mutableStateOf(false) }
                   Box {
                       IconButton(onClick = { gridMenuExpanded = !gridMenuExpanded }) {
-                          Icon(modifier = Modifier.size(24.dp), painter = painterResource(R.drawable.ic_more_horiz), contentDescription = stringResource(R.string.generic_more))
+                          Icon(
+                              modifier = Modifier.size(20.dp),
+                              painter = painterResource(R.drawable.ic_more_horiz),
+                              contentDescription = stringResource(R.string.generic_more)
+                          )
                       }
-                      DropdownMenu(expanded = gridMenuExpanded, shape = MaterialTheme.shapes.large, shadowElevation = 3.dp, onDismissRequest = { gridMenuExpanded = false }) {
+                      DropdownMenu(
+                          expanded = gridMenuExpanded,
+                          shape = MaterialTheme.shapes.large,
+                          shadowElevation = 3.dp,
+                          onDismissRequest = { gridMenuExpanded = false }
+                      ) {
                           DropdownMenuItem(text = { Text(stringResource(R.string.generic_rename)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_edit_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onRenameClick(); gridMenuExpanded = false })
                           DropdownMenuItem(text = { Text(stringResource(R.string.generic_copy)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_file_copy_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onCopyClick(); gridMenuExpanded = false })
                           DropdownMenuItem(text = { Text(stringResource(R.string.versions_export)) }, leadingIcon = { Icon(painterResource(R.drawable.ic_folder_zip_filled), null, Modifier.size(20.dp)) }, onClick = { callbacks.onExportClick(); gridMenuExpanded = false })
@@ -1191,12 +1213,20 @@ private fun getLoaderIconRes(version: Version): Int {
                   }
               }
 
-              FilledTonalButton(
+              // ── Polished primary launch button ───────────────────────────────
+              Button(
                   onClick = callbacks.onLaunchClick,
                   enabled = version.isValid(),
-                  modifier = Modifier.fillMaxWidth()
+                  modifier = Modifier.fillMaxWidth().height(40.dp),
+                  shape = MaterialTheme.shapes.extraLarge,
+                  elevation = androidx.compose.material3.ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+                  contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 0.dp)
               ) {
-                  Icon(modifier = Modifier.size(18.dp), painter = painterResource(R.drawable.ic_play_arrow_filled), contentDescription = null)
+                  Icon(
+                      modifier = Modifier.size(16.dp),
+                      painter = painterResource(R.drawable.ic_play_arrow_filled),
+                      contentDescription = null
+                  )
                   Spacer(modifier = Modifier.width(6.dp))
                   MarqueeText(text = stringResource(R.string.versions_manage_launch))
               }

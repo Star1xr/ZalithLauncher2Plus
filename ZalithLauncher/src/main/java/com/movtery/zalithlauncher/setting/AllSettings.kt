@@ -415,10 +415,10 @@ object AllSettings : SettingsRegistry() {
      */
     val homePageURL = stringSetting("homePageURL", "")
 
-      /**
-         * 仪表盘模式：0=统计(STATS), 1=列表(LIST), 2=网格(GRID), 3=紧凑(COMPACT)
-         */
-        val dashboardMode = intSetting("dashboardMode", 0, 0..3)
+    /**
+     * 版本列表视图模式：0=列表(LIST), 1=网格(GRID)
+     */
+    val versionViewMode = intSetting("versionViewMode", 0, 0..1)
     /**
      * 启动器上次检查更新时，用户选择忽略的版本号
      */
