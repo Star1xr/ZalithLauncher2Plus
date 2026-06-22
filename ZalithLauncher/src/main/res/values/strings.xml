@@ -667,7 +667,7 @@
     <string name="versions_manage_view_mode_grid">Grid</string>
     <string name="versions_manage_view_mode_compact">Compact</string>
     <string name="launcher_stats_toggle">Today\'s Stats</string>
-    <string name="launcher_view_mode_toggle">View Mode</string>
+    <string name="launcher_dashboard_mode">Dashboard Mode</string>
     <string name="turnip_driver_installed">Installed Drivers</string>
     <string name="turnip_driver_available">Available to Download</string>
     <string name="turnip_driver_delete_confirm">Delete driver "%s"? This cannot be undone.</string>
