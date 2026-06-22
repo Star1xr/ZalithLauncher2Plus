@@ -418,7 +418,7 @@ object AllSettings : SettingsRegistry() {
     /**
      * 版本列表视图模式：0=列表(LIST), 1=网格(GRID)
      */
-    val versionViewMode = intSetting("versionViewMode", 0, 0..1)
+    val versionViewMode = intSetting("versionViewMode", 0, 0..2)
     /**
      * 启动器上次检查更新时，用户选择忽略的版本号
      */

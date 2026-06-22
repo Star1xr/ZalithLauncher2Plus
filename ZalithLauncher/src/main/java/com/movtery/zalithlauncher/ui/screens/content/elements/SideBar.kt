@@ -19,14 +19,15 @@
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -40,9 +41,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -58,7 +61,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
@@ -68,31 +70,28 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.enums.DashboardMode
 
 private val CollapsedWidth = 56.dp
 private val ExpandedWidth = 84.dp
 
+/**
+ * Floating sidebar with expand/collapse and optional bottom-bar docking.
+ *
+ * When [sidebarDocked] is true the entire sidebar slides out horizontally
+ * and a sidebar icon appears inside the bottom tab bar instead.
+ */
 @Composable
 fun SideBar(
     modifier: Modifier = Modifier,
     isVisible: Boolean,
-    showStats: Boolean,
-    versionViewMode: DashboardMode,
-    onToggleStats: () -> Unit,
-    onVersionViewModeChange: (DashboardMode) -> Unit,
+    sidebarDocked: Boolean,
+    onDockChange: (Boolean) -> Unit,
     onFpsClick: () -> Unit,
     onVersionsClick: () -> Unit,
     onInfoClick: () -> Unit,
     onFileManagerClick: () -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var showViewMenu by rememberSaveable { mutableStateOf(false) }
-
-    // Collapse view menu when sidebar expands
-    LaunchedEffect(expanded) {
-        if (expanded) showViewMenu = false
-    }
 
     val targetWidth by animateDpAsState(
         targetValue = if (expanded) ExpandedWidth else CollapsedWidth,
@@ -103,213 +102,166 @@ fun SideBar(
         label = "sidebarWidth"
     )
 
-    Box(
-        modifier = modifier
-            .width(targetWidth)
-            .fillMaxHeight()
-            .padding(vertical = 8.dp)
+    // Docking: slide the whole sidebar out horizontally
+    AnimatedVisibility(
+        visible = !sidebarDocked,
+        enter = fadeIn(tween(220)) + expandHorizontally(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            expandFrom = Alignment.Start
+        ),
+        exit = fadeOut(tween(180)) + shrinkHorizontally(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMedium
+            ),
+            shrinkTowards = Alignment.Start
+        )
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(0.dp),
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp
+        Box(
+            modifier = modifier
+                .width(targetWidth)
+                .fillMaxHeight()
+                .padding(vertical = 8.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.08f)
-                            )
-                        )
-                    )
-            )
-        }
-
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            shape = RoundedCornerShape(20.dp),
-            color = Color.Transparent,
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+            // Glass background
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp
             ) {
-                // ── Expanded shortcuts (visible only when sidebar is open) ────────
-                AnimatedVisibility(
-                    visible = expanded,
-                    enter = fadeIn(animationSpec = tween(250)) +
-                        slideInVertically(
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.08f)
+                                )
                             )
-                        ) { it / 3 },
-                    exit = fadeOut(animationSpec = tween(150)) +
-                        slideOutVertically(animationSpec = tween(150)) { it / 3 }
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .padding(horizontal = 18.dp)
-                                .alpha(0.2f)
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        StaggeredItem(delay = 0) {
-                            SideBarShortcut(
-                                icon = painterResource(R.drawable.ic_video_settings),
-                                contentDescription = "FPS",
-                                onClick = onFpsClick
-                            )
-                        }
-                        StaggeredItem(delay = 60) {
-                            SideBarShortcut(
-                                icon = painterResource(R.drawable.ic_folder_outlined),
-                                contentDescription = "File Manager",
-                                onClick = onFileManagerClick
-                            )
-                        }
-                        StaggeredItem(delay = 120) {
-                            SideBarShortcut(
-                                icon = painterResource(R.drawable.ic_assignment_filled),
-                                contentDescription = "Versions",
-                                onClick = onVersionsClick
-                            )
-                        }
-                        StaggeredItem(delay = 180) {
-                            SideBarShortcut(
-                                icon = painterResource(R.drawable.ic_info_outlined),
-                                contentDescription = "About",
-                                onClick = onInfoClick
-                            )
-                        }
-                    }
-                }
+                )
+            }
 
-                Spacer(modifier = Modifier.weight(1f))
-
-                // ── Dashboard controls (hidden when sidebar is expanded) ──────────
-                // When the user expands the sidebar to access shortcuts, the
-                // dashboard buttons disappear — only the toggle (Back) remains.
-                AnimatedVisibility(
-                    visible = !expanded,
-                    enter = fadeIn(tween(220)),
-                    exit = fadeOut(tween(150))
+            // Content
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(20.dp),
+                color = Color.Transparent
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    // ── Expanded shortcuts ────────────────────────────────────
+                    AnimatedVisibility(
+                        visible = expanded,
+                        enter = fadeIn(tween(250)) +
+                            slideInVertically(
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                )
+                            ) { it / 3 },
+                        exit = fadeOut(tween(150)) +
+                            slideOutVertically(tween(150)) { it / 3 }
                     ) {
-                        // Stats toggle button
-                        SideBarControlButton(
-                            icon = {
-                                Crossfade(
-                                    targetState = showStats,
-                                    label = "statsToggleIcon"
-                                ) { s ->
-                                    Icon(
-                                        painter = painterResource(
-                                            if (s) R.drawable.ic_dashboard_filled
-                                            else R.drawable.ic_dashboard_outlined
-                                        ),
-                                        contentDescription = "Toggle Stats",
-                                        modifier = Modifier.size(26.dp),
-                                        tint = if (s)
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        else
-                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                                    )
-                                }
-                            },
-                            onClick = onToggleStats
-                        )
-
-                        // ── Expandable version view selector ─────────────────────
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            // View options popup – slides up from the button
-                            AnimatedVisibility(
-                                visible = showViewMenu,
-                                enter = fadeIn(tween(200)) +
-                                    slideInVertically(tween(220)) { it / 2 },
-                                exit = fadeOut(tween(150)) +
-                                    slideOutVertically(tween(150)) { it / 2 }
+                            HorizontalDivider(
+                                modifier = Modifier
+                                    .padding(horizontal = 18.dp)
+                                    .alpha(0.2f)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            StaggeredItem(delay = 0) {
+                                SideBarShortcut(
+                                    icon = painterResource(R.drawable.ic_video_settings),
+                                    contentDescription = "FPS",
+                                    onClick = onFpsClick
+                                )
+                            }
+                            StaggeredItem(delay = 60) {
+                                SideBarShortcut(
+                                    icon = painterResource(R.drawable.ic_folder_outlined),
+                                    contentDescription = "File Manager",
+                                    onClick = onFileManagerClick
+                                )
+                            }
+                            StaggeredItem(delay = 120) {
+                                SideBarShortcut(
+                                    icon = painterResource(R.drawable.ic_assignment_filled),
+                                    contentDescription = "Versions",
+                                    onClick = onVersionsClick
+                                )
+                            }
+                            StaggeredItem(delay = 180) {
+                                SideBarShortcut(
+                                    icon = painterResource(R.drawable.ic_info_outlined),
+                                    contentDescription = "About",
+                                    onClick = onInfoClick
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // ── Expand / collapse toggle with dock badge ───────────────
+                    Box(contentAlignment = Alignment.BottomEnd) {
+                        SideBarToggle(
+                            expanded = expanded,
+                            onClick = {
+                                expanded = !expanded
+                            }
+                        )
+
+                        // Small dock-to-tab-bar badge (only when sidebar is collapsed)
+                        AnimatedVisibility(
+                            visible = !expanded,
+                            enter = fadeIn(tween(200)),
+                            exit = fadeOut(tween(150))
+                        ) {
+                            Surface(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .offset(x = 4.dp, y = 4.dp)
+                                    .shadow(4.dp, CircleShape)
+                                    .clip(CircleShape)
+                                    .clickable { onDockChange(true) },
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                tonalElevation = 2.dp
                             ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    // GRID option (shown above LIST to match layout order)
-                                    ViewOptionButton(
-                                        icon = painterResource(R.drawable.ic_card),
-                                        isSelected = versionViewMode == DashboardMode.GRID,
-                                        onClick = {
-                                            onVersionViewModeChange(DashboardMode.GRID)
-                                            showViewMenu = false
-                                        }
-                                    )
-                                    // LIST option
-                                    ViewOptionButton(
-                                        icon = painterResource(R.drawable.ic_list_alt_check_outlined),
-                                        isSelected = versionViewMode == DashboardMode.LIST,
-                                        onClick = {
-                                            onVersionViewModeChange(DashboardMode.LIST)
-                                            showViewMenu = false
-                                        }
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_list_down),
+                                        contentDescription = "Dock sidebar",
+                                        modifier = Modifier
+                                            .size(12.dp)
+                                            .padding(1.dp),
+                                        tint = MaterialTheme.colorScheme.onTertiaryContainer
                                     )
                                 }
                             }
-
-                            // Main version view button – tap to reveal/collapse options
-                            SideBarControlButton(
-                                icon = {
-                                    Crossfade(
-                                        targetState = versionViewMode,
-                                        label = "viewModeIcon"
-                                    ) { mode ->
-                                        Icon(
-                                            painter = painterResource(
-                                                if (mode == DashboardMode.GRID) R.drawable.ic_card
-                                                else R.drawable.ic_list_alt_check_outlined
-                                            ),
-                                            contentDescription = "Version View",
-                                            modifier = Modifier.size(26.dp),
-                                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
-                                    }
-                                },
-                                onClick = { showViewMenu = !showViewMenu }
-                            )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // ── Expand / collapse toggle (always visible — acts as Back) ─────
-                SideBarToggle(
-                    expanded = expanded,
-                    onClick = {
-                        expanded = !expanded
-                        if (!expanded) showViewMenu = false
-                    }
-                )
             }
         }
     }
@@ -336,14 +288,14 @@ private fun StaggeredItem(
 
     AnimatedVisibility(
         visible = show,
-        enter = fadeIn(animationSpec = tween(200)) +
+        enter = fadeIn(tween(200)) +
             slideInVertically(
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioMediumBouncy,
                     stiffness = Spring.StiffnessMedium
                 )
             ) { it },
-        exit = fadeOut(animationSpec = tween(100))
+        exit = fadeOut(tween(100))
     ) {
         content()
     }
@@ -455,108 +407,6 @@ private fun SideBarShortcut(
                 contentDescription = contentDescription,
                 modifier = Modifier.size(24.dp),
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun SideBarControlButton(
-    icon: @Composable () -> Unit,
-    onClick: () -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.85f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessHigh
-        ),
-        label = "controlBtnScale"
-    )
-
-    Surface(
-        modifier = Modifier
-            .size(58.dp)
-            .scale(scale)
-            .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(14.dp),
-                ambientColor = MaterialTheme.colorScheme.primaryContainer,
-                spotColor = MaterialTheme.colorScheme.primaryContainer
-            )
-            .clip(shape = RoundedCornerShape(14.dp))
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            icon()
-        }
-    }
-}
-
-/** Small square button for the version-view popup (List / Grid options). */
-@Composable
-private fun ViewOptionButton(
-    icon: Painter,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.88f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessHigh
-        ),
-        label = "viewOptionScale"
-    )
-
-    Surface(
-        modifier = Modifier
-            .size(44.dp)
-            .scale(scale)
-            .shadow(
-                elevation = if (isSelected) 4.dp else 2.dp,
-                shape = RoundedCornerShape(12.dp),
-                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-            )
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        shape = RoundedCornerShape(12.dp),
-        color = if (isSelected)
-            MaterialTheme.colorScheme.primaryContainer
-        else
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-        tonalElevation = if (isSelected) 4.dp else 1.dp,
-        shadowElevation = 0.dp
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = icon,
-                contentDescription = null,
-                modifier = Modifier.size(22.dp),
-                tint = if (isSelected)
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
             )
         }
     }

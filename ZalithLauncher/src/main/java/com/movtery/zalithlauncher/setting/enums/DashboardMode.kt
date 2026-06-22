@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.setting.enums
 
 enum class DashboardMode {
-    LIST,
-    GRID;
+    LIST,   // 0 — version list (default)
+    GRID,   // 1 — grid cards
+    STATS;  // 2 — today's statistics
 }

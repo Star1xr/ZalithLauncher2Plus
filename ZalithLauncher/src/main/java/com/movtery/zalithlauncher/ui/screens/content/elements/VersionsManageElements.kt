@@ -1099,7 +1099,6 @@ private fun getLoaderIconRes(version: Version): Int {
 
       Surface(
           modifier = modifier
-              .fillMaxSize()
               .graphicsLayer(scaleY = scale.value, scaleX = scale.value),
           color = color,
           contentColor = contentColor,
