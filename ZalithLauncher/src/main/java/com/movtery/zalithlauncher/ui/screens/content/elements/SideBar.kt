@@ -226,19 +226,21 @@ fun SideBar(
                             }
                         )
 
-                        // Small dock-to-tab-bar badge (only when sidebar is collapsed)
-                        AnimatedVisibility(
-                            visible = !expanded,
-                            enter = fadeIn(tween(200)),
-                            exit = fadeOut(tween(150))
-                        ) {
+                        // Small dock-to-tab-bar badge — uses alpha animation to avoid ColumnScope.AnimatedVisibility inside BoxScope
+                        val dockBadgeAlpha by animateFloatAsState(
+                            targetValue = if (!expanded) 1f else 0f,
+                            animationSpec = tween(if (!expanded) 200 else 150),
+                            label = "dockBadgeAlpha"
+                        )
+                        if (dockBadgeAlpha > 0f) {
                             Surface(
                                 modifier = Modifier
                                     .size(20.dp)
                                     .offset(x = 4.dp, y = 4.dp)
+                                    .alpha(dockBadgeAlpha)
                                     .shadow(4.dp, CircleShape)
                                     .clip(CircleShape)
-                                    .clickable { onDockChange(true) },
+                                    .clickable(enabled = !expanded) { onDockChange(true) },
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.tertiaryContainer,
                                 tonalElevation = 2.dp
