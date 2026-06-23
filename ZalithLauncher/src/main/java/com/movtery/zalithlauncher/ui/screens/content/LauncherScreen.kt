@@ -21,12 +21,17 @@ package com.movtery.zalithlauncher.ui.screens.content
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -56,6 +61,7 @@ import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -72,6 +78,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -157,8 +164,26 @@ fun LauncherScreen(
 
         var selectedTabOrdinal by rememberSaveable { mutableIntStateOf(AllSettings.versionViewMode.getValue().coerceIn(0, 2)) }
         val selectedTab = DashboardMode.entries[selectedTabOrdinal]
-        var sidebarDocked by rememberSaveable { mutableStateOf(false) }
 
+        // Right panel collapse state
+        var rightPanelCollapsed by rememberSaveable { mutableStateOf(false) }
+
+        // Bottom nav auto-hide state
+        var navBarExpanded by rememberSaveable { mutableStateOf(true) }
+        var navInteractionKey by remember { mutableIntStateOf(0) }
+
+        // Auto-hide the nav bar after 5 seconds of inactivity
+        LaunchedEffect(navBarExpanded, navInteractionKey) {
+            if (navBarExpanded) {
+                kotlinx.coroutines.delay(5000L)
+                navBarExpanded = false
+            }
+        }
+
+        val onNavInteraction: () -> Unit = {
+            navBarExpanded = true
+            navInteractionKey++
+        }
 
         if (showAboutDialog) {
             AboutDialog(onDismissRequest = { showAboutDialog = false })
@@ -169,91 +194,148 @@ fun LauncherScreen(
             onDismissRequest = { performanceSettingsState = PerformanceSettingsOperation.None }
         )
 
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Row(modifier = Modifier.fillMaxSize()) {
 
-            val context = LocalContext.current
-            
-            SideBar(
-                modifier = Modifier
-                    .padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
-                isVisible = isVisible,
-                sidebarDocked = sidebarDocked,
-                onDockChange = { docked -> sidebarDocked = docked },
-                onFpsClick = {
-                    performanceSettingsState = PerformanceSettingsOperation.Fps
-                },
-                onFileManagerClick = {
-                    backStackViewModel.mainScreen.navigateTo(
-                        screenKey = NormalNavKey.FileManager
+                val context = LocalContext.current
+
+                SideBar(
+                    modifier = Modifier
+                        .padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
+                    isVisible = isVisible,
+                    onFpsClick = {
+                        performanceSettingsState = PerformanceSettingsOperation.Fps
+                    },
+                    onFileManagerClick = {
+                        backStackViewModel.mainScreen.navigateTo(
+                            screenKey = NormalNavKey.FileManager
+                        )
+                    },
+                    onVersionsClick = {
+                        backStackViewModel.mainScreen.removeAndNavigateTo(
+                            remove = NestedNavKey.VersionSettings::class,
+                            screenKey = NormalNavKey.VersionsManager
+                        )
+                    },
+                    onInfoClick = {
+                        showAboutDialog = true
+                    }
+                )
+
+                CompositionLocalProvider(
+                    LocalUriHandler provides object : UriHandler {
+                        override fun openUri(uri: String) {
+                            onOpenLink(uri)
+                        }
+                    }
+                ) {
+                    ContentMenu(
+                        modifier = Modifier.weight(1f),
+                        isVisible = isVisible,
+                        selectedTab = selectedTab,
+                        navBarExpanded = navBarExpanded,
+                        onNavInteraction = onNavInteraction,
+                        onTabSelected = { tab ->
+                            selectedTabOrdinal = tab.ordinal
+                            AllSettings.versionViewMode.save(tab.ordinal)
+                        },
+                        onLaunchGame = { version -> onLaunchGame(version) },
+                        onNavigateToVersionSettings = navigateToVersions,
+                        onHomePageEvent = onHomePageEvent,
+                        onNavigateToStats = onNavigateToStats,
+                        onNavigateToLog = onNavigateToLog
                     )
-                },
-                onVersionsClick = {
+                }
+
+                val toAccountManageScreen: () -> Unit = {
+                    backStackViewModel.mainScreen.navigateTo(
+                        screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
+                    )
+                }
+                val toVersionManageScreen: () -> Unit = {
                     backStackViewModel.mainScreen.removeAndNavigateTo(
                         remove = NestedNavKey.VersionSettings::class,
                         screenKey = NormalNavKey.VersionsManager
                     )
-                },
-                onInfoClick = {
-                    showAboutDialog = true
                 }
-            )
-
-            CompositionLocalProvider(
-                LocalUriHandler provides object : UriHandler {
-                    override fun openUri(uri: String) {
-                        onOpenLink(uri)
+                val toVersionSettingsScreen: () -> Unit = {
+                    VersionsManager.currentVersion.value?.let { version ->
+                        navigateToVersions(version)
                     }
                 }
-            ) {
-                ContentMenu(
-                    modifier = Modifier.weight(7f),
-                    isVisible = isVisible,
-                    selectedTab = selectedTab,
-                    sidebarDocked = sidebarDocked,
-                    onTabSelected = { tab ->
-                        selectedTabOrdinal = tab.ordinal
-                        AllSettings.versionViewMode.save(tab.ordinal)
-                    },
-                    onSidebarExpand = { sidebarDocked = false },
-                    onLaunchGame = { version -> onLaunchGame(version) },
-                    onNavigateToVersionSettings = navigateToVersions,
-                    onHomePageEvent = onHomePageEvent,
-                    onNavigateToStats = onNavigateToStats,
-                    onNavigateToLog = onNavigateToLog
-                )
 
-            }
-
-            val toAccountManageScreen: () -> Unit = {
-                backStackViewModel.mainScreen.navigateTo(
-                    screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
-                )
-            }
-            val toVersionManageScreen: () -> Unit = {
-                backStackViewModel.mainScreen.removeAndNavigateTo(
-                    remove = NestedNavKey.VersionSettings::class,
-                    screenKey = NormalNavKey.VersionsManager
-                )
-            }
-            val toVersionSettingsScreen: () -> Unit = {
-                VersionsManager.currentVersion.value?.let { version ->
-                    navigateToVersions(version)
+                // Right panel — collapses horizontally via AnimatedVisibility
+                AnimatedVisibility(
+                    visible = !rightPanelCollapsed,
+                    enter = expandHorizontally(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow
+                        ),
+                        expandFrom = Alignment.End
+                    ) + fadeIn(tween(200)),
+                    exit = shrinkHorizontally(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow
+                        ),
+                        shrinkTowards = Alignment.End
+                    ) + fadeOut(tween(150))
+                ) {
+                    RightMenu(
+                        isVisible = isVisible,
+                        modifier = Modifier
+                            .width(290.dp)
+                            .fillMaxHeight()
+                            .padding(top = 12.dp, end = 12.dp, bottom = 12.dp),
+                        onLaunchGame = onLaunchGame,
+                        onCollapse = { rightPanelCollapsed = true },
+                        toAccountManageScreen = toAccountManageScreen,
+                        toVersionManageScreen = toVersionManageScreen,
+                        toVersionSettingsScreen = toVersionSettingsScreen
+                    )
                 }
             }
 
-            RightMenu(
-                isVisible = isVisible,
-                modifier = Modifier
-                    .weight(3f)
-                    .fillMaxHeight()
-                    .padding(top = 12.dp, end = 12.dp, bottom = 12.dp),
-                onLaunchGame = onLaunchGame,
-                toAccountManageScreen = toAccountManageScreen,
-                toVersionManageScreen = toVersionManageScreen,
-                toVersionSettingsScreen = toVersionSettingsScreen
+            // Floating restore dock — appears when right panel is collapsed
+            val restoreAlpha by animateFloatAsState(
+                targetValue = if (rightPanelCollapsed) 1f else 0f,
+                animationSpec = tween(250),
+                label = "restoreAlpha"
             )
+            if (restoreAlpha > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(restoreAlpha),
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .padding(end = 12.dp, bottom = 80.dp),
+                        shape = RoundedCornerShape(
+                            topStart = 16.dp, topEnd = 8.dp,
+                            bottomStart = 16.dp, bottomEnd = 8.dp
+                        ),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        tonalElevation = 4.dp,
+                        shadowElevation = 8.dp,
+                        onClick = { rightPanelCollapsed = false }
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 14.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_arrow_left_rounded),
+                                contentDescription = stringResource(R.string.generic_expand),
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -263,9 +345,9 @@ fun LauncherScreen(
 private fun ContentMenu(
     isVisible: Boolean,
     selectedTab: DashboardMode,
-    sidebarDocked: Boolean,
+    navBarExpanded: Boolean,
+    onNavInteraction: () -> Unit,
     onTabSelected: (DashboardMode) -> Unit,
-    onSidebarExpand: () -> Unit,
     onLaunchGame: (com.movtery.zalithlauncher.game.version.installed.Version) -> Unit,
     onNavigateToVersionSettings: (com.movtery.zalithlauncher.game.version.installed.Version) -> Unit,
     onHomePageEvent: (MarkdownBlock.Button.Event) -> Unit,
@@ -334,7 +416,7 @@ private fun ContentMenu(
             }
         }
 
-        // ── Center dashboard — animated tab switch ────────────────────────────
+        // Center dashboard — animated tab switch
         AnimatedContent(
             targetState = selectedTab,
             transitionSpec = {
@@ -433,7 +515,7 @@ private fun ContentMenu(
             }
         }
 
-        // ── Custom home page content (when configured) ────────────────────────
+        // Custom home page content (when configured)
         when (val state = pageState) {
             is HomePageState.Blank -> {}
             is HomePageState.Loading -> {
@@ -469,12 +551,12 @@ private fun ContentMenu(
             }
         }
 
-        // ── Bottom tab manager ────────────────────────────────────────────────
+        // Bottom tab bar with auto-hide
         DashboardTabBar(
             selectedTab = selectedTab,
             onTabSelected = onTabSelected,
-            sidebarDocked = sidebarDocked,
-            onSidebarExpand = onSidebarExpand
+            navBarExpanded = navBarExpanded,
+            onNavInteraction = onNavInteraction
         )
     }
 }
@@ -498,55 +580,140 @@ private fun EmptyVersionsHint() {
 private fun DashboardTabBar(
     selectedTab: DashboardMode,
     onTabSelected: (DashboardMode) -> Unit,
-    sidebarDocked: Boolean,
-    onSidebarExpand: () -> Unit,
+    navBarExpanded: Boolean,
+    onNavInteraction: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val tabs = listOf(
-        Triple(DashboardMode.LIST,  R.drawable.ic_list_alt_check_outlined, R.string.versions_manage_view_mode_list),
-        Triple(DashboardMode.GRID,  R.drawable.ic_card,                    R.string.versions_manage_view_mode_grid),
-        Triple(DashboardMode.STATS, R.drawable.ic_dashboard_outlined,      R.string.launcher_stats_toggle)
-    )
+    var showVersionsMenu by remember { mutableStateOf(false) }
 
-    BackgroundCard(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            // Sidebar restore button — docks in when sidebar is hidden
-            AnimatedVisibility(
-                visible = sidebarDocked,
-                enter = fadeIn(tween(220)) + expandHorizontally(expandFrom = Alignment.Start),
-                exit = fadeOut(tween(180)) + shrinkHorizontally(shrinkTowards = Alignment.Start)
+    AnimatedContent(
+        targetState = navBarExpanded,
+        transitionSpec = {
+            if (targetState) {
+                // Expanding: slide up from bottom + fade in
+                (fadeIn(tween(250)) + slideInVertically(tween(300)) { it / 2 }) togetherWith
+                fadeOut(tween(150))
+            } else {
+                // Collapsing: fade out + slide down
+                fadeIn(tween(200)) togetherWith
+                (fadeOut(tween(200)) + slideOutVertically(tween(250)) { it / 2 })
+            }
+        },
+        label = "navBarState",
+        modifier = modifier.fillMaxWidth()
+    ) { expanded ->
+        if (expanded) {
+            // Full navigation bar
+            BackgroundCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraLarge
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // Versions tab with List / Grid popup
+                    Box(modifier = Modifier.weight(1f)) {
+                        DashboardTabItem(
+                            iconRes = R.drawable.ic_list_alt_check_outlined,
+                            label = stringResource(R.string.launcher_dashboard_tab_versions),
+                            trailingIconRes = if (selectedTab != DashboardMode.STATS)
+                                R.drawable.ic_arrow_drop_up_rounded
+                            else null,
+                            selected = selectedTab == DashboardMode.LIST || selectedTab == DashboardMode.GRID,
+                            onClick = {
+                                showVersionsMenu = true
+                                onNavInteraction()
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        DropdownMenu(
+                            expanded = showVersionsMenu,
+                            onDismissRequest = { showVersionsMenu = false },
+                            shape = MaterialTheme.shapes.extraLarge
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.versions_manage_view_mode_list)) },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_list_alt_check_outlined),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                trailingIcon = if (selectedTab == DashboardMode.LIST) {
+                                    { Icon(painterResource(R.drawable.ic_check), null, Modifier.size(16.dp)) }
+                                } else null,
+                                onClick = {
+                                    onTabSelected(DashboardMode.LIST)
+                                    showVersionsMenu = false
+                                    onNavInteraction()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.versions_manage_view_mode_grid)) },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_card),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                trailingIcon = if (selectedTab == DashboardMode.GRID) {
+                                    { Icon(painterResource(R.drawable.ic_check), null, Modifier.size(16.dp)) }
+                                } else null,
+                                onClick = {
+                                    onTabSelected(DashboardMode.GRID)
+                                    showVersionsMenu = false
+                                    onNavInteraction()
+                                }
+                            )
+                        }
+                    }
+
+                    VerticalDivider(modifier = Modifier.height(28.dp).alpha(0.2f))
+
+                    // Today's Stats tab
                     DashboardTabItem(
-                        iconRes = R.drawable.ic_menu,
-                        label = stringResource(R.string.generic_expand),
-                        selected = false,
-                        onClick = onSidebarExpand
+                        iconRes = R.drawable.ic_dashboard_outlined,
+                        label = stringResource(R.string.launcher_stats_toggle),
+                        selected = selectedTab == DashboardMode.STATS,
+                        onClick = {
+                            onTabSelected(DashboardMode.STATS)
+                            onNavInteraction()
+                        },
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    VerticalDivider(modifier = Modifier.height(24.dp).alpha(0.25f))
-                    Spacer(modifier = Modifier.width(4.dp))
                 }
             }
-
-            // Tab items
-            tabs.forEach { (tab, iconRes, labelRes) ->
-                DashboardTabItem(
-                    iconRes = iconRes,
-                    label = stringResource(labelRes),
-                    selected = selectedTab == tab,
-                    onClick = { onTabSelected(tab) },
-                    modifier = Modifier.weight(1f)
-                )
+        } else {
+            // Collapsed notch handle — tap to restore the nav bar
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .width(160.dp)
+                        .height(32.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
+                    tonalElevation = 6.dp,
+                    shadowElevation = 8.dp,
+                    onClick = onNavInteraction
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_drag_handle),
+                            contentDescription = stringResource(R.string.generic_expand),
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    }
+                }
             }
         }
     }
@@ -558,6 +725,7 @@ private fun DashboardTabItem(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
+    trailingIconRes: Int? = null,
     modifier: Modifier = Modifier
 ) {
     val bgColor by animateColorAsState(
@@ -587,7 +755,7 @@ private fun DashboardTabItem(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(3.dp)
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Icon(
                 painter = painterResource(iconRes),
@@ -602,6 +770,14 @@ private fun DashboardTabItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            if (trailingIconRes != null) {
+                Icon(
+                    painter = painterResource(trailingIconRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp),
+                    tint = contentColor.copy(alpha = 0.7f)
+                )
+            }
         }
     }
 }
@@ -1091,6 +1267,7 @@ private fun RightMenu(
     isVisible: Boolean,
     onLaunchGame: (Version?) -> Unit,
     modifier: Modifier = Modifier,
+    onCollapse: () -> Unit = {},
     toAccountManageScreen: () -> Unit = {},
     toVersionManageScreen: () -> Unit = {},
     toVersionSettingsScreen: () -> Unit = {}
@@ -1101,22 +1278,48 @@ private fun RightMenu(
         isHorizontal = true
     )
 
-    BackgroundCard(
-        modifier = modifier.offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-        shape = MaterialTheme.shapes.extraLarge
-    ) {
-        RightMenuContent(
-            modifier = Modifier.fillMaxSize(),
-            onLaunchGame = onLaunchGame,
-            toAccountManageScreen = toAccountManageScreen,
-            toVersionManageScreen = toVersionManageScreen,
-            toVersionSettingsScreen = toVersionSettingsScreen
-        ) { innerModifier, onClick, text ->
-            ScalingActionButton(
-                modifier = innerModifier,
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp),
-                onClick = onClick,
-                content = text
+    Box(modifier = modifier) {
+        BackgroundCard(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+            shape = MaterialTheme.shapes.extraLarge
+        ) {
+            RightMenuContent(
+                modifier = Modifier.fillMaxSize(),
+                onLaunchGame = onLaunchGame,
+                toAccountManageScreen = toAccountManageScreen,
+                toVersionManageScreen = toVersionManageScreen,
+                toVersionSettingsScreen = toVersionSettingsScreen
+            ) { innerModifier, onClick, text ->
+                ScalingActionButton(
+                    modifier = innerModifier,
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp),
+                    onClick = onClick,
+                    content = text
+                )
+            }
+        }
+
+        // Small collapse arrow — tap to hide the right panel
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(top = 14.dp, start = 6.dp)
+                .size(28.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onCollapse
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_right_rounded),
+                contentDescription = stringResource(R.string.generic_collapse),
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
             )
         }
     }
