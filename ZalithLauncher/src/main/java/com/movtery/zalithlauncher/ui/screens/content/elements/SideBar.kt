@@ -24,10 +24,8 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -41,11 +39,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -75,17 +71,13 @@ private val CollapsedWidth = 56.dp
 private val ExpandedWidth = 84.dp
 
 /**
- * Floating sidebar with expand/collapse and optional bottom-bar docking.
- *
- * When [sidebarDocked] is true the entire sidebar slides out horizontally
- * and a sidebar icon appears inside the bottom tab bar instead.
+ * Floating sidebar with simple expand/collapse behaviour.
+ * Tap the toggle button to reveal or hide the shortcut buttons.
  */
 @Composable
 fun SideBar(
     modifier: Modifier = Modifier,
     isVisible: Boolean,
-    sidebarDocked: Boolean,
-    onDockChange: (Boolean) -> Unit,
     onFpsClick: () -> Unit,
     onVersionsClick: () -> Unit,
     onInfoClick: () -> Unit,
@@ -102,168 +94,112 @@ fun SideBar(
         label = "sidebarWidth"
     )
 
-    // Docking: slide the whole sidebar out horizontally
-    AnimatedVisibility(
-        visible = !sidebarDocked,
-        enter = fadeIn(tween(220)) + expandHorizontally(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMediumLow
-            ),
-            expandFrom = Alignment.Start
-        ),
-        exit = fadeOut(tween(180)) + shrinkHorizontally(
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessMedium
-            ),
-            shrinkTowards = Alignment.Start
-        )
+    Box(
+        modifier = modifier
+            .width(targetWidth)
+            .fillMaxHeight()
+            .padding(vertical = 8.dp)
     ) {
-        Box(
-            modifier = modifier
-                .width(targetWidth)
-                .fillMaxHeight()
-                .padding(vertical = 8.dp)
+        // Glass background
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp
         ) {
-            // Glass background
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f),
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.08f)
-                                )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f),
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.08f)
                             )
                         )
-                )
-            }
+                    )
+            )
+        }
 
-            // Content
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(20.dp),
-                color = Color.Transparent
+        // Content
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            shape = RoundedCornerShape(20.dp),
+            color = Color.Transparent
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(vertical = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                // Staggered shortcuts — appear when expanded
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = fadeIn(tween(250)) +
+                        slideInVertically(
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            )
+                        ) { it / 3 },
+                    exit = fadeOut(tween(150)) +
+                        slideOutVertically(tween(150)) { it / 3 }
                 ) {
-                    // ── Expanded shortcuts ────────────────────────────────────
-                    AnimatedVisibility(
-                        visible = expanded,
-                        enter = fadeIn(tween(250)) +
-                            slideInVertically(
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                                    stiffness = Spring.StiffnessMedium
-                                )
-                            ) { it / 3 },
-                        exit = fadeOut(tween(150)) +
-                            slideOutVertically(tween(150)) { it / 3 }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            HorizontalDivider(
-                                modifier = Modifier
-                                    .padding(horizontal = 18.dp)
-                                    .alpha(0.2f)
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .padding(horizontal = 18.dp)
+                                .alpha(0.2f)
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        StaggeredItem(delay = 0) {
+                            SideBarShortcut(
+                                icon = painterResource(R.drawable.ic_video_settings),
+                                contentDescription = "FPS",
+                                onClick = onFpsClick
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            StaggeredItem(delay = 0) {
-                                SideBarShortcut(
-                                    icon = painterResource(R.drawable.ic_video_settings),
-                                    contentDescription = "FPS",
-                                    onClick = onFpsClick
-                                )
-                            }
-                            StaggeredItem(delay = 60) {
-                                SideBarShortcut(
-                                    icon = painterResource(R.drawable.ic_folder_outlined),
-                                    contentDescription = "File Manager",
-                                    onClick = onFileManagerClick
-                                )
-                            }
-                            StaggeredItem(delay = 120) {
-                                SideBarShortcut(
-                                    icon = painterResource(R.drawable.ic_assignment_filled),
-                                    contentDescription = "Versions",
-                                    onClick = onVersionsClick
-                                )
-                            }
-                            StaggeredItem(delay = 180) {
-                                SideBarShortcut(
-                                    icon = painterResource(R.drawable.ic_info_outlined),
-                                    contentDescription = "About",
-                                    onClick = onInfoClick
-                                )
-                            }
+                        }
+                        StaggeredItem(delay = 60) {
+                            SideBarShortcut(
+                                icon = painterResource(R.drawable.ic_folder_outlined),
+                                contentDescription = "File Manager",
+                                onClick = onFileManagerClick
+                            )
+                        }
+                        StaggeredItem(delay = 120) {
+                            SideBarShortcut(
+                                icon = painterResource(R.drawable.ic_assignment_filled),
+                                contentDescription = "Versions",
+                                onClick = onVersionsClick
+                            )
+                        }
+                        StaggeredItem(delay = 180) {
+                            SideBarShortcut(
+                                icon = painterResource(R.drawable.ic_info_outlined),
+                                contentDescription = "About",
+                                onClick = onInfoClick
+                            )
                         }
                     }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    // ── Expand / collapse toggle with dock badge ───────────────
-                    Box(contentAlignment = Alignment.BottomEnd) {
-                        SideBarToggle(
-                            expanded = expanded,
-                            onClick = {
-                                expanded = !expanded
-                            }
-                        )
-
-                        // Small dock-to-tab-bar badge — uses alpha animation to avoid ColumnScope.AnimatedVisibility inside BoxScope
-                        val dockBadgeAlpha by animateFloatAsState(
-                            targetValue = if (!expanded) 1f else 0f,
-                            animationSpec = tween(if (!expanded) 200 else 150),
-                            label = "dockBadgeAlpha"
-                        )
-                        if (dockBadgeAlpha > 0f) {
-                            Surface(
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .offset(x = 4.dp, y = 4.dp)
-                                    .alpha(dockBadgeAlpha)
-                                    .shadow(4.dp, CircleShape)
-                                    .clip(CircleShape)
-                                    .clickable(enabled = !expanded) { onDockChange(true) },
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.tertiaryContainer,
-                                tonalElevation = 2.dp
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_list_down),
-                                        contentDescription = "Dock sidebar",
-                                        modifier = Modifier
-                                            .size(12.dp)
-                                            .padding(1.dp),
-                                        tint = MaterialTheme.colorScheme.onTertiaryContainer
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Expand / collapse toggle
+                Box(contentAlignment = Alignment.Center) {
+                    SideBarToggle(
+                        expanded = expanded,
+                        onClick = { expanded = !expanded }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
             }
         }
     }
