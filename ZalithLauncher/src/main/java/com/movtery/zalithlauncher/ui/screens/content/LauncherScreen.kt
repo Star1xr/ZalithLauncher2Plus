@@ -23,6 +23,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
@@ -90,6 +91,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -131,7 +134,6 @@ import com.movtery.zalithlauncher.ui.screens.clearWith
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountAvatar
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.AboutDialog
-import com.movtery.zalithlauncher.ui.screens.content.elements.SideBar
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.game.elements.PerformanceSettingsDialog
 import com.movtery.zalithlauncher.ui.screens.game.elements.PerformanceSettingsOperation
@@ -185,6 +187,25 @@ fun LauncherScreen(
             navInteractionKey++
         }
 
+        // Sidebar action callbacks (moved from left SideBar into bottom nav)
+        val onFpsClick: () -> Unit = {
+            performanceSettingsState = PerformanceSettingsOperation.Fps
+        }
+        val onFileManagerClick: () -> Unit = {
+            backStackViewModel.mainScreen.navigateTo(
+                screenKey = NormalNavKey.FileManager
+            )
+        }
+        val onVersionsManageClick: () -> Unit = {
+            backStackViewModel.mainScreen.removeAndNavigateTo(
+                remove = NestedNavKey.VersionSettings::class,
+                screenKey = NormalNavKey.VersionsManager
+            )
+        }
+        val onInfoClick: () -> Unit = {
+            showAboutDialog = true
+        }
+
         if (showAboutDialog) {
             AboutDialog(onDismissRequest = { showAboutDialog = false })
         }
@@ -198,18 +219,6 @@ fun LauncherScreen(
             Row(modifier = Modifier.fillMaxSize()) {
 
                 val context = LocalContext.current
-
-                SideBar(
-                    modifier = Modifier
-                        .padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
-                    isVisible = isVisible,
-                    onFpsClick = {
-                        performanceSettingsState = PerformanceSettingsOperation.Fps
-                    },
-                    onFileManagerClick = {
-                        backStackViewModel.mainScreen.navigateTo(
-                            screenKey = NormalNavKey.FileManager
-                        )
                     },
                     onVersionsClick = {
                         backStackViewModel.mainScreen.removeAndNavigateTo(
@@ -234,6 +243,7 @@ fun LauncherScreen(
                         isVisible = isVisible,
                         selectedTab = selectedTab,
                         navBarExpanded = navBarExpanded,
+                        rightPanelCollapsed = rightPanelCollapsed,
                         onNavInteraction = onNavInteraction,
                         onTabSelected = { tab ->
                             selectedTabOrdinal = tab.ordinal
@@ -243,7 +253,11 @@ fun LauncherScreen(
                         onNavigateToVersionSettings = navigateToVersions,
                         onHomePageEvent = onHomePageEvent,
                         onNavigateToStats = onNavigateToStats,
-                        onNavigateToLog = onNavigateToLog
+                        onNavigateToLog = onNavigateToLog,
+                        onFpsClick = onFpsClick,
+                        onFileManagerClick = onFileManagerClick,
+                        onVersionsManageClick = onVersionsManageClick,
+                        onInfoClick = onInfoClick
                     )
                 }
 
@@ -264,7 +278,7 @@ fun LauncherScreen(
                     }
                 }
 
-                // Right panel — collapses horizontally via AnimatedVisibility
+                // Right panel â collapses horizontally via AnimatedVisibility
                 AnimatedVisibility(
                     visible = !rightPanelCollapsed,
                     enter = expandHorizontally(
@@ -297,7 +311,7 @@ fun LauncherScreen(
                 }
             }
 
-            // Floating restore dock — appears when right panel is collapsed
+            // Floating restore dock â appears when right panel is collapsed
             val restoreAlpha by animateFloatAsState(
                 targetValue = if (rightPanelCollapsed) 1f else 0f,
                 animationSpec = tween(250),
@@ -346,6 +360,7 @@ private fun ContentMenu(
     isVisible: Boolean,
     selectedTab: DashboardMode,
     navBarExpanded: Boolean,
+    rightPanelCollapsed: Boolean,
     onNavInteraction: () -> Unit,
     onTabSelected: (DashboardMode) -> Unit,
     onLaunchGame: (com.movtery.zalithlauncher.game.version.installed.Version) -> Unit,
@@ -353,6 +368,10 @@ private fun ContentMenu(
     onHomePageEvent: (MarkdownBlock.Button.Event) -> Unit,
     onNavigateToStats: () -> Unit,
     onNavigateToLog: (String) -> Unit,
+    onFpsClick: () -> Unit,
+    onFileManagerClick: () -> Unit,
+    onVersionsManageClick: () -> Unit,
+    onInfoClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val yOffset by swapAnimateDpAsState(
@@ -368,7 +387,7 @@ private fun ContentMenu(
     val listScrollState = rememberLazyListState()
     val gridScrollState = rememberLazyGridState()
 
-    // Version data loaded once — shared across all tabs to avoid reloading
+    // Version data loaded once â shared across all tabs to avoid reloading
     val currentVersion by com.movtery.zalithlauncher.game.version.installed.VersionsManager.currentVersion.collectAsStateWithLifecycle()
     var dashboardVersions by remember {
         mutableStateOf(
@@ -384,11 +403,28 @@ private fun ContentMenu(
         onDispose { com.movtery.zalithlauncher.game.version.installed.VersionsManager.unregisterListener(listener) }
     }
 
+    // Smarter Versions button: auto-select LIST when panel expanded, GRID when collapsed
+    LaunchedEffect(rightPanelCollapsed) {
+        if (selectedTab == DashboardMode.LIST || selectedTab == DashboardMode.GRID) {
+            onTabSelected(if (rightPanelCollapsed) DashboardMode.GRID else DashboardMode.LIST)
+        }
+    }
+
+    // Animated mirrored left padding (mirrors minimized right panel for visual balance)
+    val mirroredStartPad by androidx.compose.animation.core.animateDpAsState(
+        targetValue = if (rightPanelCollapsed) 54.dp else 0.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "mirroredStartPad"
+    )
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-            .padding(all = 12.dp),
+            .padding(top = 12.dp, end = 12.dp, bottom = 12.dp, start = 12.dp + mirroredStartPad),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (BuildConfig.DEBUG) {
@@ -416,7 +452,7 @@ private fun ContentMenu(
             }
         }
 
-        // Center dashboard — animated tab switch
+        // Center dashboard â animated tab switch
         AnimatedContent(
             targetState = selectedTab,
             transitionSpec = {
@@ -552,16 +588,22 @@ private fun ContentMenu(
         }
 
         // Bottom tab bar with auto-hide
+        Spacer(modifier = Modifier.height(16.dp))
         DashboardTabBar(
             selectedTab = selectedTab,
             onTabSelected = onTabSelected,
             navBarExpanded = navBarExpanded,
-            onNavInteraction = onNavInteraction
+            rightPanelCollapsed = rightPanelCollapsed,
+            onNavInteraction = onNavInteraction,
+            onFpsClick = onFpsClick,
+            onFileManagerClick = onFileManagerClick,
+            onVersionsManageClick = onVersionsManageClick,
+            onInfoClick = onInfoClick
         )
     }
 }
 
-// ── Helper composables ────────────────────────────────────────────────────────
+// ââ Helper composables ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 @Composable
 private fun EmptyVersionsHint() {
@@ -574,150 +616,363 @@ private fun EmptyVersionsHint() {
     }
 }
 
-// ── Bottom tab bar ────────────────────────────────────────────────────────────
+// ââ Bottom tab bar ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 @Composable
-private fun DashboardTabBar(
-    selectedTab: DashboardMode,
-    onTabSelected: (DashboardMode) -> Unit,
-    navBarExpanded: Boolean,
-    onNavInteraction: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var showVersionsMenu by remember { mutableStateOf(false) }
+  private fun DashboardTabBar(
+      selectedTab: DashboardMode,
+      onTabSelected: (DashboardMode) -> Unit,
+      navBarExpanded: Boolean,
+      rightPanelCollapsed: Boolean,
+      onNavInteraction: () -> Unit,
+      onFpsClick: () -> Unit,
+      onFileManagerClick: () -> Unit,
+      onVersionsManageClick: () -> Unit,
+      onInfoClick: () -> Unit,
+      modifier: Modifier = Modifier
+  ) {
+      var showVersionsMenu by remember { mutableStateOf(false) }
+      var navSidebarExpanded by rememberSaveable { mutableStateOf(false) }
 
-    AnimatedContent(
-        targetState = navBarExpanded,
-        transitionSpec = {
-            if (targetState) {
-                // Expanding: slide up from bottom + fade in
-                (fadeIn(tween(250)) + slideInVertically(tween(300)) { it / 2 }) togetherWith
-                fadeOut(tween(150))
-            } else {
-                // Collapsing: fade out + slide down
-                fadeIn(tween(200)) togetherWith
-                (fadeOut(tween(200)) + slideOutVertically(tween(250)) { it / 2 })
-            }
-        },
-        label = "navBarState",
-        modifier = modifier.fillMaxWidth()
-    ) { expanded ->
-        if (expanded) {
-            // Full navigation bar
-            BackgroundCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.extraLarge
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    // Versions tab with List / Grid popup
-                    Box(modifier = Modifier.weight(1f)) {
-                        DashboardTabItem(
-                            iconRes = R.drawable.ic_list_alt_check_outlined,
-                            label = stringResource(R.string.launcher_dashboard_tab_versions),
-                            trailingIconRes = if (selectedTab != DashboardMode.STATS)
-                                R.drawable.ic_arrow_drop_up_rounded
-                            else null,
-                            selected = selectedTab == DashboardMode.LIST || selectedTab == DashboardMode.GRID,
-                            onClick = {
-                                showVersionsMenu = true
-                                onNavInteraction()
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        DropdownMenu(
-                            expanded = showVersionsMenu,
-                            onDismissRequest = { showVersionsMenu = false },
-                            shape = MaterialTheme.shapes.extraLarge
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.versions_manage_view_mode_list)) },
-                                leadingIcon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_list_alt_check_outlined),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                },
-                                trailingIcon = if (selectedTab == DashboardMode.LIST) {
-                                    { Icon(painterResource(R.drawable.ic_check), null, Modifier.size(16.dp)) }
-                                } else null,
-                                onClick = {
-                                    onTabSelected(DashboardMode.LIST)
-                                    showVersionsMenu = false
-                                    onNavInteraction()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.versions_manage_view_mode_grid)) },
-                                leadingIcon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_card),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                },
-                                trailingIcon = if (selectedTab == DashboardMode.GRID) {
-                                    { Icon(painterResource(R.drawable.ic_check), null, Modifier.size(16.dp)) }
-                                } else null,
-                                onClick = {
-                                    onTabSelected(DashboardMode.GRID)
-                                    showVersionsMenu = false
-                                    onNavInteraction()
-                                }
-                            )
-                        }
-                    }
+      // Animated bar height: taller when sidebar is open
+      val navBarHeight by androidx.compose.animation.core.animateDpAsState(
+          targetValue = if (navSidebarExpanded) 220.dp else 72.dp,
+          animationSpec = spring(
+              dampingRatio = Spring.DampingRatioNoBouncy,
+              stiffness = Spring.StiffnessMediumLow
+          ),
+          label = "navBarHeight"
+      )
 
-                    VerticalDivider(modifier = Modifier.height(28.dp).alpha(0.2f))
+      AnimatedContent(
+          targetState = navBarExpanded,
+          transitionSpec = {
+              if (targetState) {
+                  (fadeIn(tween(250)) + slideInVertically(tween(300)) { it / 2 }) togetherWith
+                  fadeOut(tween(150))
+              } else {
+                  fadeIn(tween(200)) togetherWith
+                  (fadeOut(tween(200)) + slideOutVertically(tween(250)) { it / 2 })
+              }
+          },
+          label = "navBarState",
+          modifier = modifier.fillMaxWidth()
+      ) { expanded ->
+          if (expanded) {
+              Surface(
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .height(navBarHeight),
+                  shape = MaterialTheme.shapes.extraLarge,
+                  color = MaterialTheme.colorScheme.surface,
+                  tonalElevation = 4.dp,
+                  shadowElevation = 12.dp
+              ) {
+                  AnimatedContent(
+                      targetState = navSidebarExpanded,
+                      transitionSpec = {
+                          if (targetState) {
+                              (fadeIn(tween(280)) + slideInVertically(tween(320)) { it / 3 }) togetherWith
+                              fadeOut(tween(180))
+                          } else {
+                              (fadeIn(tween(250)) + slideInVertically(tween(280)) { -it / 3 }) togetherWith
+                              fadeOut(tween(160))
+                          }
+                      },
+                      label = "navContent"
+                  ) { sidebarOpen ->
+                      if (sidebarOpen) {
+                          // ── Sidebar panel inside the nav bar ──────────────────
+                          Column(
+                              modifier = Modifier
+                                  .fillMaxSize()
+                                  .padding(horizontal = 20.dp, vertical = 14.dp),
+                              verticalArrangement = Arrangement.spacedBy(10.dp)
+                          ) {
+                              // Section label
+                              Text(
+                                  text = "QUICK ACCESS",
+                                  style = MaterialTheme.typography.labelSmall,
+                                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                                  modifier = Modifier.padding(horizontal = 4.dp)
+                              )
+                              // Shortcut grid
+                              Row(
+                                  modifier = Modifier.fillMaxWidth().weight(1f),
+                                  horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                  verticalAlignment = Alignment.CenterVertically
+                              ) {
+                                  NavSidebarShortcut(
+                                      modifier = Modifier.weight(1f),
+                                      iconRes = R.drawable.ic_video_settings,
+                                      label = "FPS",
+                                      onClick = {
+                                          navSidebarExpanded = false
+                                          onFpsClick()
+                                          onNavInteraction()
+                                      }
+                                  )
+                                  NavSidebarShortcut(
+                                      modifier = Modifier.weight(1f),
+                                      iconRes = R.drawable.ic_folder_outlined,
+                                      label = stringResource(R.string.page_title_file_manager),
+                                      onClick = {
+                                          navSidebarExpanded = false
+                                          onFileManagerClick()
+                                          onNavInteraction()
+                                      }
+                                  )
+                                  NavSidebarShortcut(
+                                      modifier = Modifier.weight(1f),
+                                      iconRes = R.drawable.ic_assignment_filled,
+                                      label = stringResource(R.string.launcher_dashboard_tab_versions),
+                                      onClick = {
+                                          navSidebarExpanded = false
+                                          onVersionsManageClick()
+                                          onNavInteraction()
+                                      }
+                                  )
+                                  NavSidebarShortcut(
+                                      modifier = Modifier.weight(1f),
+                                      iconRes = R.drawable.ic_info_outlined,
+                                      label = "About",
+                                      onClick = {
+                                          navSidebarExpanded = false
+                                          onInfoClick()
+                                          onNavInteraction()
+                                      }
+                                  )
+                              }
+                              // Center Back button row
+                              Box(
+                                  modifier = Modifier.fillMaxWidth(),
+                                  contentAlignment = Alignment.Center
+                              ) {
+                                  NavCenterFab(
+                                      isBack = true,
+                                      onClick = {
+                                          navSidebarExpanded = false
+                                          onNavInteraction()
+                                      }
+                                  )
+                              }
+                          }
+                      } else {
+                          // ── Normal navigation bar ─────────────────────────────
+                          Row(
+                              modifier = Modifier
+                                  .fillMaxSize()
+                                  .padding(horizontal = 12.dp),
+                              verticalAlignment = Alignment.CenterVertically,
+                              horizontalArrangement = Arrangement.spacedBy(8.dp)
+                          ) {
+                              // Versions tab
+                              Box(modifier = Modifier.weight(1f)) {
+                                  DashboardTabItem(
+                                      iconRes = R.drawable.ic_list_alt_check_outlined,
+                                      label = stringResource(R.string.launcher_dashboard_tab_versions),
+                                      trailingIconRes = if (selectedTab != DashboardMode.STATS)
+                                          R.drawable.ic_arrow_drop_up_rounded else null,
+                                      selected = selectedTab == DashboardMode.LIST || selectedTab == DashboardMode.GRID,
+                                      onClick = {
+                                          showVersionsMenu = true
+                                          onNavInteraction()
+                                      },
+                                      modifier = Modifier.fillMaxWidth()
+                                  )
+                                  DropdownMenu(
+                                      expanded = showVersionsMenu,
+                                      onDismissRequest = { showVersionsMenu = false },
+                                      shape = MaterialTheme.shapes.extraLarge
+                                  ) {
+                                      DropdownMenuItem(
+                                          text = { Text(stringResource(R.string.versions_manage_view_mode_list)) },
+                                          leadingIcon = {
+                                              Icon(
+                                                  painter = painterResource(R.drawable.ic_list_alt_check_outlined),
+                                                  contentDescription = null,
+                                                  modifier = Modifier.size(18.dp)
+                                              )
+                                          },
+                                          trailingIcon = if (selectedTab == DashboardMode.LIST) {
+                                              { Icon(painterResource(R.drawable.ic_check), null, Modifier.size(16.dp)) }
+                                          } else null,
+                                          onClick = {
+                                              onTabSelected(DashboardMode.LIST)
+                                              showVersionsMenu = false
+                                              onNavInteraction()
+                                          }
+                                      )
+                                      DropdownMenuItem(
+                                          text = { Text(stringResource(R.string.versions_manage_view_mode_grid)) },
+                                          leadingIcon = {
+                                              Icon(
+                                                  painter = painterResource(R.drawable.ic_card),
+                                                  contentDescription = null,
+                                                  modifier = Modifier.size(18.dp)
+                                              )
+                                          },
+                                          trailingIcon = if (selectedTab == DashboardMode.GRID) {
+                                              { Icon(painterResource(R.drawable.ic_check), null, Modifier.size(16.dp)) }
+                                          } else null,
+                                          onClick = {
+                                              onTabSelected(DashboardMode.GRID)
+                                              showVersionsMenu = false
+                                              onNavInteraction()
+                                          }
+                                      )
+                                  }
+                              }
 
-                    // Today's Stats tab
-                    DashboardTabItem(
-                        iconRes = R.drawable.ic_dashboard_outlined,
-                        label = stringResource(R.string.launcher_stats_toggle),
-                        selected = selectedTab == DashboardMode.STATS,
-                        onClick = {
-                            onTabSelected(DashboardMode.STATS)
-                            onNavInteraction()
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        } else {
-            // Collapsed notch handle — tap to restore the nav bar
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .width(160.dp)
-                        .height(32.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
-                    tonalElevation = 6.dp,
-                    shadowElevation = 8.dp,
-                    onClick = onNavInteraction
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_drag_handle),
-                            contentDescription = stringResource(R.string.generic_expand),
-                            modifier = Modifier.size(32.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
+                              // Center FAB — primary nav control
+                              NavCenterFab(
+                                  isBack = false,
+                                  onClick = {
+                                      navSidebarExpanded = true
+                                      onNavInteraction()
+                                  }
+                              )
+
+                              // Stats tab
+                              DashboardTabItem(
+                                  iconRes = R.drawable.ic_dashboard_outlined,
+                                  label = stringResource(R.string.launcher_stats_toggle),
+                                  selected = selectedTab == DashboardMode.STATS,
+                                  onClick = {
+                                      onTabSelected(DashboardMode.STATS)
+                                      onNavInteraction()
+                                  },
+                                  modifier = Modifier.weight(1f)
+                              )
+                          }
+                      }
+                  }
+              }
+          } else {
+              // Collapsed notch handle
+              Box(
+                  modifier = Modifier.fillMaxWidth(),
+                  contentAlignment = Alignment.Center
+              ) {
+                  Surface(
+                      modifier = Modifier
+                          .width(160.dp)
+                          .height(32.dp),
+                      shape = RoundedCornerShape(16.dp),
+                      color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
+                      tonalElevation = 6.dp,
+                      shadowElevation = 8.dp,
+                      onClick = onNavInteraction
+                  ) {
+                      Box(contentAlignment = Alignment.Center) {
+                          Icon(
+                              painter = painterResource(R.drawable.ic_drag_handle),
+                              contentDescription = stringResource(R.string.generic_expand),
+                              modifier = Modifier.size(32.dp),
+                              tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                          )
+                      }
+                  }
+              }
+          }
+      }
+  }
+
+  // Center FAB — used in DashboardTabBar
+  @Composable
+  private fun NavCenterFab(
+      isBack: Boolean,
+      onClick: () -> Unit
+  ) {
+      val interactionSource = remember { MutableInteractionSource() }
+      val isPressed by interactionSource.collectIsPressedAsState()
+      val scale by animateFloatAsState(
+          targetValue = if (isPressed) 0.88f else 1f,
+          animationSpec = spring(
+              dampingRatio = Spring.DampingRatioMediumBouncy,
+              stiffness = Spring.StiffnessHigh
+          ),
+          label = "fabScale"
+      )
+      Surface(
+          modifier = Modifier
+              .size(width = 60.dp, height = 52.dp)
+              .androidx.compose.ui.draw.scale(scale)
+              .androidx.compose.ui.draw.shadow(
+                  elevation = if (isPressed) 2.dp else 10.dp,
+                  shape = RoundedCornerShape(18.dp),
+                  spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+              )
+              .clip(RoundedCornerShape(18.dp))
+              .clickable(
+                  interactionSource = interactionSource,
+                  indication = null,
+                  onClick = onClick
+              ),
+          shape = RoundedCornerShape(18.dp),
+          color = MaterialTheme.colorScheme.primaryContainer,
+          tonalElevation = if (isPressed) 0.dp else 6.dp
+      ) {
+          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              Icon(
+                  painter = if (isBack) painterResource(R.drawable.ic_arrow_cool_down)
+                             else painterResource(R.drawable.ic_menu),
+                  contentDescription = if (isBack) "Close" else "Menu",
+                  modifier = Modifier.size(26.dp),
+                  tint = MaterialTheme.colorScheme.onPrimaryContainer
+              )
+          }
+      }
+  }
+
+  // Sidebar shortcut button used in expanded nav bar
+  @Composable
+  private fun NavSidebarShortcut(
+      iconRes: Int,
+      label: String,
+      onClick: () -> Unit,
+      modifier: Modifier = Modifier
+  ) {
+      val interactionSource = remember { MutableInteractionSource() }
+      val isPressed by interactionSource.collectIsPressedAsState()
+      val bgColor by animateColorAsState(
+          targetValue = if (isPressed) MaterialTheme.colorScheme.secondaryContainer
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+          animationSpec = tween(150),
+          label = "shortcutBg"
+      )
+      val scale by animateFloatAsState(
+          targetValue = if (isPressed) 0.90f else 1f,
+          animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessHigh),
+          label = "shortcutScale"
+      )
+      Column(
+          modifier = modifier
+              .fillMaxHeight()
+              .androidx.compose.ui.draw.scale(scale)
+              .clip(MaterialTheme.shapes.large)
+              .background(bgColor)
+              .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+              .padding(horizontal = 6.dp, vertical = 10.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.Center
+      ) {
+          Icon(
+              painter = painterResource(iconRes),
+              contentDescription = label,
+              modifier = Modifier.size(24.dp),
+              tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+          )
+          Spacer(modifier = Modifier.height(4.dp))
+          Text(
+              text = label,
+              style = MaterialTheme.typography.labelSmall,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+          )
+      }
+  }
 
 @Composable
 private fun DashboardTabItem(
@@ -782,7 +1037,7 @@ private fun DashboardTabItem(
     }
 }
 
-// ── Stats 2×2 grid with header ──────────────────────────────────────────────
+// ââ Stats 2Ã2 grid with header ââââââââââââââââââââââââââââââââââââââââââââââ
 
 @Composable
 private fun StatsGrid(
@@ -801,7 +1056,7 @@ private fun StatsGrid(
                 .padding(horizontal = 4.dp)
                 .alpha(0.5f)
         )
-        // Row 1 — graph + daily hours
+        // Row 1 â graph + daily hours
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -811,7 +1066,7 @@ private fun StatsGrid(
             PlayTimeGraphCard(modifier = Modifier.weight(1f).fillMaxHeight())
             DailyPlayTimeCard(modifier = Modifier.weight(1f).fillMaxHeight())
         }
-        // Row 2 — per-version + last log
+        // Row 2 â per-version + last log
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -830,14 +1085,14 @@ private fun StatsGrid(
     }
 }
 
-// ── Stat Card 1: Bar graph of daily play time ───────────────────────────────
+// ââ Stat Card 1: Bar graph of daily play time âââââââââââââââââââââââââââââââ
 
 private val DAY_NAMES = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
 @Composable
 private fun PlayTimeGraphCard(modifier: Modifier = Modifier) {
     val versions = remember { VersionsManager.versions.map { it.getVersionName() } }
-    // oldest → newest, 7 days ending today
+    // oldest â newest, 7 days ending today
     val days = remember { PlayTimeRepository.lastNDays(7).reversed() }
     val barData = remember(versions, days) {
         days.map { date ->
@@ -845,7 +1100,7 @@ private fun PlayTimeGraphCard(modifier: Modifier = Modifier) {
         }
     }
     val maxVal = remember(barData) { barData.maxOrNull()?.takeIf { it > 0f } ?: 1f }
-    // Day-of-week labels: derive from the date string (yyyy-MM-dd → parse weekday)
+    // Day-of-week labels: derive from the date string (yyyy-MM-dd â parse weekday)
     val dayLabels = remember(days) {
         days.map { date ->
             try {
@@ -911,7 +1166,7 @@ private fun PlayTimeGraphCard(modifier: Modifier = Modifier) {
     }
 }
 
-// ── Stat Card 2: Today's hours + rank ───────────────────────────────────────
+// ââ Stat Card 2: Today's hours + rank âââââââââââââââââââââââââââââââââââââââ
 
 @Composable
 private fun DailyPlayTimeCard(modifier: Modifier = Modifier) {
@@ -954,7 +1209,7 @@ private fun DailyPlayTimeCard(modifier: Modifier = Modifier) {
     }
 }
 
-// ── Stat Card 3: Per-version play rate ──────────────────────────────────────
+// ââ Stat Card 3: Per-version play rate ââââââââââââââââââââââââââââââââââââââ
 
 @Composable
 private fun VersionPlayRateCard(
@@ -1047,7 +1302,7 @@ private fun VersionPlayRateCard(
     }
 }
 
-// ── Stat Card 4: Last game log ───────────────────────────────────────────────
+// ââ Stat Card 4: Last game log âââââââââââââââââââââââââââââââââââââââââââââââ
 
 @Composable
 private fun LastLogCard(
@@ -1093,7 +1348,7 @@ private fun LastLogCard(
                 )
             }
         } else {
-            // Show lines from the bottom up, clipped by card height — no scroll
+            // Show lines from the bottom up, clipped by card height â no scroll
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1188,7 +1443,7 @@ private fun RightMenuContent(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_settings_filled),
-                            contentDescription = stringResource(R.string.versions_manage_settings)
+                            contentDescription = stringResource(R.string.launcher_dashboard_tab_versions)
                         )
                     }
                 }
@@ -1301,7 +1556,7 @@ private fun RightMenu(
             }
         }
 
-        // Small collapse arrow — tap to hide the right panel
+        // Small collapse arrow â tap to hide the right panel
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
