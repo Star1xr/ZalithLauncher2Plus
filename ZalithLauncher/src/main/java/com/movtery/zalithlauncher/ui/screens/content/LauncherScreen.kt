@@ -278,7 +278,7 @@ fun LauncherScreen(
                     }
                 }
 
-                // Right panel â collapses horizontally via AnimatedVisibility
+                // Right panel Ã¢ÂÂ collapses horizontally via AnimatedVisibility
                 AnimatedVisibility(
                     visible = !rightPanelCollapsed,
                     enter = expandHorizontally(
@@ -311,7 +311,7 @@ fun LauncherScreen(
                 }
             }
 
-            // Floating restore dock â appears when right panel is collapsed
+            // Floating restore dock Ã¢ÂÂ appears when right panel is collapsed
             val restoreAlpha by animateFloatAsState(
                 targetValue = if (rightPanelCollapsed) 1f else 0f,
                 animationSpec = tween(250),
@@ -387,7 +387,7 @@ private fun ContentMenu(
     val listScrollState = rememberLazyListState()
     val gridScrollState = rememberLazyGridState()
 
-    // Version data loaded once â shared across all tabs to avoid reloading
+    // Version data loaded once Ã¢ÂÂ shared across all tabs to avoid reloading
     val currentVersion by com.movtery.zalithlauncher.game.version.installed.VersionsManager.currentVersion.collectAsStateWithLifecycle()
     var dashboardVersions by remember {
         mutableStateOf(
@@ -452,7 +452,7 @@ private fun ContentMenu(
             }
         }
 
-        // Center dashboard â animated tab switch
+        // Center dashboard Ã¢ÂÂ animated tab switch
         AnimatedContent(
             targetState = selectedTab,
             transitionSpec = {
@@ -603,7 +603,7 @@ private fun ContentMenu(
     }
 }
 
-// ââ Helper composables ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Helper composables Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
 @Composable
 private fun EmptyVersionsHint() {
@@ -616,7 +616,7 @@ private fun EmptyVersionsHint() {
     }
 }
 
-// ââ Bottom tab bar ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Bottom tab bar Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
 @Composable
   private fun DashboardTabBar(
@@ -682,7 +682,7 @@ private fun EmptyVersionsHint() {
                       label = "navContent"
                   ) { sidebarOpen ->
                       if (sidebarOpen) {
-                          // ── Sidebar panel inside the nav bar ──────────────────
+                          // ââ Sidebar panel inside the nav bar ââââââââââââââââââ
                           Column(
                               modifier = Modifier
                                   .fillMaxSize()
@@ -758,7 +758,7 @@ private fun EmptyVersionsHint() {
                               }
                           }
                       } else {
-                          // ── Normal navigation bar ─────────────────────────────
+                          // ââ Normal navigation bar âââââââââââââââââââââââââââââ
                           Row(
                               modifier = Modifier
                                   .fillMaxSize()
@@ -824,7 +824,7 @@ private fun EmptyVersionsHint() {
                                   }
                               }
 
-                              // Center FAB — primary nav control
+                              // Center FAB â primary nav control
                               NavCenterFab(
                                   isBack = false,
                                   onClick = {
@@ -878,7 +878,7 @@ private fun EmptyVersionsHint() {
       }
   }
 
-  // Center FAB — used in DashboardTabBar
+  // Center FAB â used in DashboardTabBar
   @Composable
   private fun NavCenterFab(
       isBack: Boolean,
@@ -897,8 +897,8 @@ private fun EmptyVersionsHint() {
       Surface(
           modifier = Modifier
               .size(width = 60.dp, height = 52.dp)
-              .androidx.compose.ui.draw.scale(scale)
-              .androidx.compose.ui.draw.shadow(
+              .scale(scale)
+              .shadow(
                   elevation = if (isPressed) 2.dp else 10.dp,
                   shape = RoundedCornerShape(18.dp),
                   spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
@@ -915,7 +915,7 @@ private fun EmptyVersionsHint() {
       ) {
           Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
               Icon(
-                  painter = if (isBack) painterResource(R.drawable.ic_arrow_cool_down)
+                  painter = if (isBack) painterResource(R.drawable.ic_close)
                              else painterResource(R.drawable.ic_menu),
                   contentDescription = if (isBack) "Close" else "Menu",
                   modifier = Modifier.size(26.dp),
@@ -949,7 +949,7 @@ private fun EmptyVersionsHint() {
       Column(
           modifier = modifier
               .fillMaxHeight()
-              .androidx.compose.ui.draw.scale(scale)
+              .scale(scale)
               .clip(MaterialTheme.shapes.large)
               .background(bgColor)
               .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
@@ -1037,7 +1037,7 @@ private fun DashboardTabItem(
     }
 }
 
-// ââ Stats 2Ã2 grid with header ââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Stats 2ÃÂ2 grid with header Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
 @Composable
 private fun StatsGrid(
@@ -1056,7 +1056,7 @@ private fun StatsGrid(
                 .padding(horizontal = 4.dp)
                 .alpha(0.5f)
         )
-        // Row 1 â graph + daily hours
+        // Row 1 Ã¢ÂÂ graph + daily hours
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1066,7 +1066,7 @@ private fun StatsGrid(
             PlayTimeGraphCard(modifier = Modifier.weight(1f).fillMaxHeight())
             DailyPlayTimeCard(modifier = Modifier.weight(1f).fillMaxHeight())
         }
-        // Row 2 â per-version + last log
+        // Row 2 Ã¢ÂÂ per-version + last log
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1085,14 +1085,14 @@ private fun StatsGrid(
     }
 }
 
-// ââ Stat Card 1: Bar graph of daily play time âââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Stat Card 1: Bar graph of daily play time Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
 private val DAY_NAMES = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
 @Composable
 private fun PlayTimeGraphCard(modifier: Modifier = Modifier) {
     val versions = remember { VersionsManager.versions.map { it.getVersionName() } }
-    // oldest â newest, 7 days ending today
+    // oldest Ã¢ÂÂ newest, 7 days ending today
     val days = remember { PlayTimeRepository.lastNDays(7).reversed() }
     val barData = remember(versions, days) {
         days.map { date ->
@@ -1100,7 +1100,7 @@ private fun PlayTimeGraphCard(modifier: Modifier = Modifier) {
         }
     }
     val maxVal = remember(barData) { barData.maxOrNull()?.takeIf { it > 0f } ?: 1f }
-    // Day-of-week labels: derive from the date string (yyyy-MM-dd â parse weekday)
+    // Day-of-week labels: derive from the date string (yyyy-MM-dd Ã¢ÂÂ parse weekday)
     val dayLabels = remember(days) {
         days.map { date ->
             try {
@@ -1166,7 +1166,7 @@ private fun PlayTimeGraphCard(modifier: Modifier = Modifier) {
     }
 }
 
-// ââ Stat Card 2: Today's hours + rank âââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Stat Card 2: Today's hours + rank Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
 @Composable
 private fun DailyPlayTimeCard(modifier: Modifier = Modifier) {
@@ -1209,7 +1209,7 @@ private fun DailyPlayTimeCard(modifier: Modifier = Modifier) {
     }
 }
 
-// ââ Stat Card 3: Per-version play rate ââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Stat Card 3: Per-version play rate Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
 @Composable
 private fun VersionPlayRateCard(
@@ -1302,7 +1302,7 @@ private fun VersionPlayRateCard(
     }
 }
 
-// ââ Stat Card 4: Last game log âââââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂ Stat Card 4: Last game log Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
 @Composable
 private fun LastLogCard(
@@ -1348,7 +1348,7 @@ private fun LastLogCard(
                 )
             }
         } else {
-            // Show lines from the bottom up, clipped by card height â no scroll
+            // Show lines from the bottom up, clipped by card height Ã¢ÂÂ no scroll
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -1556,7 +1556,7 @@ private fun RightMenu(
             }
         }
 
-        // Small collapse arrow â tap to hide the right panel
+        // Small collapse arrow Ã¢ÂÂ tap to hide the right panel
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
