@@ -173,7 +173,7 @@ fun LauncherScreen(
         val selectedTab = DashboardMode.entries[selectedTabOrdinal]
 
         // Right panel collapse state
-        var rightPanelCollapsed by rememberSaveable { mutableStateOf(false) }
+        val rightPanelCollapsed by backStackViewModel.launcherRightPanelCollapsed.collectAsStateWithLifecycle()
 
         // Bottom nav auto-hide state
         var navBarExpanded by rememberSaveable { mutableStateOf(true) }
@@ -298,7 +298,7 @@ fun LauncherScreen(
                             .fillMaxHeight()
                             .padding(top = 12.dp, end = 12.dp, bottom = 12.dp),
                         onLaunchGame = onLaunchGame,
-                        onCollapse = { rightPanelCollapsed = true },
+                        onCollapse = { backStackViewModel.launcherRightPanelCollapsed.value = true },
                         toAccountManageScreen = toAccountManageScreen,
                         toVersionManageScreen = toVersionManageScreen,
                         toVersionSettingsScreen = toVersionSettingsScreen
@@ -329,7 +329,7 @@ fun LauncherScreen(
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         tonalElevation = 4.dp,
                         shadowElevation = 8.dp,
-                        onClick = { rightPanelCollapsed = false }
+                        onClick = { backStackViewModel.launcherRightPanelCollapsed.value = false }
                     ) {
                         Box(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 14.dp),
@@ -406,15 +406,7 @@ private fun ContentMenu(
         }
     }
 
-    // Animated mirrored end padding ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ equals permanent left margin when right panel is expanded
-    val mirroredEndPad by animateDpAsState(
-        targetValue = if (rightPanelCollapsed) 12.dp else 54.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        label = "mirroredEndPad"
-    )
+    
 
 
     // Quick Access Panel expansion â hides main content when sidebar is open
@@ -428,7 +420,7 @@ private fun ContentMenu(
         modifier = modifier
             .fillMaxSize()
             .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-            .padding(top = 12.dp, end = mirroredEndPad, bottom = 12.dp, start = 54.dp),
+            .padding(top = 12.dp, end = 54.dp, bottom = 12.dp, start = 54.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (BuildConfig.DEBUG) {
