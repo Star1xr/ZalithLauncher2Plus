@@ -52,13 +52,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -262,68 +267,97 @@ fun ControlManageScreen(
     ) { isVisible ->
         val selectedLayout by ControlManager.selectedLayout.collectAsStateWithLifecycle()
         val isRefreshing by ControlManager.isRefreshing.collectAsStateWithLifecycle()
+        var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-        AnimatedRow(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(all = 12.dp),
-            isVisible = isVisible
-        ) { scope ->
-            AnimatedItem(scope) { xOffset ->
-                ControlLayoutList(
-                    modifier = Modifier
-                        .weight(0.5f)
-                        .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-                    dataList = dataList,
-                    locale = locale,
-                    isLoading = isRefreshing,
-                    onRefresh = {
-                        ControlManager.refresh()
-                    },
-                    onCreate = {
-                        viewModel.operation = ControlOperation.CreateNew
-                    },
-                    onCopy = { data ->
-                        viewModel.copyNew(data.controlLayout) { e ->
-                            submitError(
-                                ErrorViewModel.ThrowableMessage(
-                                    title = context.getString(R.string.control_manage_failed_to_save),
-                                    message = e.getMessageOrToString()
-                                )
-                            )
-                        }
-                    },
-                    onDelete = { data ->
-                        viewModel.operation = ControlOperation.Delete(data)
-                    },
-                    eventViewModel = eventViewModel,
-                )
+                .padding(all = 12.dp)
+        ) {
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SegmentedButton(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    shape = SegmentedButtonDefaults.itemShape(0, 2),
+                ) { Text(stringResource(R.string.control_manage_tab_zalith2)) }
+                SegmentedButton(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    shape = SegmentedButtonDefaults.itemShape(1, 2),
+                ) { Text(stringResource(R.string.control_manage_tab_legacy)) }
             }
 
-            AnimatedItem(scope) { xOffset ->
-                ControlLayoutInfo(
-                    modifier = Modifier
-                        .weight(0.5f)
-                        .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-                    isLoading = isRefreshing,
-                    data = selectedLayout,
-                    locale = locale,
-                    onShareLayout = { data ->
-                        shareFile(context, data.file)
-                    },
-                    onEditLayout = { data ->
-                        startEditorActivity(context, data.file)
-                    },
-                    onEditText = { data, string, type ->
-                        viewModel.operation = ControlOperation.EditText(data, string, type)
-                    },
-                    onEditDescription = { data ->
-                        viewModel.operation = ControlOperation.EditDescription(data)
-                    },
-                    onEditVersion = { data ->
-                        viewModel.operation = ControlOperation.EditVersion(data)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                when (selectedTab) {
+                    0 -> AnimatedRow(
+                        modifier = Modifier.fillMaxSize(),
+                        isVisible = isVisible
+                    ) { scope ->
+                        AnimatedItem(scope) { xOffset ->
+                            ControlLayoutList(
+                                modifier = Modifier
+                                    .weight(0.5f)
+                                    .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                                dataList = dataList,
+                                locale = locale,
+                                isLoading = isRefreshing,
+                                onRefresh = {
+                                    ControlManager.refresh()
+                                },
+                                onCreate = {
+                                    viewModel.operation = ControlOperation.CreateNew
+                                },
+                                onCopy = { data ->
+                                    viewModel.copyNew(data.controlLayout) { e ->
+                                        submitError(
+                                            ErrorViewModel.ThrowableMessage(
+                                                title = context.getString(R.string.control_manage_failed_to_save),
+                                                message = e.getMessageOrToString()
+                                            )
+                                        )
+                                    }
+                                },
+                                onDelete = { data ->
+                                    viewModel.operation = ControlOperation.Delete(data)
+                                },
+                                eventViewModel = eventViewModel,
+                            )
+                        }
+
+                        AnimatedItem(scope) { xOffset ->
+                            ControlLayoutInfo(
+                                modifier = Modifier
+                                    .weight(0.5f)
+                                    .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                                isLoading = isRefreshing,
+                                data = selectedLayout,
+                                locale = locale,
+                                onShareLayout = { data ->
+                                    shareFile(context, data.file)
+                                },
+                                onEditLayout = { data ->
+                                    startEditorActivity(context, data.file)
+                                },
+                                onEditText = { data, string, type ->
+                                    viewModel.operation = ControlOperation.EditText(data, string, type)
+                                },
+                                onEditDescription = { data ->
+                                    viewModel.operation = ControlOperation.EditDescription(data)
+                                },
+                                onEditVersion = { data ->
+                                    viewModel.operation = ControlOperation.EditVersion(data)
+                                }
+                            )
+                        }
                     }
-                )
+                    1 -> LegacyControlManageContent(
+                        modifier = Modifier.fillMaxSize(),
+                        isVisible = isVisible,
+                        submitError = submitError
+                    )
+                }
             }
         }
     }
