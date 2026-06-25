@@ -51,6 +51,7 @@ class PathManager {
         lateinit var DIR_NATIVE_LOGS: File
         lateinit var DIR_IMAGE_CACHE: File
         lateinit var DIR_CONTROL_LAYOUTS: File
+        lateinit var DIR_LEGACY_CONTROL_LAYOUTS: File
         lateinit var DIR_TERRACOTTA: File
         lateinit var DIR_STYLES: File
         lateinit var DIR_DRIVERS: File
@@ -90,6 +91,7 @@ class PathManager {
             DIR_NATIVE_LOGS = File(DIR_LAUNCHER_LOGS, "native")
             DIR_IMAGE_CACHE = File(DIR_CACHE, "images")
             DIR_CONTROL_LAYOUTS = File(DIR_FILES_EXTERNAL, "control_layouts")
+            DIR_LEGACY_CONTROL_LAYOUTS = File(DIR_FILES_EXTERNAL, "legacy_control_layouts")
             DIR_TERRACOTTA = File(DIR_FILES_PRIVATE, "net.burningtnt.terracotta")
             DIR_STYLES = File(DIR_FILES_PRIVATE, "special_styles")
             DIR_DRIVERS = File(DIR_GAME, "drivers")
@@ -124,6 +126,7 @@ class PathManager {
             DIR_NATIVE_LOGS.mkdirs()
             DIR_IMAGE_CACHE.mkdirs()
             DIR_CONTROL_LAYOUTS.mkdirs()
+            DIR_LEGACY_CONTROL_LAYOUTS.mkdirs()
             DIR_TERRACOTTA.mkdirs()
             DIR_STYLES.mkdirs()
             DIR_DRIVERS.mkdirs()
