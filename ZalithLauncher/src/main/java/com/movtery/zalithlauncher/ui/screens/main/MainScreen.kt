@@ -229,7 +229,7 @@ fun MainScreen(
             )
 
             if (showAboutDialog) {
-                AboutDialog(onDismiss = { showAboutDialog = false })
+                AboutDialog(onDismissRequest = { showAboutDialog = false })
             }
 
             Box(
