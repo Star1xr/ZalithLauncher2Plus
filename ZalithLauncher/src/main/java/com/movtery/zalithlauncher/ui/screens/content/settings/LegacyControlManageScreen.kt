@@ -234,7 +234,7 @@ private fun LegacyLayoutList(
                     )
                     IconTextButton(
                         onClick = onImport,
-                        painter = painterResource(R.drawable.ic_download_outlined),
+                        painter = painterResource(R.drawable.ic_download),
                         contentDescription = stringResource(R.string.legacy_control_manage_import),
                         text = stringResource(R.string.legacy_control_manage_import)
                     )
@@ -569,13 +569,13 @@ private fun LegacyEditInfoDialog(
                     FilledTonalButton(
                         modifier = Modifier.weight(1f),
                         onClick = onDismissRequest
-                    ) { MarqueeText(stringResource(R.string.generic_cancel)) }
+                    ) { MarqueeText(text = stringResource(R.string.generic_cancel)) }
                     Button(
                         modifier = Modifier.weight(1f),
                         onClick = {
                             onSave(LegacyControlInfo(name = name, author = author, version = version, desc = desc))
                         }
-                    ) { MarqueeText(stringResource(R.string.generic_save)) }
+                    ) { MarqueeText(text = stringResource(R.string.generic_save)) }
                 }
             }
         }
