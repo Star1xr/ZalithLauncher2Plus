@@ -61,7 +61,10 @@ class ScreenBackStackViewModel : ViewModel() {
      * 在跳转前，先将导航栈中所有属于 [clearBeforeNavKeys] 的页面全部移除
      * 这样可以避免用户在这几个页面间产生叠加栈或多层返回的情况
      */
-    /** Whether the launcher right panel is collapsed (expanded layout mode) */
+    /**
+     * Whether the launcher right panel is collapsed (expanded layout mode).
+     * Shared with [MainScreen] so the top bar title can center correctly per layout.
+     */
     val launcherRightPanelCollapsed = MutableStateFlow(false)
 
     val clearBeforeNavKeys = listOf(
