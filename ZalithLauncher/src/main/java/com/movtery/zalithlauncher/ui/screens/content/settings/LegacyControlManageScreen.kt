@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -50,6 +51,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.itemColor
+import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlData
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlInfo
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlManager
@@ -285,8 +288,8 @@ private fun LegacyLayoutItem(
 
     Surface(
         modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
-        color = com.movtery.zalithlauncher.ui.theme.itemColor(),
-        contentColor = com.movtery.zalithlauncher.ui.theme.onItemColor(),
+        color = itemColor(),
+        contentColor = onItemColor(),
         shape = MaterialTheme.shapes.large,
         onClick = {
             if (!isSelected) onSelect()
@@ -460,8 +463,8 @@ private fun LegacyInfoItem(
 ) {
     Surface(
         modifier = modifier,
-        color = com.movtery.zalithlauncher.ui.theme.itemColor(),
-        contentColor = com.movtery.zalithlauncher.ui.theme.onItemColor(),
+        color = itemColor(),
+        contentColor = onItemColor(),
         shape = MaterialTheme.shapes.large,
         onClick = {}
     ) {
