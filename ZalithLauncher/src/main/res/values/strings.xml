@@ -1381,4 +1381,19 @@
     <string name="settings_export_failed">Export failed!</string>
     <string name="storage_permission_request_title">Storage Permission Required</string>
     <string name="storage_permission_request_message">To export settings/accounts to public storage, we need storage permission.</string>
+
+    <!-- Zalith 1 Legacy Control Layout Management -->
+    <string name="control_manage_tab_zalith2">Zalith 2</string>
+    <string name="control_manage_tab_legacy">Zalith 1 Legacy</string>
+    <string name="legacy_control_manage_title">Legacy Layouts</string>
+    <string name="legacy_control_manage_empty">No legacy layouts found. Import a Zalith Launcher 1 layout (.json) to get started.</string>
+    <string name="legacy_control_manage_import">Import Legacy</string>
+    <string name="legacy_control_manage_not_legacy">This file is not a valid Zalith Launcher 1 control layout.</string>
+    <string name="legacy_control_manage_import_failed">Failed to import layout: %s</string>
+    <string name="legacy_control_manage_delete_message">Delete the layout \"%s\"?</string>
+    <string name="legacy_control_manage_info_buttons">Buttons</string>
+    <string name="legacy_control_manage_info_joysticks">Joysticks</string>
+    <string name="legacy_control_manage_info_drawers">Drawers</string>
+    <string name="legacy_control_manage_info_format_version">Format Version</string>
+    <string name="legacy_control_manage_edit_info">Edit Info</string>
 </resources>
