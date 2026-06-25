@@ -63,7 +63,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -267,7 +266,7 @@ fun ControlManageScreen(
     ) { isVisible ->
         val selectedLayout by ControlManager.selectedLayout.collectAsStateWithLifecycle()
         val isRefreshing by ControlManager.isRefreshing.collectAsStateWithLifecycle()
-        var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+        var selectedTab by remember { mutableIntStateOf(0) }
 
         Column(
             modifier = Modifier
