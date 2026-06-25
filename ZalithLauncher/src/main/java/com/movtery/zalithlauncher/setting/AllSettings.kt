@@ -454,6 +454,7 @@ object AllSettings : SettingsRegistry() {
      * 全局默认控制布局文件名
      */
     val controlLayout = stringSetting("controlLayout", "")
+    val legacyControlLayout = stringSetting("legacyControlLayout", "")
 
     //Other
     /**
