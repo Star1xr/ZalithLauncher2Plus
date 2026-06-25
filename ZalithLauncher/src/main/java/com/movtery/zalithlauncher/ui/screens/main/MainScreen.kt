@@ -56,6 +56,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -95,6 +97,7 @@ import com.movtery.zalithlauncher.ui.screens.content.FileManagerScreen
 import com.movtery.zalithlauncher.ui.screens.content.FileSelectorScreen
 import com.movtery.zalithlauncher.ui.screens.content.HomePageEditorScreen
 import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
+import com.movtery.zalithlauncher.ui.screens.content.elements.AboutDialog
 import com.movtery.zalithlauncher.ui.screens.content.LicenseScreen
 import com.movtery.zalithlauncher.ui.screens.content.GameStatsScreen
 import com.movtery.zalithlauncher.ui.screens.content.LogViewScreen
@@ -132,12 +135,12 @@ fun MainScreen(
 ) {
     val tasks by TaskSystem.tasksFlow.collectAsStateWithLifecycle()
 
-    //监控当前是否有任务正在进行
+    //çæ§å½åæ¯å¦æä»»å¡æ­£å¨è¿è¡
     LaunchedEffect(tasks) {
         if (tasks.isEmpty()) {
             eventViewModel.sendKeepScreen(false)
         } else {
-            //有任务正在进行，避免熄屏
+            //æä»»å¡æ­£å¨è¿è¡ï¼é¿åçå±
             eventViewModel.sendKeepScreen(true)
         }
     }
@@ -166,13 +169,14 @@ fun MainScreen(
         AllSettings.launcherTaskMenuExpanded.save(!isTaskMenuExpanded)
     }
 
-    /** 回到主页面通用函数 */
+    /** åå°ä¸»é¡µé¢éç¨å½æ° */
     val toMainScreen: () -> Unit = {
         screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain)
     }
 
     val mainScreenKey = screenBackStackModel.mainScreen.currentKey
     val inLauncherScreen = mainScreenKey == null || mainScreenKey is NormalNavKey.LauncherMain
+    var showAboutDialog by remember { mutableStateOf(false) }
 
     val isBackgroundValid = LocalBackgroundViewModel.current?.isValid == true
     val launcherBackgroundOpacity = AllSettings.launcherBackgroundOpacity.state.toFloat() / 100f
@@ -221,7 +225,12 @@ fun MainScreen(
                 changeExpandedState = {
                     changeTasksExpandedState()
                 },
+                onTitleClick = { showAboutDialog = true },
             )
+
+            if (showAboutDialog) {
+                AboutDialog(onDismiss = { showAboutDialog = false })
+            }
 
             Box(
                 modifier = Modifier
@@ -267,6 +276,7 @@ private fun <E: TitledNavKey> TopBar(
     toDownloadScreen: () -> Unit,
     toMultiplayerScreen: () -> Unit,
     changeExpandedState: () -> Unit,
+    onTitleClick: () -> Unit = {},
 ) {
     val festivals = LocalFestivals.current
 
@@ -301,7 +311,7 @@ private fun <E: TitledNavKey> TopBar(
                             modifier = Modifier.fillMaxHeight(),
                             onClick = {
                                 if (!inLauncherScreen) {
-                                    //不在主屏幕时才允许返回
+                                    //ä¸å¨ä¸»å±å¹æ¶æåè®¸è¿å
                                     backDispatcher?.onBackPressed() ?: run {
                                         onScreenBack()
                                     }
@@ -319,7 +329,7 @@ private fun <E: TitledNavKey> TopBar(
                             modifier = Modifier.fillMaxHeight(),
                             onClick = {
                                 if (!inLauncherScreen) {
-                                    //不在主屏幕时才允许回到主页面
+                                    //ä¸å¨ä¸»å±å¹æ¶æåè®¸åå°ä¸»é¡µé¢
                                     toMainScreen()
                                 }
                             }
@@ -338,7 +348,11 @@ private fun <E: TitledNavKey> TopBar(
             Crossfade(
                 modifier = Modifier.constrainAs(title) {
                     centerVerticallyTo(parent)
-                    start.linkTo(backCenter.end, margin = 16.dp)
+                    if (inLauncherScreen) {
+                        centerHorizontallyTo(parent)
+                    } else {
+                        start.linkTo(backCenter.end, margin = 16.dp)
+                    }
                 },
                 targetState = parentRes to childRes
             ) { (parent, child) ->
@@ -348,6 +362,7 @@ private fun <E: TitledNavKey> TopBar(
 
                 if (parent == null) {
                     Column(
+                        modifier = Modifier.clickable { onTitleClick() },
                         verticalArrangement = Arrangement.Center
                     ) {
                         if (festivals.isEmpty()) {
@@ -364,13 +379,6 @@ private fun <E: TitledNavKey> TopBar(
                                 maxLines = maxLines
                             )
                         }
-                        Text(
-                            modifier = Modifier.alpha(0.6f),
-                            text = stringResource(R.string.launcher_fork_subtitle),
-                            style = MaterialTheme.typography.labelSmall,
-                            softWrap = softWarp,
-                            maxLines = 1
-                        )
                     }
                 } else {
                     val parentText = stringResource(parent)
@@ -505,7 +513,7 @@ private fun NavigationUI(
     }
 
     if (backStack.isNotEmpty()) {
-        /** 导航至版本详细信息屏幕 */
+        /** å¯¼èªè³çæ¬è¯¦ç»ä¿¡æ¯å±å¹ */
         val navigateToVersions: (Version) -> Unit = remember(screenBackStackModel) {
             { version ->
                 screenBackStackModel.mainScreen.navigateTo(
@@ -514,7 +522,7 @@ private fun NavigationUI(
                 )
             }
         }
-        /** 导航至整合包导出屏幕 */
+        /** å¯¼èªè³æ´ååå¯¼åºå±å¹ */
         val navigateToExport: (Version) -> Unit = remember(screenBackStackModel) {
             { version ->
                 screenBackStackModel.mainScreen.removeAndNavigateTo(
@@ -769,7 +777,7 @@ private fun TaskMenu(
                                 .fillMaxWidth()
                                 .padding(vertical = 6.dp)
                         ) {
-                            //取消任务
+                            //åæ¶ä»»å¡
                             TaskSystem.cancelTask(task.id)
                         }
                     }
@@ -830,7 +838,7 @@ private fun TaskItem(
                     )
                 }
 
-                if (taskProgress < 0) { //负数则代表不确定
+                if (taskProgress < 0) { //è´æ°åä»£è¡¨ä¸ç¡®å®
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth()
                     )
