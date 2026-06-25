@@ -176,6 +176,7 @@ fun MainScreen(
 
     val mainScreenKey = screenBackStackModel.mainScreen.currentKey
     val inLauncherScreen = mainScreenKey == null || mainScreenKey is NormalNavKey.LauncherMain
+    val launcherRightPanelCollapsed by screenBackStackModel.launcherRightPanelCollapsed.collectAsStateWithLifecycle()
     var showAboutDialog by remember { mutableStateOf(false) }
 
     val isBackgroundValid = LocalBackgroundViewModel.current?.isValid == true
@@ -226,6 +227,7 @@ fun MainScreen(
                     changeTasksExpandedState()
                 },
                 onTitleClick = { showAboutDialog = true },
+                launcherRightPanelCollapsed = launcherRightPanelCollapsed,
             )
 
             if (showAboutDialog) {
@@ -266,6 +268,7 @@ fun MainScreen(
 private fun <E: TitledNavKey> TopBar(
     mainScreenKey: E?,
     inLauncherScreen: Boolean,
+    launcherRightPanelCollapsed: Boolean = false,
     taskRunning: Boolean,
     isTasksExpanded: Boolean,
     modifier: Modifier = Modifier,
@@ -289,6 +292,8 @@ private fun <E: TitledNavKey> TopBar(
     ) {
         ConstraintLayout(modifier = modifier) {
             val (backCenter, title, endButtons) = createRefs()
+            val rightPanelGuidelineOffset = if (inLauncherScreen && !launcherRightPanelCollapsed) 290.dp else 0.dp
+            val contentEnd = createGuidelineFromEnd(rightPanelGuidelineOffset)
 
             val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
@@ -349,7 +354,8 @@ private fun <E: TitledNavKey> TopBar(
                 modifier = Modifier.constrainAs(title) {
                     centerVerticallyTo(parent)
                     if (inLauncherScreen) {
-                        centerHorizontallyTo(parent)
+                        start.linkTo(parent.start)
+                        end.linkTo(contentEnd)
                     } else {
                         start.linkTo(backCenter.end, margin = 16.dp)
                     }
