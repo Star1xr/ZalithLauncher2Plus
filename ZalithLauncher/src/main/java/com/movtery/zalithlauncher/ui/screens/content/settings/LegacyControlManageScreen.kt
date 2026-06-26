@@ -57,6 +57,7 @@ import com.movtery.zalithlauncher.game.control.legacy.LegacyControlData
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlInfo
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlManager
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.ui.activities.startLegacyEditorActivity
 import com.movtery.zalithlauncher.ui.components.AnimatedRow
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
@@ -77,6 +78,7 @@ import kotlinx.coroutines.launch
 
 private sealed interface LegacyOperation {
     data object None : LegacyOperation
+    data object CreateNew : LegacyOperation
     data class Delete(val data: LegacyControlData) : LegacyOperation
     data class EditInfo(val data: LegacyControlData) : LegacyOperation
 }
@@ -133,6 +135,15 @@ fun LegacyControlManageContent(
 
     when (val op = operation) {
         is LegacyOperation.None -> {}
+        is LegacyOperation.CreateNew -> {
+            LegacyCreateNewDialog(
+                onDismissRequest = { operation = LegacyOperation.None },
+                onCreate = { name ->
+                    LegacyControlManager.createNew(name)
+                    operation = LegacyOperation.None
+                }
+            )
+        }
         is LegacyOperation.Delete -> {
             val layoutName = op.data.info.name.ifEmpty { op.data.file.name }
             SimpleAlertDialog(
@@ -171,6 +182,7 @@ fun LegacyControlManageContent(
                 selectedLayout = selectedLayout,
                 onRefresh = { LegacyControlManager.refresh() },
                 onImport = { importLauncher.launch(arrayOf("application/json", "*/*")) },
+                onCreate = { operation = LegacyOperation.CreateNew },
                 onSelect = { data -> LegacyControlManager.selectControl(data) },
                 onDuplicate = { data -> LegacyControlManager.duplicate(data) },
                 onDelete = { data -> operation = LegacyOperation.Delete(data) }
@@ -184,7 +196,8 @@ fun LegacyControlManageContent(
                 isLoading = isRefreshing,
                 data = selectedLayout,
                 onShareLayout = { data -> shareFile(context, data.file) },
-                onEditInfo = { data -> operation = LegacyOperation.EditInfo(data) }
+                onEditInfo = { data -> operation = LegacyOperation.EditInfo(data) },
+                onOpenEditor = { data -> startLegacyEditorActivity(context, data.file) }
             )
         }
     }
@@ -199,6 +212,7 @@ private fun LegacyLayoutList(
     isLoading: Boolean,
     onRefresh: () -> Unit,
     onImport: () -> Unit,
+    onCreate: () -> Unit,
     onSelect: (LegacyControlData) -> Unit,
     onDuplicate: (LegacyControlData) -> Unit = {},
     onDelete: (LegacyControlData) -> Unit
@@ -241,6 +255,12 @@ private fun LegacyLayoutList(
                         contentDescription = stringResource(R.string.legacy_control_manage_import),
                         text = stringResource(R.string.legacy_control_manage_import)
                     )
+                    IconTextButton(
+                        onClick = onCreate,
+                        painter = painterResource(R.drawable.ic_add),
+                        contentDescription = stringResource(R.string.legacy_control_manage_create_new),
+                        text = stringResource(R.string.legacy_control_manage_create_new)
+                    )
                 }
             }
 
@@ -267,6 +287,7 @@ private fun LegacyLayoutList(
                             data = data,
                             isSelected = isSelected,
                             onSelect = { onSelect(data) },
+                            onDuplicate = { onDuplicate(data) },
                             onDelete = { onDelete(data) }
                         )
                     }
@@ -282,6 +303,7 @@ private fun LegacyLayoutItem(
     data: LegacyControlData,
     isSelected: Boolean,
     onSelect: () -> Unit,
+    onDuplicate: () -> Unit,
     onDelete: () -> Unit
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
@@ -330,6 +352,12 @@ private fun LegacyLayoutItem(
                     )
                 }
             }
+            IconButton(onClick = onDuplicate) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_copy_all_outlined),
+                    contentDescription = stringResource(R.string.legacy_control_manage_duplicate)
+                )
+            }
             IconButton(onClick = onDelete) {
                 Icon(
                     painter = painterResource(R.drawable.ic_delete_outlined),
@@ -347,7 +375,8 @@ private fun LegacyLayoutInfo(
     isLoading: Boolean,
     data: LegacyControlData?,
     onShareLayout: (LegacyControlData) -> Unit,
-    onEditInfo: (LegacyControlData) -> Unit
+    onEditInfo: (LegacyControlData) -> Unit,
+    onOpenEditor: (LegacyControlData) -> Unit
 ) {
     BackgroundCard(
         modifier = modifier.fillMaxHeight(),
@@ -439,7 +468,7 @@ private fun LegacyLayoutInfo(
                     .align(Alignment.End)
                     .padding(horizontal = 12.dp)
                     .padding(bottom = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ScalingActionButton(
                     modifier = Modifier.weight(1f, fill = false),
@@ -452,6 +481,16 @@ private fun LegacyLayoutInfo(
                     onClick = { onEditInfo(data) }
                 ) {
                     MarqueeText(text = stringResource(R.string.legacy_control_manage_edit_info))
+                }
+                ScalingActionButton(
+                    modifier = Modifier.weight(1f, fill = false),
+                    onClick = { onOpenEditor(data) }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_edit_outlined),
+                        contentDescription = null
+                    )
+                    MarqueeText(text = stringResource(R.string.legacy_control_manage_open_editor))
                 }
             }
         }
@@ -490,6 +529,56 @@ private fun LegacyInfoItem(
                 textAlign = TextAlign.End,
                 style = MaterialTheme.typography.bodyMedium
             )
+        }
+    }
+}
+
+@Composable
+private fun LegacyCreateNewDialog(
+    onDismissRequest: () -> Unit,
+    onCreate: (String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+
+    Dialog(onDismissRequest = onDismissRequest) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = MaterialTheme.shapes.extraLarge,
+            shadowElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.legacy_control_manage_create_new),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                OwnOutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = name,
+                    onValueChange = { name = it.take(64) },
+                    label = { Text(stringResource(R.string.control_manage_create_new_name)) },
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.large
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilledTonalButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = onDismissRequest
+                    ) { MarqueeText(text = stringResource(R.string.generic_cancel)) }
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = { onCreate(name.ifEmpty { "New Layout" }) },
+                        enabled = true
+                    ) { MarqueeText(text = stringResource(R.string.legacy_control_manage_create_new)) }
+                }
+            }
         }
     }
 }
