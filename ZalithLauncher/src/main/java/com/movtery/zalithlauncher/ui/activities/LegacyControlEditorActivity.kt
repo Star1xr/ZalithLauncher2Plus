@@ -615,7 +615,7 @@ private fun ButtonPropertiesDialog(
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilledTonalButton(Modifier.weight(1f), onClick = onDismiss) {
+                    FilledTonalButton(modifier = Modifier.weight(1f), onClick = onDismiss) {
                         Text(stringResource(R.string.generic_cancel))
                     }
                     Button(
