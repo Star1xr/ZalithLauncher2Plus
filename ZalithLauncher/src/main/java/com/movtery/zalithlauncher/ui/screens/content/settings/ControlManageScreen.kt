@@ -19,6 +19,11 @@
 package com.movtery.zalithlauncher.ui.screens.content.settings
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,9 +57,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -212,6 +214,60 @@ private fun rememberControlViewModel() = viewModel(
     ControlViewModel()
 }
 
+
+@Composable
+private fun ControlTypeTabRow(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    BoxWithConstraints(
+        modifier = modifier
+            .height(40.dp)
+            .clip(MaterialTheme.shapes.extraLarge)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(4.dp)
+    ) {
+        val tabWidth = maxWidth / 2
+        val indicatorOffset by animateDpAsState(
+            targetValue = tabWidth * selectedTab,
+            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+            label = "tab_indicator"
+        )
+        Box(
+            modifier = Modifier
+                .offset(x = indicatorOffset)
+                .width(tabWidth)
+                .fillMaxHeight()
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.primaryContainer)
+        )
+        Row(modifier = Modifier.fillMaxSize()) {
+            listOf(
+                stringResource(R.string.control_manage_tab_zalith2),
+                stringResource(R.string.control_manage_tab_legacy)
+            ).forEachIndexed { index, label ->
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clickable { onTabSelected(index) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (selectedTab == index)
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun ControlManageScreen(
     key: NestedNavKey.Settings,
@@ -266,25 +322,18 @@ fun ControlManageScreen(
     ) { isVisible ->
         val selectedLayout by ControlManager.selectedLayout.collectAsStateWithLifecycle()
         val isRefreshing by ControlManager.isRefreshing.collectAsStateWithLifecycle()
-        var selectedTab by remember { mutableIntStateOf(0) }
+        var selectedTab by remember { mutableIntStateOf(if (AllSettings.controlType.getValue() == "legacy") 1 else 0) }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(all = 12.dp)
         ) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    shape = SegmentedButtonDefaults.itemShape(0, 2),
-                ) { Text(stringResource(R.string.control_manage_tab_zalith2)) }
-                SegmentedButton(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    shape = SegmentedButtonDefaults.itemShape(1, 2),
-                ) { Text(stringResource(R.string.control_manage_tab_legacy)) }
-            }
+            ControlTypeTabRow(
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it },
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 

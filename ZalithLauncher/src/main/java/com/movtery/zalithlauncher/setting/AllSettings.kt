@@ -455,6 +455,10 @@ object AllSettings : SettingsRegistry() {
      */
     val controlLayout = stringSetting("controlLayout", "")
     val legacyControlLayout = stringSetting("legacyControlLayout", "")
+    /**
+     * Active control type: "zalith2" or "legacy"
+     */
+    val controlType = stringSetting("controlType", "zalith2")
 
     //Other
     /**

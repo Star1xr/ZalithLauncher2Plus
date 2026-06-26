@@ -167,6 +167,7 @@ object ControlManager {
     fun selectControl(data: ControlData) {
         if (!data.file.exists() || !data.isSupport) return
         AllSettings.controlLayout.save(data.file.name)
+        AllSettings.controlType.save("zalith2")
         _selectedLayout.update { data }
     }
 

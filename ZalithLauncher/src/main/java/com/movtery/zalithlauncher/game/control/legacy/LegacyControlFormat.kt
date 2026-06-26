@@ -40,17 +40,17 @@ object LegacyControlParser {
             val infoJson = json.optJSONObject("mControlInfoDataList")
             val info = if (infoJson != null) {
                 LegacyControlInfo(
-                    name = infoJson.optString("name", ""),
-                    version = infoJson.optString("version", ""),
-                    author = infoJson.optString("author", ""),
-                    desc = infoJson.optString("desc", "")
+                    name    = infoJson.optString("name",    "").sanitize(),
+                    version = infoJson.optString("version", "").sanitize(),
+                    author  = infoJson.optString("author",  "").sanitize(),
+                    desc    = infoJson.optString("desc",    "").sanitize()
                 )
             } else {
                 LegacyControlInfo()
             }
 
-            val buttonCount = json.optJSONArray("mControlDataList")?.length() ?: 0
-            val drawerCount = json.optJSONArray("mDrawerDataList")?.length() ?: 0
+            val buttonCount  = json.optJSONArray("mControlDataList")?.length() ?: 0
+            val drawerCount  = json.optJSONArray("mDrawerDataList")?.length() ?: 0
             val joystickCount = json.optJSONArray("mJoystickDataList")?.length() ?: 0
 
             LegacyCustomControls(
@@ -66,13 +66,16 @@ object LegacyControlParser {
         }
     }
 
+    /** Returns empty string for "null" literal, blank, or actual empty values. */
+    private fun String.sanitize(): String = if (this == "null" || isBlank()) "" else this
+
     fun updateInfo(jsonString: String, newInfo: LegacyControlInfo): String {
         val json = JSONObject(jsonString)
         val infoJson = json.optJSONObject("mControlInfoDataList") ?: JSONObject()
-        infoJson.put("name", newInfo.name)
+        infoJson.put("name",    newInfo.name)
         infoJson.put("version", newInfo.version)
-        infoJson.put("author", newInfo.author)
-        infoJson.put("desc", newInfo.desc)
+        infoJson.put("author",  newInfo.author)
+        infoJson.put("desc",    newInfo.desc)
         json.put("mControlInfoDataList", infoJson)
         return json.toString(2)
     }

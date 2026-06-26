@@ -311,6 +311,20 @@ private class GameViewModel(
     }
 
     private fun getLayout(layoutFile: File? = currentControlFile): ControlLayout {
+        if (AllSettings.controlType.getValue() == "legacy") {
+            val legacyFileName = AllSettings.legacyControlLayout.getValue()
+            if (legacyFileName.isNotEmpty()) {
+                val legacyFile = File(PathManager.DIR_LEGACY_CONTROL_LAYOUTS, legacyFileName)
+                if (legacyFile.exists()) {
+                    return try {
+                        LegacyControlConverter.convert(legacyFile) ?: EmptyControlLayout
+                    } catch (e: Exception) {
+                        Logger.warning(TAG, "Failed to convert legacy layout: $legacyFile", e)
+                        EmptyControlLayout
+                    }
+                }
+            }
+        }
         return layoutFile?.let {
             try {
                 loadLayoutFromFile(it)

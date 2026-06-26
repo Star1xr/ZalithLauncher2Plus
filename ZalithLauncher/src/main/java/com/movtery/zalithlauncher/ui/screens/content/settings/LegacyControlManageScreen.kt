@@ -56,6 +56,7 @@ import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlData
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlInfo
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlManager
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.AnimatedRow
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
@@ -171,7 +172,9 @@ fun LegacyControlManageContent(
                 onRefresh = { LegacyControlManager.refresh() },
                 onImport = { importLauncher.launch(arrayOf("application/json", "*/*")) },
                 onSelect = { data -> LegacyControlManager.selectControl(data) },
-                onDelete = { data -> operation = LegacyOperation.Delete(data) }
+                onDuplicate = { data -> LegacyControlManager.duplicate(data) },
+                onDuplicate = { data -> LegacyControlManager.duplicate(data) },
+            onDelete = { data -> operation = LegacyOperation.Delete(data) }
             )
         }
         AnimatedItem(scope) { xOffset ->
@@ -198,6 +201,7 @@ private fun LegacyLayoutList(
     onRefresh: () -> Unit,
     onImport: () -> Unit,
     onSelect: (LegacyControlData) -> Unit,
+    onDuplicate: (LegacyControlData) -> Unit = {},
     onDelete: (LegacyControlData) -> Unit
 ) {
     BackgroundCard(

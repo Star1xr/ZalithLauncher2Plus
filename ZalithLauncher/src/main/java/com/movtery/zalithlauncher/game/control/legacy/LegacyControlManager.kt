@@ -82,6 +82,7 @@ object LegacyControlManager {
     fun selectControl(data: LegacyControlData) {
         if (!data.file.exists()) return
         AllSettings.legacyControlLayout.save(data.file.name)
+        AllSettings.controlType.save("legacy")
         _selectedLayout.update { data }
     }
 
@@ -89,6 +90,10 @@ object LegacyControlManager {
         scope.launch(Dispatchers.IO) {
             if (!data.file.exists()) return@launch
             FileUtils.deleteQuietly(data.file)
+            if (AllSettings.legacyControlLayout.getValue() == data.file.name) {
+                AllSettings.legacyControlLayout.reset()
+                AllSettings.controlType.save("zalith2")
+            }
             refresh()
         }
     }
@@ -102,6 +107,35 @@ object LegacyControlManager {
                 refresh()
             } catch (e: Exception) {
                 Logger.warning(TAG, "Failed to save legacy control info: ${data.file.name}", e)
+            }
+        }
+    }
+
+    /** Creates a new empty Zalith 1 legacy layout file. */
+    fun createNew(name: String = "New Layout") {
+        scope.launch(Dispatchers.IO) {
+            val destFile = newFile()
+            try {
+                val json = """{"version":8,"scaledAt":100.0,"mControlDataList":[],"mDrawerDataList":[],"mJoystickDataList":[],"mControlInfoDataList":{"name":"${name}","version":"1.0","author":"","desc":""}}"""
+                destFile.writeText(json)
+                refresh()
+            } catch (e: Exception) {
+                FileUtils.deleteQuietly(destFile)
+                Logger.warning(TAG, "Failed to create new legacy layout", e)
+            }
+        }
+    }
+
+    /** Duplicates an existing legacy layout file. */
+    fun duplicate(data: LegacyControlData) {
+        scope.launch(Dispatchers.IO) {
+            val destFile = newFile()
+            try {
+                FileUtils.copyFile(data.file, destFile)
+                refresh()
+            } catch (e: Exception) {
+                FileUtils.deleteQuietly(destFile)
+                Logger.warning(TAG, "Failed to duplicate legacy layout: ${data.file.name}", e)
             }
         }
     }
