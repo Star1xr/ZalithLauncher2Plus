@@ -102,16 +102,22 @@ import org.apache.commons.io.FileUtils
 import java.io.File
 
 
-  @Composable
+@Composable
   private fun DefaultControlSystemCard(modifier: Modifier = Modifier) {
       var controlType by remember { mutableStateOf(AllSettings.controlType.getValue()) }
       SettingsCardColumn(modifier = modifier) {
           SettingsCard(
               modifier = Modifier.fillMaxWidth(),
-              position = CardPosition.Top,
-              title = stringResource(R.string.settings_control_default_system_title),
-              summary = stringResource(R.string.settings_control_default_system_summary)
-          )
+              position = CardPosition.Top
+          ) {
+              TitleAndSummary(
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .padding(all = 16.dp),
+                  title = stringResource(R.string.settings_control_default_system_title),
+                  summary = stringResource(R.string.settings_control_default_system_summary)
+              )
+          }
           SettingsCard(
               modifier = Modifier.fillMaxWidth(),
               position = CardPosition.Bottom

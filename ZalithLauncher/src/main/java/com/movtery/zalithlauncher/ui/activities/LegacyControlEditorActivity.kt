@@ -367,8 +367,8 @@ private fun LegacyControlEditorScreen(controlFile: File, onExit: () -> Unit) {
                               .pointerInput(sid, sel.widthDp, sel.heightDp) {
                                   val selBwPx = with(density) { sel.widthDp.dp.toPx() }
                                   val selBhPx = with(density) { sel.heightDp.dp.toPx() }
-                                  val selBxPx = (sel.xFrac * canvasSize.width) - selBwPx / 2f
-                                  val selByPx = (sel.yFrac * canvasSize.height) - selBhPx / 2f
+                                  val selBxPx = (sel.xFrac * canvasWPx) - selBwPx / 2f
+                                  val selByPx = (sel.yFrac * canvasHPx) - selBhPx / 2f
                                   val hitZone = 36f
                                   awaitEachGesture {
                                       val down = awaitFirstDown(requireUnconsumed = false)
@@ -407,18 +407,18 @@ private fun LegacyControlEditorScreen(controlFile: File, onExit: () -> Unit) {
                                                   ResizeCorner.BottomLeft -> b.copy(
                                                       widthDp = (b.widthDp - dpX).coerceAtLeast(20f),
                                                       heightDp = (b.heightDp + dpY).coerceAtLeast(20f),
-                                                      xFrac = ((b.xFrac * canvasSize.width + acc.x / 2f) / canvasSize.width).coerceIn(0f, 1f)
+                                                      xFrac = ((b.xFrac * canvasWPx + acc.x / 2f) / canvasWPx).coerceIn(0f, 1f)
                                                   )
                                                   ResizeCorner.TopRight -> b.copy(
                                                       widthDp = (b.widthDp + dpX).coerceAtLeast(20f),
                                                       heightDp = (b.heightDp - dpY).coerceAtLeast(20f),
-                                                      yFrac = ((b.yFrac * canvasSize.height + acc.y / 2f) / canvasSize.height).coerceIn(0f, 1f)
+                                                      yFrac = ((b.yFrac * canvasHPx + acc.y / 2f) / canvasHPx).coerceIn(0f, 1f)
                                                   )
                                                   ResizeCorner.TopLeft -> b.copy(
                                                       widthDp = (b.widthDp - dpX).coerceAtLeast(20f),
                                                       heightDp = (b.heightDp - dpY).coerceAtLeast(20f),
-                                                      xFrac = ((b.xFrac * canvasSize.width + acc.x / 2f) / canvasSize.width).coerceIn(0f, 1f),
-                                                      yFrac = ((b.yFrac * canvasSize.height + acc.y / 2f) / canvasSize.height).coerceIn(0f, 1f)
+                                                      xFrac = ((b.xFrac * canvasWPx + acc.x / 2f) / canvasWPx).coerceIn(0f, 1f),
+                                                      yFrac = ((b.yFrac * canvasHPx + acc.y / 2f) / canvasHPx).coerceIn(0f, 1f)
                                                   )
                                               }
                                           }
