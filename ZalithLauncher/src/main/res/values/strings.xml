@@ -1405,4 +1405,16 @@
     <string name="legacy_control_editor_add_button">Add Button</string>
     <string name="legacy_control_editor_edit_button">Edit Button</string>
     <string name="legacy_control_editor_keycodes">Key Codes (e.g. 29 or 29,30)</string>
+    <string name="legacy_control_editor_unsaved_title">Unsaved Changes</string>
+    <string name="legacy_control_editor_unsaved_message">You have unsaved changes. Save before leaving?</string>
+    <string name="legacy_control_editor_width">Width (dp)</string>
+    <string name="legacy_control_editor_height">Height (dp)</string>
+    <string name="legacy_control_editor_corner_radius">Corner Radius (0–90)</string>
+    <string name="legacy_control_editor_toggle">Toggle Button</string>
+    <string name="legacy_control_editor_display_game">Show in Game</string>
+    <string name="legacy_control_editor_display_menu">Show in Menu</string>
+    <string name="legacy_control_editor_hint_keycodes">Special: –1 Keyboard · –3 Left Click · –4 Right Click · –7/–8 Scroll</string>
+    <string name="control_type_selector_label">In-game control system</string>
+    <string name="control_type_zalith2">Zalith Launcher 2</string>
+    <string name="control_type_legacy">Legacy (Zalith 1)</string>
 </resources>
