@@ -289,6 +289,56 @@ private fun ControlTypeTabRow(
 }
 
 @Composable
+private fun ControlTypeSelector(
+    currentType: String,
+    onTypeChange: (String) -> Unit
+) {
+    var type by remember { mutableStateOf(currentType) }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.control_type_selector_label),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.weight(1f)
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = type == "zalith2",
+                    onClick = { type = "zalith2"; onTypeChange("zalith2") }
+                )
+                Text(
+                    stringResource(R.string.control_type_zalith2),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = type == "legacy",
+                    onClick = { type = "legacy"; onTypeChange("legacy") }
+                )
+                Text(
+                    stringResource(R.string.control_type_legacy),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun ControlManageScreen(
     key: NestedNavKey.Settings,
     settingsScreenKey: TitledNavKey?,
@@ -355,7 +405,17 @@ fun ControlManageScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+
+            ControlTypeSelector(
+                currentType = AllSettings.controlType.getValue(),
+                onTypeChange = { type ->
+                    AllSettings.controlType.save(type)
+                    selectedTab = if (type == "legacy") 1 else 0
+                }
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 when (selectedTab) {
