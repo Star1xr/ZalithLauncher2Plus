@@ -41,9 +41,12 @@ object LegacyControlManager {
         currentJob?.cancel()
         currentJob = scope.launch(Dispatchers.IO) {
             _isRefreshing.update { true }
-            _dataList.update { emptyList() }
 
-            val files = (PathManager.DIR_LEGACY_CONTROL_LAYOUTS.listFiles() ?: emptyArray())
+            val files = run {
+                val dir = PathManager.DIR_LEGACY_CONTROL_LAYOUTS
+                if (!dir.exists()) dir.mkdirs()
+                (dir.listFiles() ?: emptyArray())
+            }
                 .filter { it.isFile && it.exists() && it.extension.equals("json", ignoreCase = true) }
 
             val loaded = files.mapNotNull { file ->

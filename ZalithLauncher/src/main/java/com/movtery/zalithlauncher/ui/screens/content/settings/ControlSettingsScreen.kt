@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -100,7 +101,74 @@ import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
 
-@Composable
+
+  @Composable
+  private fun DefaultControlSystemCard(modifier: Modifier = Modifier) {
+      var controlType by remember { mutableStateOf(AllSettings.controlType.getValue()) }
+      SettingsCardColumn(modifier = modifier) {
+          SettingsCard(
+              modifier = Modifier.fillMaxWidth(),
+              position = CardPosition.Top,
+              title = stringResource(R.string.settings_control_default_system_title),
+              summary = stringResource(R.string.settings_control_default_system_summary)
+          )
+          SettingsCard(
+              modifier = Modifier.fillMaxWidth(),
+              position = CardPosition.Bottom
+          ) {
+              Column(modifier = Modifier.fillMaxWidth()) {
+                  Row(
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .clickable {
+                              controlType = "zalith2"
+                              AllSettings.controlType.save("zalith2")
+                          }
+                          .padding(horizontal = 16.dp, vertical = 8.dp),
+                      verticalAlignment = Alignment.CenterVertically
+                  ) {
+                      RadioButton(
+                          selected = controlType == "zalith2",
+                          onClick = {
+                              controlType = "zalith2"
+                              AllSettings.controlType.save("zalith2")
+                          }
+                      )
+                      Text(
+                          text = stringResource(R.string.settings_control_default_system_zalith2),
+                          style = MaterialTheme.typography.bodyMedium,
+                          modifier = Modifier.padding(start = 8.dp)
+                      )
+                  }
+                  Row(
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .clickable {
+                              controlType = "legacy"
+                              AllSettings.controlType.save("legacy")
+                          }
+                          .padding(horizontal = 16.dp, vertical = 8.dp),
+                      verticalAlignment = Alignment.CenterVertically
+                  ) {
+                      RadioButton(
+                          selected = controlType == "legacy",
+                          onClick = {
+                              controlType = "legacy"
+                              AllSettings.controlType.save("legacy")
+                          }
+                      )
+                      Text(
+                          text = stringResource(R.string.settings_control_default_system_legacy),
+                          style = MaterialTheme.typography.bodyMedium,
+                          modifier = Modifier.padding(start = 8.dp)
+                      )
+                  }
+              }
+          }
+      }
+  }
+
+  @Composable
 fun ControlSettingsScreen(
     key: NestedNavKey.Settings,
     settingsScreenKey: TitledNavKey?,
@@ -120,6 +188,13 @@ fun ControlSettingsScreen(
             isVisible = isVisible
         ) { scope ->
             AnimatedItem(scope) { yOffset ->
+                  DefaultControlSystemCard(
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                  )
+              }
+              AnimatedItem(scope) { yOffset ->
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()

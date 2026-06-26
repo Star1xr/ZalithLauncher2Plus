@@ -108,6 +108,8 @@ private data class CanvasButton(
 )
 
 private data class DragState(val id: String, val delta: Offset)
+  private data class ResizeState(val id: String, val corner: ResizeCorner, val delta: Offset)
+  private enum class ResizeCorner { BottomRight, BottomLeft, TopRight, TopLeft }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,6 +123,7 @@ private fun LegacyControlEditorScreen(controlFile: File, onExit: () -> Unit) {
     var editingButton by remember { mutableStateOf<CanvasButton?>(null) }
     var saveError by remember { mutableStateOf<String?>(null) }
     val dragState = remember { mutableStateOf<DragState?>(null) }
+      val resizeState = remember { mutableStateOf<ResizeState?>(null) }
     val density = LocalDensity.current
     val selectedButton = buttons.find { it.id == selectedId }
 
@@ -308,6 +311,41 @@ private fun LegacyControlEditorScreen(controlFile: File, onExit: () -> Unit) {
                     ) {
                         Text(btn.name, color = fg, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
+
+                  // Draw resize handles on corners of the selected button
+                  if (isSelected) {
+                      val handleSizeDp = 16.dp
+                      val handleSizePx = with(density) { handleSizeDp.toPx() }
+                      listOf(
+                          ResizeCorner.TopLeft to Offset(bxPx - handleSizePx / 2f, byPx - handleSizePx / 2f),
+                          ResizeCorner.TopRight to Offset(bxPx + bwPx - handleSizePx / 2f, byPx - handleSizePx / 2f),
+                          ResizeCorner.BottomLeft to Offset(bxPx - handleSizePx / 2f, byPx + bhPx - handleSizePx / 2f),
+                          ResizeCorner.BottomRight to Offset(bxPx + bwPx - handleSizePx / 2f, byPx + bhPx - handleSizePx / 2f)
+                      ).forEach { (corner, pos) ->
+                          val rs = resizeState.value
+                          val dx = if (rs?.id == btn.id && rs.corner == corner) rs.delta.x else 0f
+                          val dy = if (rs?.id == btn.id && rs.corner == corner) rs.delta.y else 0f
+                          Box(
+                              modifier = Modifier
+                                  .absoluteOffset {
+                                      IntOffset(
+                                          (pos.x + dx).toInt(),
+                                          (pos.y + dy).toInt()
+                                      )
+                                  }
+                                  .size(handleSizeDp)
+                                  .background(
+                                      MaterialTheme.colorScheme.primary,
+                                      androidx.compose.foundation.shape.CircleShape
+                                  )
+                                  .border(
+                                      1.5.dp,
+                                      MaterialTheme.colorScheme.onPrimary,
+                                      androidx.compose.foundation.shape.CircleShape
+                                  )
+                          )
+                      }
+                  }
                 }
 
                 if (buttons.isEmpty()) {
@@ -319,6 +357,78 @@ private fun LegacyControlEditorScreen(controlFile: File, onExit: () -> Unit) {
                         )
                     }
                 }
+
+                  // Resize touch handler: drag from corners of selected button
+                  selectedId?.let { sid ->
+                      val sel = buttons.find { it.id == sid }
+                      if (sel != null) {
+                          Box(modifier = Modifier
+                              .fillMaxSize()
+                              .pointerInput(sid, sel.widthDp, sel.heightDp) {
+                                  val selBwPx = with(density) { sel.widthDp.dp.toPx() }
+                                  val selBhPx = with(density) { sel.heightDp.dp.toPx() }
+                                  val selBxPx = (sel.xFrac * canvasSize.width) - selBwPx / 2f
+                                  val selByPx = (sel.yFrac * canvasSize.height) - selBhPx / 2f
+                                  val hitZone = 36f
+                                  awaitEachGesture {
+                                      val down = awaitFirstDown(requireUnconsumed = false)
+                                      val tx = down.position.x; val ty = down.position.y
+                                      fun near(cx: Float, cy: Float) = Math.abs(tx - cx) < hitZone && Math.abs(ty - cy) < hitZone
+                                      val corner = when {
+                                          near(selBxPx, selByPx) -> ResizeCorner.TopLeft
+                                          near(selBxPx + selBwPx, selByPx) -> ResizeCorner.TopRight
+                                          near(selBxPx, selByPx + selBhPx) -> ResizeCorner.BottomLeft
+                                          near(selBxPx + selBwPx, selByPx + selBhPx) -> ResizeCorner.BottomRight
+                                          else -> null
+                                      } ?: return@awaitEachGesture
+                                      down.consume()
+                                      var acc = Offset.Zero
+                                      var tracking = true
+                                      while (tracking) {
+                                          val ev = awaitPointerEvent()
+                                          val ch = ev.changes.find { it.id == down.id }
+                                          if (ch == null) { tracking = false; continue }
+                                          val d = ch.position - ch.previousPosition
+                                          acc = Offset(acc.x + d.x, acc.y + d.y)
+                                          resizeState.value = ResizeState(sid, corner, acc)
+                                          ch.consume()
+                                          if (!ch.pressed) tracking = false
+                                      }
+                                      resizeState.value = null
+                                      val dpX = with(density) { acc.x.toDp().value }
+                                      val dpY = with(density) { acc.y.toDp().value }
+                                      buttons = buttons.map { b ->
+                                          if (b.id != sid) b else {
+                                              when (corner) {
+                                                  ResizeCorner.BottomRight -> b.copy(
+                                                      widthDp = (b.widthDp + dpX).coerceAtLeast(20f),
+                                                      heightDp = (b.heightDp + dpY).coerceAtLeast(20f)
+                                                  )
+                                                  ResizeCorner.BottomLeft -> b.copy(
+                                                      widthDp = (b.widthDp - dpX).coerceAtLeast(20f),
+                                                      heightDp = (b.heightDp + dpY).coerceAtLeast(20f),
+                                                      xFrac = ((b.xFrac * canvasSize.width + acc.x / 2f) / canvasSize.width).coerceIn(0f, 1f)
+                                                  )
+                                                  ResizeCorner.TopRight -> b.copy(
+                                                      widthDp = (b.widthDp + dpX).coerceAtLeast(20f),
+                                                      heightDp = (b.heightDp - dpY).coerceAtLeast(20f),
+                                                      yFrac = ((b.yFrac * canvasSize.height + acc.y / 2f) / canvasSize.height).coerceIn(0f, 1f)
+                                                  )
+                                                  ResizeCorner.TopLeft -> b.copy(
+                                                      widthDp = (b.widthDp - dpX).coerceAtLeast(20f),
+                                                      heightDp = (b.heightDp - dpY).coerceAtLeast(20f),
+                                                      xFrac = ((b.xFrac * canvasSize.width + acc.x / 2f) / canvasSize.width).coerceIn(0f, 1f),
+                                                      yFrac = ((b.yFrac * canvasSize.height + acc.y / 2f) / canvasSize.height).coerceIn(0f, 1f)
+                                                  )
+                                              }
+                                          }
+                                      }
+                                      isModified = true
+                                  }
+                              }
+                          )
+                      }
+                  }
             }
         }
     }
