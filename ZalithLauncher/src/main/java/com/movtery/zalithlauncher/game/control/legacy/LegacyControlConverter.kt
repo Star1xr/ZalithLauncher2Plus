@@ -37,15 +37,15 @@ import java.util.UUID
 object LegacyControlConverter {
 
     // Zalith 1 special button keycodes
-    private const val SPECIALBTN_KEYBOARD    = -1
-    private const val SPECIALBTN_TOGGLECTRL  = -2
-    private const val SPECIALBTN_MOUSEPRI    = -3
-    private const val SPECIALBTN_MOUSESEC    = -4
+    private const val SPECIALBTN_KEYBOARD     = -1
+    private const val SPECIALBTN_TOGGLECTRL   = -2
+    private const val SPECIALBTN_MOUSEPRI     = -3
+    private const val SPECIALBTN_MOUSESEC     = -4
     private const val SPECIALBTN_VIRTUALMOUSE = -5
-    private const val SPECIALBTN_MOUSEMID   = -6
-    private const val SPECIALBTN_SCROLLUP   = -7
-    private const val SPECIALBTN_SCROLLDOWN = -8
-    private const val SPECIALBTN_MENU       = -9
+    private const val SPECIALBTN_MOUSEMID     = -6
+    private const val SPECIALBTN_SCROLLUP     = -7
+    private const val SPECIALBTN_SCROLLDOWN   = -8
+    private const val SPECIALBTN_MENU         = -9
 
     // GLFW mouse button event strings (launcherEvent routes "GLFW_MOUSE_*" to sendMouseButton)
     private const val GLFW_MOUSE_LEFT   = "GLFW_MOUSE_BUTTON_LEFT"
@@ -53,9 +53,7 @@ object LegacyControlConverter {
     private const val GLFW_MOUSE_MIDDLE = "GLFW_MOUSE_BUTTON_MIDDLE"
 
     fun convert(file: File): ControlLayout? {
-        return try {
-            convert(file.readText(), file.nameWithoutExtension)
-        } catch (_: Exception) { null }
+        return try { convert(file.readText(), file.nameWithoutExtension) } catch (_: Exception) { null }
     }
 
     fun convert(jsonString: String, layoutName: String = "Legacy Layout"): ControlLayout? {
@@ -126,8 +124,9 @@ object LegacyControlConverter {
 
     private fun buildButton(btn: JSONObject): JSONObject? {
         return try {
-            val xFrac = parseExpr(btn.optString("dynamicX", "0.5 * ${screen_width}"))
-            val yFrac = parseExpr(btn.optString("dynamicY", "0.5 * ${screen_height}"))
+            // Pass empty string; parseExpr returns 0.5f (center) for blank/missing
+            val xFrac = parseExpr(btn.optString("dynamicX", ""))
+            val yFrac = parseExpr(btn.optString("dynamicY", ""))
             val xPos  = (xFrac * 10000).toInt().coerceIn(0, 10000)
             val yPos  = (yFrac * 10000).toInt().coerceIn(0, 10000)
             val width  = btn.optDouble("width",  50.0).toFloat().coerceAtLeast(5f)
@@ -190,9 +189,9 @@ object LegacyControlConverter {
         val arr = btn.optJSONArray("keycodes")
         if (arr != null) return (0 until arr.length()).mapNotNull { i -> arr.optInt(i, 0).takeIf { it != 0 } }
         val result = mutableListOf<Int>()
-        if (btn.optBoolean("holdShift", false)) result.add(340) // GLFW_KEY_LEFT_SHIFT
-        if (btn.optBoolean("holdCtrl",  false)) result.add(341) // GLFW_KEY_LEFT_CONTROL
-        if (btn.optBoolean("holdAlt",   false)) result.add(342) // GLFW_KEY_LEFT_ALT
+        if (btn.optBoolean("holdShift", false)) result.add(340)
+        if (btn.optBoolean("holdCtrl",  false)) result.add(341)
+        if (btn.optBoolean("holdAlt",   false)) result.add(342)
         val kc = btn.optInt("keycode", 0)
         if (kc != 0) result.add(kc)
         return result
@@ -209,29 +208,33 @@ object LegacyControlConverter {
         SPECIALBTN_SCROLLDOWN  -> launcherEventJson(LAUNCHER_EVENT_SCROLL_DOWN)
         SPECIALBTN_VIRTUALMOUSE -> null
         0                      -> null
-        else                   -> JSONObject().apply { put("type", "key"); put("key", keycode.toString()) }
+        else -> JSONObject().apply { put("type", "key"); put("key", keycode.toString()) }
     }
 
     private fun launcherEventJson(key: String) = JSONObject().apply {
         put("type", "launcher_event"); put("key", key)
     }
 
-    /** Evaluate a Zalith 1 dynamic position expression, returning a screen fraction [0,1]. */
+    /**
+     * Evaluate a Zalith 1 dynamic position expression, returning a screen fraction [0,1].
+     * Variables: ${screen_width}, ${screen_height} = 1.0; ${dp}, ${width}, ${height} = 0.0; ${ratio} = 1.0
+     */
     private fun parseExpr(expr: String): Float {
         if (expr.isBlank()) return 0.5f
         return try {
+            val d = '$'.toString()
             val processed = expr.trim()
-                .replace("${screen_width}",  "1.0")
-                .replace("${screen_height}", "1.0")
-                .replace("${width}",   "0.0")
-                .replace("${height}",  "0.0")
-                .replace("${dp}",      "0.0")
-                .replace("${ratio}",   "1.0")
+                .replace("${d}{screen_width}",  "1.0")
+                .replace("${d}{screen_height}", "1.0")
+                .replace("${d}{width}",   "0.0")
+                .replace("${d}{height}",  "0.0")
+                .replace("${d}{dp}",      "0.0")
+                .replace("${d}{ratio}",   "1.0")
             ExprParser(processed).parse().coerceIn(0f, 1f)
         } catch (_: Exception) { 0.5f }
     }
 
-    /** Minimal recursive-descent arithmetic parser (no external deps). */
+    /** Minimal recursive-descent arithmetic parser. Handles +, -, *, /, (), unary minus, numbers. */
     private class ExprParser(private val s: String) {
         private var i = 0
         fun parse() = expr()
@@ -251,8 +254,8 @@ object LegacyControlConverter {
             var r = factor(); spaces()
             while (i < s.length) {
                 when (s[i]) {
-                    '*' -> { i++; val d = factor(); r *= d }
-                    '/' -> { i++; val d = factor(); if (d != 0f) r /= d }
+                    '*' -> { i++; val d2 = factor(); r *= d2 }
+                    '/' -> { i++; val d2 = factor(); if (d2 != 0f) r /= d2 }
                     else -> break
                 }
                 spaces()

@@ -173,8 +173,7 @@ fun LegacyControlManageContent(
                 onImport = { importLauncher.launch(arrayOf("application/json", "*/*")) },
                 onSelect = { data -> LegacyControlManager.selectControl(data) },
                 onDuplicate = { data -> LegacyControlManager.duplicate(data) },
-                onDuplicate = { data -> LegacyControlManager.duplicate(data) },
-            onDelete = { data -> operation = LegacyOperation.Delete(data) }
+                onDelete = { data -> operation = LegacyOperation.Delete(data) }
             )
         }
         AnimatedItem(scope) { xOffset ->
