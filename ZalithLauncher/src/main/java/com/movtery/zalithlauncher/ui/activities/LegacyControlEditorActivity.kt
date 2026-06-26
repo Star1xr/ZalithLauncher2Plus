@@ -334,8 +334,8 @@ private fun parseButtons(root: JSONObject): List<CanvasButton> {
                     name = obj.optString("name", "Button").let { n ->
                         if (n == "null" || n.isBlank()) "Button" else n
                     },
-                    xFrac = evalExpr(obj.optString("dynamicX", "0.5 * ${screen_width}")),
-                    yFrac = evalExpr(obj.optString("dynamicY", "0.5 * ${screen_height}")),
+                    xFrac = evalExpr(obj.optString("dynamicX", "0.5 * \${screen_width}")),
+                    yFrac = evalExpr(obj.optString("dynamicY", "0.5 * \${screen_height}")),
                     widthDp = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f),
                     heightDp = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f),
                     keycodes = parseKeycodes(obj),
@@ -383,9 +383,9 @@ private fun evalExpr(expr: String): Float {
     if (expr.isBlank()) return 0.5f
     return try {
         val s = expr.trim()
-            .replace("${screen_width}", "1.0").replace("${screen_height}", "1.0")
-            .replace("${width}", "0.0").replace("${height}", "0.0")
-            .replace("${dp}", "0.0").replace("${ratio}", "1.0")
+            .replace("\${screen_width}", "1.0").replace("\${screen_height}", "1.0")
+            .replace("\${width}", "0.0").replace("\${height}", "0.0")
+            .replace("\${dp}", "0.0").replace("\${ratio}", "1.0")
         MiniCalc(s).eval().coerceIn(0f, 1f)
     } catch (_: Exception) { 0.5f }
 }
