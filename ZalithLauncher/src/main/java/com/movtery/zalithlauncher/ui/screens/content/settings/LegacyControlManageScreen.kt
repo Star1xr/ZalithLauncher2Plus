@@ -99,6 +99,11 @@ fun LegacyControlManageContent(
 
     var operation by remember { mutableStateOf<LegacyOperation>(LegacyOperation.None) }
 
+    // Auto-refresh: load layouts whenever this tab first becomes visible
+    LaunchedEffect(Unit) {
+        LegacyControlManager.refresh()
+    }
+
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
@@ -432,35 +437,7 @@ private fun LegacyLayoutInfo(
                         )
                     }
                 }
-                item { HorizontalDivider() }
-                item {
-                    LegacyInfoItem(
-                        modifier = Modifier.fillMaxWidth(),
-                        title = stringResource(R.string.legacy_control_manage_info_buttons),
-                        value = data.buttonCount.toString()
-                    )
-                }
-                item {
-                    LegacyInfoItem(
-                        modifier = Modifier.fillMaxWidth(),
-                        title = stringResource(R.string.legacy_control_manage_info_joysticks),
-                        value = data.joystickCount.toString()
-                    )
-                }
-                item {
-                    LegacyInfoItem(
-                        modifier = Modifier.fillMaxWidth(),
-                        title = stringResource(R.string.legacy_control_manage_info_drawers),
-                        value = data.drawerCount.toString()
-                    )
-                }
-                item {
-                    LegacyInfoItem(
-                        modifier = Modifier.fillMaxWidth(),
-                        title = stringResource(R.string.legacy_control_manage_info_format_version),
-                        value = "v${data.formatVersion}"
-                    )
-                }
+
             }
 
             Row(
