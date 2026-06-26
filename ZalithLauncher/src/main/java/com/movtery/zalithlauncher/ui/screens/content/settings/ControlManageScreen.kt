@@ -42,6 +42,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -222,17 +223,24 @@ private fun ControlTypeTabRow(
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val tabs = listOf(
+        Pair(stringResource(R.string.control_manage_tab_zalith2), R.drawable.ic_dashboard_outlined),
+        Pair(stringResource(R.string.control_manage_tab_legacy), R.drawable.ic_article_outlined)
+    )
     BoxWithConstraints(
         modifier = modifier
-            .height(40.dp)
+            .height(52.dp)
             .clip(MaterialTheme.shapes.extraLarge)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(4.dp)
     ) {
-        val tabWidth = maxWidth / 2
+        val tabWidth = maxWidth / tabs.size
         val indicatorOffset by animateDpAsState(
             targetValue = tabWidth * selectedTab,
-            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
             label = "tab_indicator"
         )
         Box(
@@ -240,14 +248,17 @@ private fun ControlTypeTabRow(
                 .offset(x = indicatorOffset)
                 .width(tabWidth)
                 .fillMaxHeight()
-                .clip(MaterialTheme.shapes.large)
+                .clip(MaterialTheme.shapes.extraLarge)
                 .background(MaterialTheme.colorScheme.primaryContainer)
         )
         Row(modifier = Modifier.fillMaxSize()) {
-            listOf(
-                stringResource(R.string.control_manage_tab_zalith2),
-                stringResource(R.string.control_manage_tab_legacy)
-            ).forEachIndexed { index, label ->
+            tabs.forEachIndexed { index, tabEntry ->
+                val (label, iconRes) = tabEntry
+                val isSelected = selectedTab == index
+                val contentColor = if (isSelected)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -255,14 +266,22 @@ private fun ControlTypeTabRow(
                         .clickable { onTabSelected(index) },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (selectedTab == index)
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(iconRes),
+                            contentDescription = null,
+                            tint = contentColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = contentColor
+                        )
+                    }
                 }
             }
         }
