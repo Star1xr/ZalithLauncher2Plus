@@ -22,7 +22,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+  import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.mutableFloatStateOf
@@ -114,7 +115,6 @@ import java.io.File
     private fun DefaultControlSystemCard(modifier: Modifier = Modifier) {
         var controlType by remember { mutableStateOf(AllSettings.controlType.getValue()) }
         var expanded by remember { mutableStateOf(false) }
-        var dragDelta by remember { mutableFloatStateOf(0f) }
         val dragThreshold = 60f
 
         Column(modifier = modifier) {
@@ -124,15 +124,28 @@ import java.io.File
                 modifier = Modifier
                     .fillMaxWidth()
                     .pointerInput(Unit) {
-                        detectVerticalDragGestures(
-                            onDragStart = { dragDelta = 0f },
-                            onDragEnd = {
-                                if (dragDelta > dragThreshold) expanded = true
-                                else if (dragDelta < -dragThreshold) expanded = false
-                                dragDelta = 0f
-                            },
-                            onDragCancel = { dragDelta = 0f }
-                        ) { _, amount -> dragDelta += amount }
+                        val slop = viewConfiguration.touchSlop
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            var startY = down.position.y
+                            var active = false
+                            var totalDy = 0f
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val change = event.changes.firstOrNull() ?: break
+                                val dy = change.position.y - startY
+                                if (change.pressed) {
+                                    if (!active && kotlin.math.abs(dy) > slop) active = true
+                                    if (active) { totalDy = dy; change.consume() }
+                                } else {
+                                    if (active) {
+                                        if (totalDy > dragThreshold) expanded = true
+                                        else if (totalDy < -dragThreshold) expanded = false
+                                    }
+                                    break
+                                }
+                            }
+                        }
                     }
             ) {
                 Row(
@@ -184,14 +197,25 @@ import java.io.File
                     modifier = Modifier
                         .fillMaxWidth()
                         .pointerInput(Unit) {
-                            detectVerticalDragGestures(
-                                onDragStart = { dragDelta = 0f },
-                                onDragEnd = {
-                                    if (dragDelta < -dragThreshold) expanded = false
-                                    dragDelta = 0f
-                                },
-                                onDragCancel = { dragDelta = 0f }
-                            ) { _, amount -> dragDelta += amount }
+                            val slop = viewConfiguration.touchSlop
+                            awaitEachGesture {
+                                val down = awaitFirstDown(requireUnconsumed = false)
+                                var startY = down.position.y
+                                var active = false
+                                var totalDy = 0f
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val change = event.changes.firstOrNull() ?: break
+                                    val dy = change.position.y - startY
+                                    if (change.pressed) {
+                                        if (!active && kotlin.math.abs(dy) > slop) active = true
+                                        if (active) { totalDy = dy; change.consume() }
+                                    } else {
+                                        if (active && totalDy < -dragThreshold) expanded = false
+                                        break
+                                    }
+                                }
+                            }
                         }
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
