@@ -537,7 +537,6 @@ private fun buildButtonJson(btn: CanvasButton): JSONObject = JSONObject().apply 
                   .replace("\${ratio}",   "1.0")
               MiniCalc(s).eval().coerceIn(0f, 1f)
           } catch (_: Exception) { 0.5f }
-      } catch (_: Exception) { 0.5f }
 }
 
 private class MiniCalc(private val s: String) {
