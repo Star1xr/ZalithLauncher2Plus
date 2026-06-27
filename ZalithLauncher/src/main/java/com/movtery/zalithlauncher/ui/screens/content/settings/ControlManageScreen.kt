@@ -298,6 +298,53 @@ private fun ControlTypeTabRow(
 }
 
 @Composable
+private fun CollapsibleControlTypeSelector(
+    currentType: String,
+    onTypeChange: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(24.dp)
+                .pointerInput(Unit) {
+                    detectVerticalDragGestures { _, dragAmount ->
+                        if (dragAmount > 8f) expanded = true
+                        else if (dragAmount < -8f) expanded = false
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                modifier = Modifier.size(width = 40.dp, height = 4.dp),
+                shape = RoundedCornerShape(2.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+            ) {}
+        }
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            ) + fadeIn(),
+            exit = shrinkVertically(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            ) + fadeOut()
+        ) {
+            ControlTypeSelector(currentType = currentType, onTypeChange = onTypeChange)
+        }
+    }
+}
+
+@Composable
 private fun ControlTypeSelector(
     currentType: String,
     onTypeChange: (String) -> Unit
@@ -416,7 +463,7 @@ fun ControlManageScreen(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            ControlTypeSelector(
+            CollapsibleControlTypeSelector(
                 currentType = AllSettings.controlType.getValue(),
                 onTypeChange = { type ->
                     AllSettings.controlType.save(type)
