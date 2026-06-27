@@ -104,7 +104,10 @@ private data class CanvasButton(
     val bgColor: Int,
     val fgColor: Int,
     val strokeWidth: Float,
-    val cornerRadius: Float
+    val cornerRadius: Float,
+    val isDrawerTrigger: Boolean = false,
+    val isDrawerContent: Boolean = false,
+    val drawerIndex: Int = -1
 )
 
 private data class DragState(val id: String, val delta: Offset)
@@ -140,7 +143,35 @@ private fun LegacyControlEditorScreen(controlFile: File, onExit: () -> Unit) {
             it.put("version", 8); it.put("scaledAt", 100.0)
             it.put("mDrawerDataList", JSONArray()); it.put("mJoystickDataList", JSONArray())
         }
-        root.put("mControlDataList", JSONArray().also { a -> buttons.forEach { b -> a.put(buildButtonJson(b)) } })
+
+        // Regular buttons
+        val regularButtons = buttons.filter { !it.isDrawerTrigger && !it.isDrawerContent }
+        root.put("mControlDataList", JSONArray().also { a -> regularButtons.forEach { b -> a.put(buildButtonJson(b)) } })
+
+        // Reconstruct drawer data list
+        val drawerIndices = (buttons.filter { it.isDrawerTrigger || it.isDrawerContent }
+            .map { it.drawerIndex }.filter { it >= 0 }.toSet().sorted())
+        val drawerList = JSONArray()
+        for (di in drawerIndices) {
+            val drawerObj = JSONObject()
+            buttons.find { it.isDrawerTrigger && it.drawerIndex == di }
+                ?.let { drawerObj.put("properties", buildButtonJson(it)) }
+            val btnPropsArr = JSONArray()
+            buttons.filter { it.isDrawerContent && it.drawerIndex == di }
+                .forEach { btnPropsArr.put(buildButtonJson(it)) }
+            drawerObj.put("buttonProperties", btnPropsArr)
+            // Preserve other drawer metadata from original if available
+            root.optJSONArray("mDrawerDataList")?.optJSONObject(di)?.let { orig ->
+                orig.keys().forEach { key ->
+                    if (key != "properties" && key != "buttonProperties") {
+                        drawerObj.put(key, orig.get(key))
+                    }
+                }
+            }
+            drawerList.put(drawerObj)
+        }
+        root.put("mDrawerDataList", drawerList)
+
         controlFile.writeText(root.toString(2))
         LegacyControlManager.refresh()
         isModified = false; true
@@ -302,16 +333,22 @@ private fun LegacyControlEditorScreen(controlFile: File, onExit: () -> Unit) {
                             .size(width = btn.widthDp.dp, height = btn.heightDp.dp)
                             .background(bg, shape)
                             .then(
-                                if (isSelected)
-                                    Modifier.border(2.dp, MaterialTheme.colorScheme.primary, shape)
-                                else
-                                    Modifier.border(btn.strokeWidth.coerceAtLeast(0.5f).dp, fg.copy(alpha = 0.3f), shape)
+                                when {
+                                    isSelected -> Modifier.border(2.dp, MaterialTheme.colorScheme.primary, shape)
+                                    btn.isDrawerTrigger -> Modifier.border(2.dp, Color(0xFFFF9800), shape)
+                                    btn.isDrawerContent -> Modifier.border(2.dp, Color(0xFF7B61FF), shape)
+                                    else -> Modifier.border(btn.strokeWidth.coerceAtLeast(0.5f).dp, fg.copy(alpha = 0.3f), shape)
+                                }
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(btn.name, color = fg, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        val displayName = when {
+                            btn.isDrawerTrigger -> "[D${btn.drawerIndex + 1}] ${btn.name}"
+                            btn.isDrawerContent -> "[D${btn.drawerIndex + 1}C] ${btn.name}"
+                            else -> btn.name
+                        }
+                        Text(displayName, color = fg, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
-
                   // Draw resize handles on corners of the selected button
                   if (isSelected) {
                       val handleSizeDp = 16.dp
@@ -435,54 +472,84 @@ private fun LegacyControlEditorScreen(controlFile: File, onExit: () -> Unit) {
 }
 
 private fun parseButtons(root: JSONObject): List<CanvasButton> {
-    val arr = root.optJSONArray("mControlDataList") ?: return emptyList()
-    return (0 until arr.length()).mapNotNull { i ->
-        arr.optJSONObject(i)?.let { obj ->
-            runCatching {
-                CanvasButton(
-                    id = UUID.randomUUID().toString(),
-                    name = obj.optString("name", "Button").let { n ->
-                        if (n == "null" || n.isBlank()) "Button" else n
-                    },
-                    xFrac = run {
-                        val w = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f)
-                        val h = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f)
-                        val xLeft = evalExpr(
-                            obj.optString("dynamicX", "0.5 * \${screen_width}"),
-                            wFrac  = w / 1280f,
-                            hFrac  = h / 1280f,
-                            dpFrac = 1f / 1280f
-                        )
-                        (xLeft + w / 1280f / 2f).coerceIn(0f, 1f)
-                    },
-                    yFrac = run {
-                        val w2 = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f)
-                        val h2 = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f)
-                        val yTop = evalExpr(
-                            obj.optString("dynamicY", "0.5 * \${screen_height}"),
-                            wFrac  = w2 / 720f,
-                            hFrac  = h2 / 720f,
-                            dpFrac = 1f / 720f
-                        )
-                        (yTop + h2 / 720f / 2f).coerceIn(0f, 1f)
-                    },
-                    widthDp = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f),
-                    heightDp = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f),
-                    keycodes = parseKeycodes(obj),
-                    isToggle = obj.optBoolean("isToggle", false),
-                    isSwipeable = obj.optBoolean("isSwipeable", false),
-                    passThruEnabled = obj.optBoolean("passThruEnabled", false),
-                    displayInGame = obj.optBoolean("displayInGame", true),
-                    displayInMenu = obj.optBoolean("displayInMenu", true),
-                    opacity = obj.optDouble("opacity", 1.0).toFloat().coerceIn(0f, 1f),
-                    bgColor = obj.optInt("bgColor", 0x4D000000.toInt()),
-                    fgColor = obj.optInt("strokeColor", 0xFFFFFFFF.toInt()),
-                    strokeWidth = obj.optDouble("strokeWidth", 0.0).toFloat(),
-                    cornerRadius = obj.optDouble("cornerRadius", 0.0).toFloat()
-                )
-            }.getOrNull()
+    val result = mutableListOf<CanvasButton>()
+
+    // Regular buttons from mControlDataList
+    root.optJSONArray("mControlDataList")?.let { arr ->
+        for (i in 0 until arr.length()) {
+            arr.optJSONObject(i)?.let { obj ->
+                runCatching { parseSingleButton(obj, isDrawerTrigger = false, isDrawerContent = false, drawerIndex = -1) }
+                    .getOrNull()?.let { result.add(it) }
+            }
         }
     }
+
+    // Drawer buttons from mDrawerDataList
+    root.optJSONArray("mDrawerDataList")?.let { arr ->
+        for (di in 0 until arr.length()) {
+            arr.optJSONObject(di)?.let { drawer ->
+                // Drawer trigger button
+                drawer.optJSONObject("properties")?.let { props ->
+                    runCatching { parseSingleButton(props, isDrawerTrigger = true, isDrawerContent = false, drawerIndex = di) }
+                        .getOrNull()?.let { result.add(it) }
+                }
+                // Drawer content buttons
+                drawer.optJSONArray("buttonProperties")?.let { btnArr ->
+                    for (j in 0 until btnArr.length()) {
+                        btnArr.optJSONObject(j)?.let { obj ->
+                            runCatching { parseSingleButton(obj, isDrawerTrigger = false, isDrawerContent = true, drawerIndex = di) }
+                                .getOrNull()?.let { result.add(it) }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return result
+}
+
+private fun parseSingleButton(obj: JSONObject, isDrawerTrigger: Boolean, isDrawerContent: Boolean, drawerIndex: Int): CanvasButton {
+    val w = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f)
+    val h = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f)
+    return CanvasButton(
+        id = UUID.randomUUID().toString(),
+        name = obj.optString("name", "Button").let { n -> if (n == "null" || n.isBlank()) "Button" else n },
+        xFrac = run {
+            val xLeft = evalExpr(
+                obj.optString("dynamicX", "0.5 * \${screen_width}"),
+                wFrac  = w / 1280f,
+                hFrac  = h / 1280f,
+                dpFrac = 1f / 1280f
+            )
+            (xLeft + w / 1280f / 2f).coerceIn(0f, 1f)
+        },
+        yFrac = run {
+            val yTop = evalExpr(
+                obj.optString("dynamicY", "0.5 * \${screen_height}"),
+                wFrac  = w / 720f,
+                hFrac  = h / 720f,
+                dpFrac = 1f / 720f
+            )
+            (yTop + h / 720f / 2f).coerceIn(0f, 1f)
+        },
+        widthDp = w,
+        heightDp = h,
+        keycodes = parseKeycodes(obj),
+        isToggle = obj.optBoolean("isToggle", false),
+        isSwipeable = obj.optBoolean("isSwipeable", false),
+        passThruEnabled = obj.optBoolean("passThruEnabled", false),
+        displayInGame = obj.optBoolean("displayInGame", true),
+        displayInMenu = obj.optBoolean("displayInMenu", true),
+        opacity = obj.optDouble("opacity", 1.0).toFloat().coerceIn(0f, 1f),
+        bgColor = obj.optInt("bgColor", 0x4D000000.toInt()),
+        fgColor = obj.optInt("strokeColor", 0xFFFFFFFF.toInt()),
+        strokeWidth = obj.optDouble("strokeWidth", 0.0).toFloat(),
+        cornerRadius = obj.optDouble("cornerRadius", 0.0).toFloat(),
+        isDrawerTrigger = isDrawerTrigger,
+        isDrawerContent = isDrawerContent,
+        drawerIndex = drawerIndex
+    )
 }
 
 private fun parseKeycodes(obj: JSONObject): List<Int> {
