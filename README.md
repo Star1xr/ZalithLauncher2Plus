@@ -174,3 +174,5 @@ https://github.com/ZalithLauncher/ZalithLauncher2
 **Zeryth Launcher** is an independent community fork created to extend and improve the Zalith Launcher experience while respecting and preserving the work of its upstream projects.
 
 Made with ❤️ by **Rami1l**
+
+<!-- Build: 2026-06-27 - v2.x drawer layers, swipe selector, layout tab rename -->
