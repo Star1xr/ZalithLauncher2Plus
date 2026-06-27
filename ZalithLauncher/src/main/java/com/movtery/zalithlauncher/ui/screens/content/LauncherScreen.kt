@@ -216,6 +216,7 @@ fun LauncherScreen(
                 screenKey = backStackViewModel.settingsScreen
             )
             backStackViewModel.settingsScreen.navigateTo(NormalNavKey.Settings.Control)
+        }
 
         if (showAboutDialog) {
             AboutDialog(onDismissRequest = { showAboutDialog = false })
