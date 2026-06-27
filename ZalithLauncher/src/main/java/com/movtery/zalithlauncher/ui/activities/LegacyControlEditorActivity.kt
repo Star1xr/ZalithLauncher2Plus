@@ -444,8 +444,28 @@ private fun parseButtons(root: JSONObject): List<CanvasButton> {
                     name = obj.optString("name", "Button").let { n ->
                         if (n == "null" || n.isBlank()) "Button" else n
                     },
-                    xFrac = evalExpr(obj.optString("dynamicX", "0.5 * \${screen_width}")),
-                    yFrac = evalExpr(obj.optString("dynamicY", "0.5 * \${screen_height}")),
+                    xFrac = run {
+                        val w = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f)
+                        val h = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f)
+                        val xLeft = evalExpr(
+                            obj.optString("dynamicX", "0.5 * \${screen_width}"),
+                            wFrac  = w / 1280f,
+                            hFrac  = h / 1280f,
+                            dpFrac = 1f / 1280f
+                        )
+                        (xLeft + w / 1280f / 2f).coerceIn(0f, 1f)
+                    },
+                    yFrac = run {
+                        val w2 = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f)
+                        val h2 = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f)
+                        val yTop = evalExpr(
+                            obj.optString("dynamicY", "0.5 * \${screen_height}"),
+                            wFrac  = w2 / 720f,
+                            hFrac  = h2 / 720f,
+                            dpFrac = 1f / 720f
+                        )
+                        (yTop + h2 / 720f / 2f).coerceIn(0f, 1f)
+                    },
                     widthDp = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f),
                     heightDp = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f),
                     keycodes = parseKeycodes(obj),
@@ -472,8 +492,13 @@ private fun parseKeycodes(obj: JSONObject): List<Int> {
 
 private fun buildButtonJson(btn: CanvasButton): JSONObject = JSONObject().apply {
     put("name", btn.name)
-    put("dynamicX", "${btn.xFrac} * \${screen_width}")
-    put("dynamicY", "${btn.yFrac} * \${screen_height}")
+    // ZL1 positions: left/top edge of button (center → left edge by subtracting half-size/ref)
+    val refW = 1280f
+    val refH = 720f
+    val leftEdge = (btn.xFrac  - btn.widthDp  / refW / 2f).coerceIn(0f, 0.99f)
+    val topEdge  = (btn.yFrac  - btn.heightDp / refH / 2f).coerceIn(0f, 0.99f)
+    put("dynamicX", "${leftEdge} * \${screen_width}")
+    put("dynamicY", "${topEdge} * \${screen_height}")
     put("width", btn.widthDp.toDouble())
     put("height", btn.heightDp.toDouble())
     put("keycodes", JSONArray().also { a -> btn.keycodes.forEach { a.put(it) } })
@@ -489,15 +514,30 @@ private fun buildButtonJson(btn: CanvasButton): JSONObject = JSONObject().apply 
     put("cornerRadius", btn.cornerRadius.toDouble())
 }
 
-private fun evalExpr(expr: String): Float {
-    if (expr.isBlank()) return 0.5f
-    return try {
-        val s = expr.trim()
-            .replace("\${screen_width}", "1.0").replace("\${screen_height}", "1.0")
-            .replace("\${width}", "0.0").replace("\${height}", "0.0")
-            .replace("\${dp}", "0.0").replace("\${ratio}", "1.0")
-        MiniCalc(s).eval().coerceIn(0f, 1f)
-    } catch (_: Exception) { 0.5f }
+    /**
+       * Evaluate a ZL1 position expression → screen fraction in [0, 1].
+       * @param wFrac  substitute for ${width}  (button width  / reference axis)
+       * @param hFrac  substitute for ${height} (button height / reference axis)
+       * @param dpFrac substitute for ${dp}     (1 dp / reference axis)
+       */
+      private fun evalExpr(
+          expr: String,
+          wFrac: Float = 0f,
+          hFrac: Float = 0f,
+          dpFrac: Float = 0f
+      ): Float {
+          if (expr.isBlank()) return 0.5f
+          return try {
+              val s = expr.trim()
+                  .replace("\${screen_width}",  "1.0")
+                  .replace("\${screen_height}", "1.0")
+                  .replace("\${width}",   "%.8f".format(wFrac))
+                  .replace("\${height}",  "%.8f".format(hFrac))
+                  .replace("\${dp}",      "%.8f".format(dpFrac))
+                  .replace("\${ratio}",   "1.0")
+              MiniCalc(s).eval().coerceIn(0f, 1f)
+          } catch (_: Exception) { 0.5f }
+      } catch (_: Exception) { 0.5f }
 }
 
 private class MiniCalc(private val s: String) {
