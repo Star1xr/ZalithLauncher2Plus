@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.movtery.zalithlauncher.R
 import com.movtery.layer_controller.layout.loadLayoutFromFile
+import com.movtery.zalithlauncher.game.control.legacy.LegacyControlConverter
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlManager
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
