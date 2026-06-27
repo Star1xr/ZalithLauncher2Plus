@@ -84,21 +84,65 @@
           val desc    = infoJson?.optString("desc",    "")?.nullIfLiteralOrBlank() ?: ""
           val verName = infoJson?.optString("version", "")?.nullIfLiteralOrBlank() ?: ""
 
-          val buttons = JSONArray()
+          val mainButtons = JSONArray()
+          val extraLayers = JSONArray()
 
+          // Regular buttons
           src.optJSONArray("mControlDataList")?.let { arr ->
               for (i in 0 until arr.length()) {
-                  arr.optJSONObject(i)?.let { buildButton(it)?.let(buttons::put) }
+                  arr.optJSONObject(i)?.let { buildButton(it)?.let(mainButtons::put) }
               }
           }
 
+          // Drawer controls: each drawer gets its own hidden layer with a trigger button
           src.optJSONArray("mDrawerDataList")?.let { arr ->
               for (i in 0 until arr.length()) {
-                  arr.optJSONObject(i)?.let { buildDrawerButtons(it).forEach(buttons::put) }
+                  arr.optJSONObject(i)?.let { drawer ->
+                      val drawerLayerUuid = UUID.randomUUID().toString()
+
+                      // Build drawer content layer (hidden by default)
+                      val drawerButtons = JSONArray()
+                      drawer.optJSONArray("buttonProperties")?.let { btnArr ->
+                          for (j in 0 until btnArr.length()) {
+                              btnArr.optJSONObject(j)?.let { buildButton(it)?.let(drawerButtons::put) }
+                          }
+                      }
+                      val drawerLayer = JSONObject().apply {
+                          put("name", "Drawer ${i + 1}")
+                          put("uuid", drawerLayerUuid)
+                          put("hide", true)
+                          put("hideWhenMouse", false)
+                          put("hideWhenGamepad", false)
+                          put("hideWhenJoystick", false)
+                          put("visibilityType", "always")
+                          put("normalButtons", drawerButtons)
+                          put("textBoxes", JSONArray())
+                      }
+                      extraLayers.put(drawerLayer)
+
+                      // Build drawer trigger button with SwitchLayer event
+                      val triggerBtn = drawer.optJSONObject("properties")?.let { buildButton(it) }
+                      if (triggerBtn != null) {
+                          val switchEvent = JSONObject().apply {
+                              put("type", "switch_layer")
+                              put("key", drawerLayerUuid)
+                          }
+                          val events = triggerBtn.optJSONArray("clickEvents") ?: JSONArray()
+                          val newEvents = JSONArray().put(switchEvent)
+                          for (k in 0 until events.length()) newEvents.put(events.getJSONObject(k))
+                          triggerBtn.put("clickEvents", newEvents)
+                          mainButtons.put(triggerBtn)
+                      } else {
+                          // No trigger properties: flatten drawer contents into main layer
+                          for (j in 0 until drawerButtons.length()) {
+                              mainButtons.put(drawerButtons.getJSONObject(j))
+                          }
+                      }
+                  }
               }
           }
 
-          val layer = JSONObject().apply {
+          val mainLayer = JSONObject().apply {
               put("name", "Converted Layer")
               put("uuid", UUID.randomUUID().toString())
               put("hide", false)
@@ -106,9 +150,12 @@
               put("hideWhenGamepad", false)
               put("hideWhenJoystick", false)
               put("visibilityType", "always")
-              put("normalButtons", buttons)
+              put("normalButtons", mainButtons)
               put("textBoxes", JSONArray())
           }
+
+          val allLayers = JSONArray().put(mainLayer)
+          for (k in 0 until extraLayers.length()) allLayers.put(extraLayers.getJSONObject(k))
 
           val info = JSONObject().apply {
               put("name",        tsJson(name))
@@ -120,7 +167,7 @@
 
           return JSONObject().apply {
               put("info",          info)
-              put("layers",        JSONArray().put(layer))
+              put("layers",        allLayers)
               put("styles",        JSONArray())
               put("special",       JSONObject())
               put("editorVersion", 11)
@@ -204,16 +251,6 @@
           } catch (_: Exception) { null }
       }
 
-      private fun buildDrawerButtons(drawer: JSONObject): List<JSONObject> {
-          val result = mutableListOf<JSONObject>()
-          drawer.optJSONObject("properties")?.let { buildButton(it)?.let(result::add) }
-          drawer.optJSONArray("buttonProperties")?.let { arr ->
-              for (i in 0 until arr.length()) {
-                  arr.optJSONObject(i)?.let { buildButton(it)?.let(result::add) }
-              }
-          }
-          return result
-      }
 
       private fun parseKeycodes(btn: JSONObject): List<Int> {
           val arr = btn.optJSONArray("keycodes")
