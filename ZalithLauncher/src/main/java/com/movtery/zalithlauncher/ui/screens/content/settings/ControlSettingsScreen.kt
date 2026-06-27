@@ -120,6 +120,7 @@ import java.io.File
         Column(modifier = modifier) {
             // ── Always-visible compact chip selector (swipe down to expand) ─────
             SettingsCard(
+                position = CardPosition.Single,
                 modifier = Modifier
                     .fillMaxWidth()
                     .pointerInput(Unit) {
@@ -179,6 +180,7 @@ import java.io.File
                 exit  = shrinkVertically(animationSpec = tween(300))
             ) {
                 SettingsCard(
+                    position = CardPosition.Single,
                     modifier = Modifier
                         .fillMaxWidth()
                         .pointerInput(Unit) {
