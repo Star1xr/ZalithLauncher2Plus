@@ -210,6 +210,9 @@ fun LauncherScreen(
         val onInfoClick: () -> Unit = {
             showAboutDialog = true
         }
+        val onControlsClick: () -> Unit = {
+            backStackViewModel.mainScreen.navigateTo(NormalNavKey.Settings.Control)
+        }
 
         if (showAboutDialog) {
             AboutDialog(onDismissRequest = { showAboutDialog = false })
@@ -252,6 +255,7 @@ fun LauncherScreen(
                         onFileManagerClick = onFileManagerClick,
                         onVersionsManageClick = onVersionsManageClick,
                         onInfoClick = onInfoClick,
+                        onControlsClick = onControlsClick,
                         onCollapse = { navBarExpanded = false },
                     )
                 }
@@ -367,6 +371,7 @@ private fun ContentMenu(
     onFileManagerClick: () -> Unit,
     onVersionsManageClick: () -> Unit,
     onInfoClick: () -> Unit,
+    onControlsClick: () -> Unit,
     onCollapse: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -597,6 +602,7 @@ private fun ContentMenu(
             onFileManagerClick = onFileManagerClick,
             onVersionsManageClick = onVersionsManageClick,
             onInfoClick = onInfoClick,
+            onControlsClick = onControlsClick,
             onSidebarStateChange = { expanded -> quickAccessExpanded = expanded }
         )
     }
@@ -629,6 +635,7 @@ private fun EmptyVersionsHint() {
       onFileManagerClick: () -> Unit,
       onVersionsManageClick: () -> Unit,
       onInfoClick: () -> Unit,
+      onControlsClick: () -> Unit,
       onSidebarStateChange: (Boolean) -> Unit = {},
       modifier: Modifier = Modifier
   ) {
@@ -761,11 +768,11 @@ private fun EmptyVersionsHint() {
                                   )
                                   NavSidebarShortcut(
                                       modifier = Modifier.weight(1f),
-                                      iconRes = R.drawable.ic_info_outlined,
-                                      label = "About",
+                                      iconRes = R.drawable.ic_videogame_asset_outlined,
+                                      label = "Controls",
                                       onClick = {
                                           navSidebarExpanded = false
-                                          onInfoClick()
+                                          onControlsClick()
                                           onNavInteraction()
                                       }
                                   )
