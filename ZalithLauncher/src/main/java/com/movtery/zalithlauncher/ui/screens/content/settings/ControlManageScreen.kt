@@ -52,6 +52,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -376,47 +377,38 @@ private fun ControlTypeSelector(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        type = "zalith2"
-                        onTypeChange("zalith2")
-                    }
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 16.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                RadioButton(
+                FilterChip(
+                    modifier = Modifier.weight(1f),
                     selected = type == "zalith2",
                     onClick = {
                         type = "zalith2"
                         onTypeChange("zalith2")
+                    },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.control_manage_tab_zalith2),
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 )
-                Text(
-                    text = stringResource(R.string.settings_control_default_system_zalith2),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        type = "legacy"
-                        onTypeChange("legacy")
-                    }
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
+                FilterChip(
+                    modifier = Modifier.weight(1f),
                     selected = type == "legacy",
                     onClick = {
                         type = "legacy"
                         onTypeChange("legacy")
+                    },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.control_manage_tab_legacy),
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
                     }
-                )
-                Text(
-                    text = stringResource(R.string.settings_control_default_system_legacy),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
         }

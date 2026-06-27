@@ -100,8 +100,8 @@ fun LegacyControlManageContent(
     var operation by remember { mutableStateOf<LegacyOperation>(LegacyOperation.None) }
 
     // Auto-refresh: load layouts whenever this tab first becomes visible
-    LaunchedEffect(isVisible) {
-        if (isVisible) LegacyControlManager.refresh()
+    LaunchedEffect(Unit) {
+        LegacyControlManager.refresh()
     }
 
     val importLauncher = rememberLauncherForActivityResult(

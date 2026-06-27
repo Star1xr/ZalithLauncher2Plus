@@ -200,11 +200,11 @@
 
               // Fractions for X expressions (relative to screen width = REF_W)
               val wFracX  = width  / REF_W   // ${width}  in X context
-              val hFracX  = height / REF_H   // ${height} in X context (axis-independent: height/screen_height)
+              val hFracX  = height / REF_W   // ${height} in X context: button height dp normalised by screen_width
               val dpFracX = 1f     / REF_W   // ${dp}     in X context
 
               // Fractions for Y expressions (relative to screen height = REF_H)
-              val wFracY  = width  / REF_W   // ${width}  in Y context (axis-independent: width/screen_width)
+              val wFracY  = width  / REF_H   // ${width}  in Y context: button width dp normalised by screen_height
               val hFracY  = height / REF_H   // ${height} in Y context
               val dpFracY = 1f     / REF_H   // ${dp}     in Y context
 
