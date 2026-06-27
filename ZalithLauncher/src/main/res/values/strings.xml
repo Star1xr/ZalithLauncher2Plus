@@ -907,7 +907,7 @@
     <string name="settings_tab_gamepad">Gamepad</string>
     <string name="settings_tab_launcher">Launcher</string>
     <string name="settings_tab_java_manage">Java</string>
-    <string name="settings_tab_control_manage">Controls</string>
+    <string name="settings_tab_control_manage">Layout</string>
     <string name="settings_tab_info_about">About</string>
     <string name="settings_renderer_global_renderer_title">Global Renderer</string>
     <string name="settings_renderer_global_renderer_summary">The global default renderer uses a dynamic library translation layer to ensure the game runs smoothly on mobile devices</string>
