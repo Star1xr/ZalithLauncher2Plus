@@ -318,10 +318,16 @@ private class GameViewModel(
                 val legacyFile = File(PathManager.DIR_LEGACY_CONTROL_LAYOUTS, legacyFileName)
                 if (legacyFile.exists()) {
                     return try {
-                        LegacyControlConverter.convert(legacyFile) ?: EmptyControlLayout
-                    } catch (e: Exception) {
-                        Logger.warning(TAG, "Failed to convert legacy layout: $legacyFile", e)
-                        EmptyControlLayout
+                        // Try LayerController format first (already-migrated files)
+                        loadLayoutFromFile(legacyFile)
+                    } catch (_: Exception) {
+                        try {
+                            // Fall back to ZL1 legacy conversion
+                            LegacyControlConverter.convert(legacyFile) ?: EmptyControlLayout
+                        } catch (e: Exception) {
+                            Logger.warning(TAG, "Failed to load legacy layout: $legacyFile", e)
+                            EmptyControlLayout
+                        }
                     }
                 }
             }

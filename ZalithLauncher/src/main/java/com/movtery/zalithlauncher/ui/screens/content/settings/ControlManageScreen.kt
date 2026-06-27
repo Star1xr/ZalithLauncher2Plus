@@ -355,39 +355,68 @@ private fun ControlTypeSelector(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.control_type_selector_label),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.weight(1f)
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = type == "zalith2",
-                    onClick = { type = "zalith2"; onTypeChange("zalith2") }
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_control_default_system_title),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Text(
-                    stringResource(R.string.control_type_zalith2),
+                    text = stringResource(R.string.settings_control_default_system_summary),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        type = "zalith2"
+                        onTypeChange("zalith2")
+                    }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 RadioButton(
-                    selected = type == "legacy",
-                    onClick = { type = "legacy"; onTypeChange("legacy") }
+                    selected = type == "zalith2",
+                    onClick = {
+                        type = "zalith2"
+                        onTypeChange("zalith2")
+                    }
                 )
                 Text(
-                    stringResource(R.string.control_type_legacy),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    text = stringResource(R.string.settings_control_default_system_zalith2),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        type = "legacy"
+                        onTypeChange("legacy")
+                    }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(
+                    selected = type == "legacy",
+                    onClick = {
+                        type = "legacy"
+                        onTypeChange("legacy")
+                    }
+                )
+                Text(
+                    text = stringResource(R.string.settings_control_default_system_legacy),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
         }

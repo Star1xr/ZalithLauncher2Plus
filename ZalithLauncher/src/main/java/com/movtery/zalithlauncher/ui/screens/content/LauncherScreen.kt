@@ -211,11 +211,11 @@ fun LauncherScreen(
             showAboutDialog = true
         }
         val onControlsClick: () -> Unit = {
+            backStackViewModel.settingsScreen.clearWith(NormalNavKey.Settings.ControlManager)
             backStackViewModel.mainScreen.removeAndNavigateTo(
                 removes = backStackViewModel.clearBeforeNavKeys,
                 screenKey = backStackViewModel.settingsScreen
             )
-            backStackViewModel.settingsScreen.navigateTo(NormalNavKey.Settings.Control)
         }
 
         if (showAboutDialog) {

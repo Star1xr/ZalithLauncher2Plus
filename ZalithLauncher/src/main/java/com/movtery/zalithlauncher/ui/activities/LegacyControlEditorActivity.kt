@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.movtery.zalithlauncher.R
+import com.movtery.layer_controller.layout.loadLayoutFromFile
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlManager
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
@@ -519,7 +520,7 @@ private fun parseSingleButton(obj: JSONObject, isDrawerTrigger: Boolean, isDrawe
             val xLeft = evalExpr(
                 obj.optString("dynamicX", "0.5 * \${screen_width}"),
                 wFrac  = w / 1280f,
-                hFrac  = h / 1280f,
+                hFrac  = h / 720f,
                 dpFrac = 1f / 1280f
             )
             (xLeft + w / 1280f / 2f).coerceIn(0f, 1f)
@@ -527,7 +528,7 @@ private fun parseSingleButton(obj: JSONObject, isDrawerTrigger: Boolean, isDrawe
         yFrac = run {
             val yTop = evalExpr(
                 obj.optString("dynamicY", "0.5 * \${screen_height}"),
-                wFrac  = w / 720f,
+                wFrac  = w / 1280f,
                 hFrac  = h / 720f,
                 dpFrac = 1f / 720f
             )
@@ -562,8 +563,8 @@ private fun buildButtonJson(btn: CanvasButton): JSONObject = JSONObject().apply 
     // ZL1 positions: left/top edge of button (center → left edge by subtracting half-size/ref)
     val refW = 1280f
     val refH = 720f
-    val leftEdge = (btn.xFrac  - btn.widthDp  / refW / 2f).coerceIn(0f, 0.99f)
-    val topEdge  = (btn.yFrac  - btn.heightDp / refH / 2f).coerceIn(0f, 0.99f)
+    val leftEdge = (btn.xFrac  - btn.widthDp  / refW / 2f).coerceIn(0f, 1f)
+    val topEdge  = (btn.yFrac  - btn.heightDp / refH / 2f).coerceIn(0f, 1f)
     put("dynamicX", "${leftEdge} * \${screen_width}")
     put("dynamicY", "${topEdge} * \${screen_height}")
     put("width", btn.widthDp.toDouble())
@@ -754,6 +755,23 @@ private fun ButtonPropertiesDialog(
 }
 
 fun startLegacyEditorActivity(context: Context, file: File) {
+    // If file is already LayerController format (previously migrated), open Zalith 2 editor directly
+    try {
+        loadLayoutFromFile(file)
+        startEditorActivity(context, file)
+        return
+    } catch (_: Exception) {}
+
+    // Convert ZL1 legacy format to LayerController JSON, overwrite file, open Zalith 2 editor
+    val converted = LegacyControlConverter.convertToJson(file)
+    if (converted != null) {
+        runCatching { file.writeText(converted) }.onSuccess {
+            startEditorActivity(context, file)
+            return
+        }
+    }
+
+    // Fall back to legacy canvas editor for formats that cannot be converted
     context.startActivity(Intent(context, LegacyControlEditorActivity::class.java).apply {
         putExtra(BUNDLE_LEGACY_CONTROL, file.absolutePath)
     })

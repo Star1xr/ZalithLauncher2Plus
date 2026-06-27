@@ -69,6 +69,17 @@
           return try { convert(file.readText(), file.nameWithoutExtension) } catch (_: Exception) { null }
       }
 
+      /**
+       * Converts a ZL1 legacy control layout file to a LayerController-format JSON string.
+       * Returns null if the file cannot be read or parsed.
+       */
+      fun convertToJson(file: File): String? {
+          return try {
+              val src = JSONObject(file.readText())
+              buildLayoutJson(src, file.nameWithoutExtension)
+          } catch (_: Exception) { null }
+      }
+
       fun convert(jsonString: String, layoutName: String = "Legacy Layout"): ControlLayout? {
           return try {
               val src = JSONObject(jsonString)
@@ -189,11 +200,11 @@
 
               // Fractions for X expressions (relative to screen width = REF_W)
               val wFracX  = width  / REF_W   // ${width}  in X context
-              val hFracX  = height / REF_W   // ${height} in X context (cross-axis, scaled to width)
+              val hFracX  = height / REF_H   // ${height} in X context (axis-independent: height/screen_height)
               val dpFracX = 1f     / REF_W   // ${dp}     in X context
 
               // Fractions for Y expressions (relative to screen height = REF_H)
-              val wFracY  = width  / REF_H   // ${width}  in Y context (cross-axis, scaled to height)
+              val wFracY  = width  / REF_W   // ${width}  in Y context (axis-independent: width/screen_width)
               val hFracY  = height / REF_H   // ${height} in Y context
               val dpFracY = 1f     / REF_H   // ${dp}     in Y context
 
