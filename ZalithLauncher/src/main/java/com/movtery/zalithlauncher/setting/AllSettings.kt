@@ -460,6 +460,12 @@ object AllSettings : SettingsRegistry() {
      */
     val controlType = stringSetting("controlType", "zalith2")
 
+    /** Legacy (ZL1 backport) button snapping — snap control buttons to a grid when editing */
+    val buttonSnapping = boolSetting("buttonSnapping", false)
+
+    /** Legacy (ZL1 backport) button snapping distance in dp */
+    val buttonSnappingDistance = intSetting("buttonSnappingDistance", 8, 1..64)
+
     //Other
     /**
      * 当前选择的账号

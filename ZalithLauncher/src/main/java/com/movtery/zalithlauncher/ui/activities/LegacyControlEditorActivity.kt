@@ -756,24 +756,13 @@ private fun ButtonPropertiesDialog(
 }
 
 fun startLegacyEditorActivity(context: Context, file: File) {
-    // If file is already LayerController format (previously migrated), open Zalith 2 editor directly
-    try {
-        loadLayoutFromFile(file)
-        startEditorActivity(context, file)
-        return
-    } catch (_: Exception) {}
-
-    // Convert ZL1 legacy format to LayerController JSON, overwrite file, open Zalith 2 editor
-    val converted = LegacyControlConverter.convertToJson(file)
-    if (converted != null) {
-        runCatching { file.writeText(converted) }.onSuccess {
-            startEditorActivity(context, file)
-            return
+    // Open the original ZL1 canvas editor (Legacy Backport) directly
+    context.startActivity(
+        Intent(context, net.kdt.pojavlaunch.CustomControlsActivity::class.java).apply {
+            putExtra(
+                net.kdt.pojavlaunch.CustomControlsActivity.BUNDLE_CONTROL_PATH,
+                file.absolutePath
+            )
         }
-    }
-
-    // Fall back to legacy canvas editor for formats that cannot be converted
-    context.startActivity(Intent(context, LegacyControlEditorActivity::class.java).apply {
-        putExtra(BUNDLE_LEGACY_CONTROL, file.absolutePath)
-    })
+    )
 }
