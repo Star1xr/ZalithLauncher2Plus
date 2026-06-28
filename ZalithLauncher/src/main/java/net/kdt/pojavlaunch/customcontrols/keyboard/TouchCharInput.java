@@ -24,7 +24,7 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
         this(context, null);
     }
     public TouchCharInput(@NonNull Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs, R.attr.editTextStyle);
+        this(context, attrs, android.R.attr.editTextStyle);
     }
     public TouchCharInput(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);

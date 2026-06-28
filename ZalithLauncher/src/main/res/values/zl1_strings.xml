@@ -10,6 +10,10 @@
       <string name="generic_select">Select</string>
       <string name="percent_format">%d%%</string>
 
+      <!-- Control loading errors -->
+      <string name="controls_load_failed">Failed to load controls layout</string>
+      <string name="controls_unsupported_layout_version">Unsupported controls layout version</string>
+
       <!-- Keycode special button labels -->
       <string name="keycode_special">Special: %s</string>
       <string name="keycode_special_keyboard">Keyboard</string>
@@ -43,10 +47,12 @@
       <string name="controller_direction_right">Right</string>
       <string name="controller_direction_left">Left</string>
       <string name="controller_direction_backward">Backward</string>
-      <string name="controller_right_stick_up">Right Stick Up</string>
-      <string name="controller_right_stick_down">Right Stick Down</string>
-      <string name="controller_right_stick_left">Right Stick Left</string>
-      <string name="controller_right_stick_right">Right Stick Right</string>
+      <string name="controller_stick_press_r">RS Press</string>
+      <string name="controller_stick_press_l">LS Press</string>
+      <string name="controller_dpad_up">D-Pad Up</string>
+      <string name="controller_dpad_down">D-Pad Down</string>
+      <string name="controller_dpad_right">D-Pad Right</string>
+      <string name="controller_dpad_left">D-Pad Left</string>
 
       <!-- Orientation labels for ControlDrawerData -->
       <string name="controls_orientation_down">Down</string>

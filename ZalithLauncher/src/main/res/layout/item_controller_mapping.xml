@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:padding="4dp">
+
+      <LinearLayout
+          android:id="@+id/controller_mapper_default_view"
+          android:layout_width="match_parent"
+          android:layout_height="48dp"
+          android:orientation="horizontal"
+          android:gravity="center_vertical">
+
+          <ImageView
+              android:id="@+id/controller_mapper_button"
+              android:layout_width="40dp"
+              android:layout_height="40dp"
+              android:padding="4dp" />
+
+          <TextView
+              android:id="@+id/controller_mapper_keycode_label"
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:layout_marginStart="8dp" />
+
+          <androidx.appcompat.widget.SwitchCompat
+              android:id="@+id/controller_mapper_toggleable_switch"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginEnd="4dp" />
+
+          <ImageView
+              android:id="@+id/controller_mapper_expand_button"
+              android:layout_width="24dp"
+              android:layout_height="24dp" />
+      </LinearLayout>
+
+      <LinearLayout
+          android:id="@+id/controller_mapper_expanded_view"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:visibility="gone">
+
+          <LinearLayout
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal">
+              <View android:id="@+id/controller_mapper_key_view1"
+                  android:layout_width="24dp" android:layout_height="24dp"/>
+              <Spinner android:id="@+id/controller_mapper_key_spinner1"
+                  android:layout_width="0dp" android:layout_height="wrap_content"
+                  android:layout_weight="1"/>
+          </LinearLayout>
+          <LinearLayout
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal">
+              <View android:id="@+id/controller_mapper_key_view2"
+                  android:layout_width="24dp" android:layout_height="24dp"/>
+              <Spinner android:id="@+id/controller_mapper_key_spinner2"
+                  android:layout_width="0dp" android:layout_height="wrap_content"
+                  android:layout_weight="1"/>
+          </LinearLayout>
+          <LinearLayout
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal">
+              <View android:id="@+id/controller_mapper_key_view3"
+                  android:layout_width="24dp" android:layout_height="24dp"/>
+              <Spinner android:id="@+id/controller_mapper_key_spinner3"
+                  android:layout_width="0dp" android:layout_height="wrap_content"
+                  android:layout_weight="1"/>
+          </LinearLayout>
+          <LinearLayout
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="horizontal">
+              <View android:id="@+id/controller_mapper_key_view4"
+                  android:layout_width="24dp" android:layout_height="24dp"/>
+              <Spinner android:id="@+id/controller_mapper_key_spinner4"
+                  android:layout_width="0dp" android:layout_height="wrap_content"
+                  android:layout_weight="1"/>
+          </LinearLayout>
+      </LinearLayout>
+  </LinearLayout>
+  
