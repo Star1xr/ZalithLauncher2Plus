@@ -1435,4 +1435,5 @@
     <string name="controls_add_control_button">Button</string>
     <string name="global_save_and_exit">Save and Exit</string>
     <string name="customctrl_menu_open">Open menu</string>
+    <string name="generic_load">Load</string>
 </resources>
