@@ -58,6 +58,147 @@ object LegacyControlConverter {
     private const val REF_W = 1280f
     private const val REF_H = 720f
 
+      /**
+       * Assumed display density (dp to pixel ratio) for ZL1 layout positions.
+       * ZL1 uses pixel-based coordinates at the device density; most Android devices are XHDPI (2.0).
+       * This is used to correctly normalise the dp/px() variable in position expressions.
+       */
+      private const val DEFAULT_DENSITY = 2f
+
+      /**
+       * LWJGL2 integer keycode -> GLFW key name string mapping.
+       *
+       * ZL1 stores keycodes as LWJGL2 integers (from org.lwjgl.input.Keyboard).
+       * The ZL2 runtime's ControlEventKeycode.getKeycodeFromEvent() expects GLFW key name strings
+       * (e.g. "GLFW_KEY_A"). This map provides the complete conversion table.
+       */
+      private val lwjgl2ToGlfw: Map<Int, String> = mapOf(
+          // Letters A-Z
+          0x1E to "GLFW_KEY_A",
+          0x30 to "GLFW_KEY_B",
+          0x2E to "GLFW_KEY_C",
+          0x20 to "GLFW_KEY_D",
+          0x12 to "GLFW_KEY_E",
+          0x21 to "GLFW_KEY_F",
+          0x22 to "GLFW_KEY_G",
+          0x23 to "GLFW_KEY_H",
+          0x17 to "GLFW_KEY_I",
+          0x24 to "GLFW_KEY_J",
+          0x25 to "GLFW_KEY_K",
+          0x26 to "GLFW_KEY_L",
+          0x32 to "GLFW_KEY_M",
+          0x31 to "GLFW_KEY_N",
+          0x18 to "GLFW_KEY_O",
+          0x19 to "GLFW_KEY_P",
+          0x10 to "GLFW_KEY_Q",
+          0x13 to "GLFW_KEY_R",
+          0x1F to "GLFW_KEY_S",
+          0x14 to "GLFW_KEY_T",
+          0x16 to "GLFW_KEY_U",
+          0x2F to "GLFW_KEY_V",
+          0x11 to "GLFW_KEY_W",
+          0x2D to "GLFW_KEY_X",
+          0x15 to "GLFW_KEY_Y",
+          0x2C to "GLFW_KEY_Z",
+          // Number row
+          0x02 to "GLFW_KEY_1",
+          0x03 to "GLFW_KEY_2",
+          0x04 to "GLFW_KEY_3",
+          0x05 to "GLFW_KEY_4",
+          0x06 to "GLFW_KEY_5",
+          0x07 to "GLFW_KEY_6",
+          0x08 to "GLFW_KEY_7",
+          0x09 to "GLFW_KEY_8",
+          0x0A to "GLFW_KEY_9",
+          0x0B to "GLFW_KEY_0",
+          // Special / control keys
+          0x01 to "GLFW_KEY_ESCAPE",
+          0x0E to "GLFW_KEY_BACKSPACE",
+          0x0F to "GLFW_KEY_TAB",
+          0x1C to "GLFW_KEY_ENTER",
+          0x39 to "GLFW_KEY_SPACE",
+          // Punctuation
+          0x0C to "GLFW_KEY_MINUS",
+          0x0D to "GLFW_KEY_EQUAL",
+          0x1A to "GLFW_KEY_LEFT_BRACKET",
+          0x1B to "GLFW_KEY_RIGHT_BRACKET",
+          0x2B to "GLFW_KEY_BACKSLASH",
+          0x27 to "GLFW_KEY_SEMICOLON",
+          0x28 to "GLFW_KEY_APOSTROPHE",
+          0x29 to "GLFW_KEY_GRAVE_ACCENT",
+          0x33 to "GLFW_KEY_COMMA",
+          0x34 to "GLFW_KEY_PERIOD",
+          0x35 to "GLFW_KEY_SLASH",
+          // Modifiers
+          0x2A to "GLFW_KEY_LEFT_SHIFT",
+          0x36 to "GLFW_KEY_RIGHT_SHIFT",
+          0x1D to "GLFW_KEY_LEFT_CONTROL",
+          0x9D to "GLFW_KEY_RIGHT_CONTROL",
+          0x38 to "GLFW_KEY_LEFT_ALT",
+          0xB8 to "GLFW_KEY_RIGHT_ALT",
+          0x3A to "GLFW_KEY_CAPS_LOCK",
+          // Function keys F1-F12
+          0x3B to "GLFW_KEY_F1",
+          0x3C to "GLFW_KEY_F2",
+          0x3D to "GLFW_KEY_F3",
+          0x3E to "GLFW_KEY_F4",
+          0x3F to "GLFW_KEY_F5",
+          0x40 to "GLFW_KEY_F6",
+          0x41 to "GLFW_KEY_F7",
+          0x42 to "GLFW_KEY_F8",
+          0x43 to "GLFW_KEY_F9",
+          0x44 to "GLFW_KEY_F10",
+          0x57 to "GLFW_KEY_F11",
+          0x58 to "GLFW_KEY_F12",
+          // Extended function keys F13-F19
+          0x64 to "GLFW_KEY_F13",
+          0x65 to "GLFW_KEY_F14",
+          0x66 to "GLFW_KEY_F15",
+          0x67 to "GLFW_KEY_F16",
+          0x68 to "GLFW_KEY_F17",
+          0x69 to "GLFW_KEY_F18",
+          0x71 to "GLFW_KEY_F19",
+          // Navigation cluster
+          0xC7 to "GLFW_KEY_HOME",
+          0xCF to "GLFW_KEY_END",
+          0xC9 to "GLFW_KEY_PAGE_UP",
+          0xD1 to "GLFW_KEY_PAGE_DOWN",
+          0xD2 to "GLFW_KEY_INSERT",
+          0xD3 to "GLFW_KEY_DELETE",
+          // Arrow keys
+          0xC8 to "GLFW_KEY_UP",
+          0xD0 to "GLFW_KEY_DOWN",
+          0xCB to "GLFW_KEY_LEFT",
+          0xCD to "GLFW_KEY_RIGHT",
+          // Lock keys
+          0x45 to "GLFW_KEY_NUM_LOCK",
+          0x46 to "GLFW_KEY_SCROLL_LOCK",
+          // Numpad arithmetic
+          0x37 to "GLFW_KEY_KP_MULTIPLY",
+          0x4A to "GLFW_KEY_KP_SUBTRACT",
+          0x4E to "GLFW_KEY_KP_ADD",
+          0x9C to "GLFW_KEY_KP_ENTER",
+          0x53 to "GLFW_KEY_KP_DECIMAL",
+          0x8D to "GLFW_KEY_KP_EQUAL",
+          0xB5 to "GLFW_KEY_KP_DIVIDE",
+          // Numpad digits
+          0x52 to "GLFW_KEY_KP_0",
+          0x4F to "GLFW_KEY_KP_1",
+          0x50 to "GLFW_KEY_KP_2",
+          0x51 to "GLFW_KEY_KP_3",
+          0x4B to "GLFW_KEY_KP_4",
+          0x4C to "GLFW_KEY_KP_5",
+          0x4D to "GLFW_KEY_KP_6",
+          0x47 to "GLFW_KEY_KP_7",
+          0x48 to "GLFW_KEY_KP_8",
+          0x49 to "GLFW_KEY_KP_9",
+          // Misc system keys
+          0xB7 to "GLFW_KEY_PRINT_SCREEN",
+          0xC5 to "GLFW_KEY_PAUSE",
+          0xDB to "GLFW_KEY_LEFT_SUPER",
+          0xDC to "GLFW_KEY_RIGHT_SUPER",
+      )
+
     fun convert(file: File): ControlLayout? =
         try { convert(file.readText(), file.nameWithoutExtension) } catch (_: Exception) { null }
 
@@ -168,8 +309,14 @@ object LegacyControlConverter {
         val width  = btn.optDouble("width",  50.0).toFloat().coerceAtLeast(5f)
         val height = btn.optDouble("height", 50.0).toFloat().coerceAtLeast(5f)
 
-        val wFracX = width  / REF_W; val hFracX = height / REF_W; val dpFracX = 1f / REF_W
-        val wFracY = width  / REF_H; val hFracY = height / REF_H; val dpFracY = 1f / REF_H
+        val wFracX = width  / REF_W
+        val hFracX = height / REF_W
+        val wFracY = width  / REF_H
+        val hFracY = height / REF_H
+        // dp fraction: ZL1 uses density as a px-per-dp multiplier.
+        // DEFAULT_DENSITY (2.0 = XHDPI) correctly scales px() and the ${dp} variable.
+        val dpFracX = DEFAULT_DENSITY / REF_W
+        val dpFracY = DEFAULT_DENSITY / REF_H
 
         val xLeft = parseExpr(btn.optString("dynamicX", ""), wFracX, hFracX, dpFracX)
         val yTop  = parseExpr(btn.optString("dynamicY", ""), wFracY, hFracY, dpFracY)
@@ -218,18 +365,35 @@ object LegacyControlConverter {
         }
     } catch (_: Exception) { null }
 
+    /**
+     * Extract LWJGL2 integer keycodes from a ZL1 button JSON object.
+     *
+     * ZL1 has two storage formats:
+     *  - New: "keycodes" array of LWJGL2 integers
+     *  - Old: single "keycode" integer + boolean modifier flags
+     *
+     * The holdShift/holdCtrl/holdAlt flags map to LWJGL2 codes 0x2A/0x1D/0x38.
+     */
     private fun parseKeycodes(btn: JSONObject): List<Int> {
         val arr = btn.optJSONArray("keycodes")
         if (arr != null) return (0 until arr.length()).mapNotNull { i -> arr.optInt(i, 0).takeIf { it != 0 } }
         val result = mutableListOf<Int>()
-        if (btn.optBoolean("holdShift", false)) result.add(340)
-        if (btn.optBoolean("holdCtrl",  false)) result.add(341)
-        if (btn.optBoolean("holdAlt",   false)) result.add(342)
+        // Use LWJGL2 codes so they pass through lwjgl2ToGlfw correctly.
+        if (btn.optBoolean("holdShift", false)) result.add(0x2A) // KEY_LSHIFT
+        if (btn.optBoolean("holdCtrl",  false)) result.add(0x1D) // KEY_LCONTROL
+        if (btn.optBoolean("holdAlt",   false)) result.add(0x38) // KEY_LMENU
         val kc = btn.optInt("keycode", 0)
         if (kc != 0) result.add(kc)
         return result
     }
 
+    /**
+     * Convert a ZL1 LWJGL2 keycode integer to a ZL2 click event JSON object.
+     *
+     * Negative values are ZL1 special button codes mapped to launcher events.
+     * Positive values are LWJGL2 keycodes converted via lwjgl2ToGlfw to GLFW key name strings.
+     * Unknown LWJGL2 codes are silently dropped (return null).
+     */
     private fun keycodeToEventJson(keycode: Int): JSONObject? = when (keycode) {
         SPECIALBTN_KEYBOARD     -> launcherEventJson(LAUNCHER_EVENT_SWITCH_IME)
         SPECIALBTN_TOGGLECTRL,
@@ -241,7 +405,14 @@ object LegacyControlConverter {
         SPECIALBTN_SCROLLDOWN   -> launcherEventJson(LAUNCHER_EVENT_SCROLL_DOWN)
         SPECIALBTN_VIRTUALMOUSE -> null
         0                       -> null
-        else -> JSONObject().apply { put("type", "key"); put("key", keycode.toString()) }
+        else -> {
+            val glfwName = lwjgl2ToGlfw[keycode]
+            if (glfwName != null) {
+                JSONObject().apply { put("type", "key"); put("key", glfwName) }
+            } else {
+                null
+            }
+        }
     }
 
     private fun launcherEventJson(key: String) = JSONObject().apply {
