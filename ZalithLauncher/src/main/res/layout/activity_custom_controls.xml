@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/customctrl_drawerlayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -20,22 +21,24 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
-        <ImageButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/customctrl_menu_toggle"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="end|top"
             android:layout_margin="12dp"
-            android:src="@android:drawable/ic_menu_more"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
-            android:contentDescription="@string/customctrl_menu_open"/>
+            android:src="@drawable/ic_more_vert"
+            android:contentDescription="@string/customctrl_menu_open"
+            app:fabSize="mini"
+            app:tint="?attr/colorOnPrimaryContainer"
+            app:backgroundTint="?attr/colorPrimaryContainer"
+            app:elevation="4dp"/>
 
     </FrameLayout>
 
     <FrameLayout
         android:id="@+id/customctrl_navigation_view"
-        android:layout_width="260dp"
+        android:layout_width="272dp"
         android:layout_height="match_parent"
         android:layout_margin="12dp"
         android:layout_gravity="end"

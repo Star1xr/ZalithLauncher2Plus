@@ -1,153 +1,165 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@drawable/background_card"
-    android:padding="8dp"
-    tools:ignore="UseSwitchCompatOrMaterialXml">
+    android:padding="12dp"
+    tools:ignore="UseSwitchCompatOrMaterialXml"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         style="@style/TextAppearance.Material3.TitleMedium"
         android:gravity="center_horizontal"
         android:text="@string/option_edit_controls"/>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutlineVariant"
+        android:layout_marginBottom="8dp"/>
+
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp">
+        android:layout_height="wrap_content">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="8dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:paddingHorizontal="4dp"
+                style="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorPrimary"
                 android:text="@string/option_edit_controls"/>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#33000000"/>
-
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/add_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_item"
+                android:layout_marginTop="4dp"
+                style="@style/Widget.Material3.Button.TonalButton"
                 android:text="@string/customctrl_addbutton"
-                android:gravity="center_horizontal"
-                android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"/>
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingVertical="12dp"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/add_drawer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_item"
+                android:layout_marginTop="4dp"
+                style="@style/Widget.Material3.Button.TonalButton"
                 android:text="@string/customctrl_addbutton_drawer"
-                android:gravity="center_horizontal"
-                android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"/>
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingVertical="12dp"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/add_joystick"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_item"
+                android:layout_marginTop="4dp"
+                style="@style/Widget.Material3.Button.TonalButton"
                 android:text="@string/customctrl_addbutton_joystick"
-                android:gravity="center_horizontal"
-                android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:text="@string/generic_save"/>
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingVertical="12dp"/>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#33000000"/>
+                android:background="?attr/colorOutlineVariant"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="4dp"/>
 
-            <Button
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:paddingHorizontal="4dp"
+                style="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorPrimary"
+                android:text="@string/generic_save"/>
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/load"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_item"
+                android:layout_marginTop="4dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:text="@string/generic_load"
-                android:gravity="center_horizontal"
-                android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"/>
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingVertical="12dp"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/save"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_item"
+                android:layout_marginTop="4dp"
+                style="@style/Widget.Material3.Button.TonalButton"
                 android:text="@string/generic_save"
-                android:gravity="center_horizontal"
-                android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"/>
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingVertical="12dp"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/save_and_exit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_item"
+                android:layout_marginTop="4dp"
+                style="@style/Widget.Material3.Button"
                 android:text="@string/global_save_and_exit"
-                android:gravity="center_horizontal"
-                android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"/>
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingVertical="12dp"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/save_and_export"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_item"
+                android:layout_marginTop="4dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:text="@string/customctrl_export"
-                android:gravity="center_horizontal"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:text="@string/pedit_control"/>
+                android:visibility="gone"/>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#33000000"/>
+                android:background="?attr/colorOutlineVariant"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:paddingHorizontal="4dp"
+                style="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorPrimary"
+                android:text="@string/pedit_control"/>
 
             <RelativeLayout
                 android:id="@+id/snapping_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/background_item"
-                android:padding="8dp">
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="12dp">
 
                 <TextView
                     android:id="@+id/snapping_title"
@@ -157,15 +169,16 @@
                     android:layout_alignParentStart="true"
                     android:layout_marginEnd="8dp"
                     android:layout_toStartOf="@+id/snapping"
-                    android:text="@string/controls_settings_button_snapping"
-                    android:textColor="@android:color/black" />
+                    style="@style/TextAppearance.Material3.BodyMedium"
+                    android:textColor="?attr/colorOnSurface"
+                    android:text="@string/controls_settings_button_snapping"/>
 
                 <Switch
                     android:id="@+id/snapping"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true" />
+                    android:layout_centerVertical="true"/>
             </RelativeLayout>
 
             <LinearLayout
@@ -178,25 +191,30 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:paddingHorizontal="4dp"
+                    style="@style/TextAppearance.Material3.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:text="@string/controls_settings_button_snapping_distance"/>
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp">
 
                     <TextView
                         android:id="@+id/snapping_distance_remove"
-                        android:layout_width="16dp"
+                        android:layout_width="28dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
+                        android:layout_marginStart="4dp"
                         android:layout_marginEnd="4dp"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
                         android:gravity="center_horizontal"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:textColor="?attr/colorOnSurface"
                         android:text="-"
-                        android:textSize="16dp"
-                        tools:ignore="HardcodedText" />
+                        android:textSize="20sp"
+                        tools:ignore="HardcodedText"/>
 
                     <SeekBar
                         android:id="@+id/snapping_distance"
@@ -210,16 +228,17 @@
 
                     <TextView
                         android:id="@+id/snapping_distance_add"
-                        android:layout_width="16dp"
+                        android:layout_width="28dp"
                         android:layout_height="wrap_content"
                         android:layout_marginHorizontal="4dp"
                         android:layout_centerVertical="true"
                         android:layout_toStartOf="@id/snapping_distance_value"
                         android:gravity="center_horizontal"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:textColor="?attr/colorOnSurface"
                         android:text="+"
-                        android:textSize="16dp"
-                        tools:ignore="HardcodedText" />
+                        android:textSize="20sp"
+                        tools:ignore="HardcodedText"/>
 
                     <TextView
                         android:id="@+id/snapping_distance_value"
@@ -229,36 +248,44 @@
                         android:layout_centerVertical="true"
                         android:layout_alignParentEnd="true"
                         android:background="@drawable/background_text"
+                        android:minWidth="40dp"
+                        android:gravity="center"
+                        style="@style/TextAppearance.Material3.LabelMedium"
+                        android:textColor="?attr/colorOnSurface"
                         tools:text="0"/>
-
                 </RelativeLayout>
-
             </LinearLayout>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/select_default"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:background="@drawable/background_item"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:text="@string/customctrl_selectdefault"
-                android:gravity="center_horizontal"
-                android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"/>
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingVertical="12dp"/>
 
-            <Button
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="4dp"/>
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/exit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/background_item"
+                android:layout_marginTop="4dp"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:text="@string/customctrl_editor_exit"
-                android:gravity="center_horizontal"
-                android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"/>
+                android:textColor="?attr/colorError"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingVertical="12dp"/>
 
         </LinearLayout>
-
     </ScrollView>
-
 </LinearLayout>
