@@ -1,7 +1,6 @@
 package net.kdt.pojavlaunch;
 
   import android.view.KeyEvent;
-  import com.movtery.zalithlauncher.game.input.EfficientAndroidLWJGLKeycode.Companion;
   import java.util.ArrayList;
   import java.util.List;
 
@@ -36,8 +35,8 @@ package net.kdt.pojavlaunch;
       }
 
       /**
-       * Generates a list of human-readable key names for use in spinners / adapters.
-       * Returns an empty list as a safe stub (key name UI can be populated differently).
+       * Generates a list of human-readable key names.
+       * Returns an empty list as a safe stub (key name UI is a best-effort feature).
        */
       public static List<String> generateKeyName() {
           return new ArrayList<>();
