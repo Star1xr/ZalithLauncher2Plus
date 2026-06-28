@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@drawable/background_card"
+    android:padding="8dp"
+    tools:ignore="UseSwitchCompatOrMaterialXml">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/TextAppearance.Material3.TitleMedium"
+        android:gravity="center_horizontal"
+        android:text="@string/option_edit_controls"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:text="@string/option_edit_controls"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#33000000"/>
+
+            <com.movtery.zalithlauncher.ui.view.AnimTextView
+                android:id="@+id/add_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:text="@string/customctrl_addbutton"
+                android:gravity="center_horizontal"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                app:ripple_for_text="true"/>
+
+            <com.movtery.zalithlauncher.ui.view.AnimTextView
+                android:id="@+id/add_drawer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:text="@string/customctrl_addbutton_drawer"
+                android:gravity="center_horizontal"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                app:ripple_for_text="true"/>
+
+            <com.movtery.zalithlauncher.ui.view.AnimTextView
+                android:id="@+id/add_joystick"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:text="@string/customctrl_addbutton_joystick"
+                android:gravity="center_horizontal"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                app:ripple_for_text="true"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:text="@string/generic_save"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#33000000"/>
+
+            <com.movtery.zalithlauncher.ui.view.AnimTextView
+                android:id="@+id/load"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:text="@string/generic_load"
+                android:gravity="center_horizontal"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                app:ripple_for_text="true"/>
+
+            <com.movtery.zalithlauncher.ui.view.AnimTextView
+                android:id="@+id/save"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:text="@string/generic_save"
+                android:gravity="center_horizontal"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                app:ripple_for_text="true"/>
+
+            <com.movtery.zalithlauncher.ui.view.AnimTextView
+                android:id="@+id/save_and_exit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:text="@string/global_save_and_exit"
+                android:gravity="center_horizontal"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                app:ripple_for_text="true"/>
+
+            <com.movtery.zalithlauncher.ui.view.AnimTextView
+                android:id="@+id/save_and_export"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:text="@string/customctrl_export"
+                android:gravity="center_horizontal"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                app:ripple_for_text="true"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:text="@string/pedit_control"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#33000000"/>
+
+            <com.movtery.zalithlauncher.ui.layout.AnimRelativeLayout
+                android:id="@+id/snapping_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:padding="8dp"
+                app:ripple_for_relative="true">
+
+                <TextView
+                    android:id="@+id/snapping_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginEnd="8dp"
+                    android:layout_toStartOf="@+id/snapping"
+                    android:text="@string/controls_settings_button_snapping"
+                    android:textColor="@android:color/black" />
+
+                <Switch
+                    android:id="@+id/snapping"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true" />
+            </com.movtery.zalithlauncher.ui.layout.AnimRelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/snapping_distance_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/controls_settings_button_snapping_distance"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/snapping_distance_remove"
+                        android:layout_width="16dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:gravity="center_horizontal"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:text="-"
+                        android:textSize="16dp"
+                        tools:ignore="HardcodedText" />
+
+                    <SeekBar
+                        android:id="@+id/snapping_distance"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@id/snapping_distance_remove"
+                        android:layout_toStartOf="@id/snapping_distance_add"
+                        android:max="30"/>
+
+                    <TextView
+                        android:id="@+id/snapping_distance_add"
+                        android:layout_width="16dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="4dp"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@id/snapping_distance_value"
+                        android:gravity="center_horizontal"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:text="+"
+                        android:textSize="16dp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:id="@+id/snapping_distance_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="8dp"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentEnd="true"
+                        android:background="@drawable/background_text"
+                        tools:text="0"/>
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+            <com.movtery.zalithlauncher.ui.view.AnimTextView
+                android:id="@+id/select_default"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:text="@string/customctrl_selectdefault"
+                android:gravity="center_horizontal"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                app:ripple_for_text="true"/>
+
+            <com.movtery.zalithlauncher.ui.view.AnimTextView
+                android:id="@+id/exit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item"
+                android:text="@string/customctrl_editor_exit"
+                android:gravity="center_horizontal"
+                android:paddingVertical="12dp"
+                android:paddingHorizontal="8dp"
+                app:ripple_for_text="true"/>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>
