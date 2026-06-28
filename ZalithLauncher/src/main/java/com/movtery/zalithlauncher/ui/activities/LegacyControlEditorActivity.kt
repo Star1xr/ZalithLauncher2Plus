@@ -589,11 +589,11 @@ package com.movtery.zalithlauncher.ui.activities
       val w = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f)
       val h = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f)
       val xLeft = evalExpr(
-          obj.optString("dynamicX", "0.5 * ${screen_width}"),
+          obj.optString("dynamicX", "0.5 * \${screen_width}"),
           wFrac = w / 1280f, hFrac = h / 720f, dpFrac = 1f / 1280f
       )
       val yTop = evalExpr(
-          obj.optString("dynamicY", "0.5 * ${screen_height}"),
+          obj.optString("dynamicY", "0.5 * \${screen_height}"),
           wFrac = w / 1280f, hFrac = h / 720f, dpFrac = 1f / 720f
       )
       val rawName = obj.optString("name", "Button")
@@ -632,8 +632,8 @@ package com.movtery.zalithlauncher.ui.activities
       val topEdge = (btn.yFrac - btn.heightDp / refH / 2f).coerceIn(0f, 1f)
       return JSONObject().apply {
           put("name", btn.name)
-          put("dynamicX", leftEdge.toString() + " * ${screen_width}")
-          put("dynamicY", topEdge.toString() + " * ${screen_height}")
+          put("dynamicX", leftEdge.toString() + " * \${screen_width}")
+          put("dynamicY", topEdge.toString() + " * \${screen_height}")
           put("width", btn.widthDp.toDouble())
           put("height", btn.heightDp.toDouble())
           put("keycodes", JSONArray().also { a -> btn.keycodes.forEach { a.put(it) } })
@@ -666,16 +666,16 @@ package com.movtery.zalithlauncher.ui.activities
       return try {
           val marginFrac = 8f / 1280f
           var s = expr.trim()
-              .replace("${screen_width}", "1.0")
-              .replace("${screen_height}", "1.0")
-              .replace("${width}", "%.8f".format(wFrac))
-              .replace("${height}", "%.8f".format(hFrac))
-              .replace("${dp}", "%.8f".format(dpFrac))
-              .replace("${ratio}", "1.0")
-              .replace("${margin}", "%.8f".format(marginFrac))
-              .replace("${right}", "(1.0 - %.8f)".format(wFrac))
-              .replace("${bottom}", "(1.0 - %.8f)".format(hFrac))
-              .replace("${preferred_scale}", "100.0")
+              .replace("\${screen_width}", "1.0")
+              .replace("\${screen_height}", "1.0")
+              .replace("\${width}", "%.8f".format(wFrac))
+              .replace("\${height}", "%.8f".format(hFrac))
+              .replace("\${dp}", "%.8f".format(dpFrac))
+              .replace("\${ratio}", "1.0")
+              .replace("\${margin}", "%.8f".format(marginFrac))
+              .replace("\${right}", "(1.0 - %.8f)".format(wFrac))
+              .replace("\${bottom}", "(1.0 - %.8f)".format(hFrac))
+              .replace("\${preferred_scale}", "100.0")
           s = evalReplacePx(s, dpFrac)
           MiniCalc(s).eval().coerceIn(0f, 1f)
       } catch (_: Exception) { 0.5f }
