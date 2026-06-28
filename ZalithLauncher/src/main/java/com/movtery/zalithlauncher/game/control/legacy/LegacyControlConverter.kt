@@ -216,13 +216,14 @@ object LegacyControlConverter {
         val author  = infoJson?.optString("author",  "")?.nullIfLiteralOrBlank() ?: ""
         val desc    = infoJson?.optString("desc",    "")?.nullIfLiteralOrBlank() ?: ""
         val verName = infoJson?.optString("version", "")?.nullIfLiteralOrBlank() ?: ""
+        val scaledAt = src.optDouble("scaledAt", 100.0).toFloat()
 
         val mainButtons = JSONArray()
         val extraLayers = JSONArray()
 
         src.optJSONArray("mControlDataList")?.let { arr ->
             for (i in 0 until arr.length()) {
-                arr.optJSONObject(i)?.let { buildButton(it)?.let(mainButtons::put) }
+                arr.optJSONObject(i)?.let { buildButton(it, scaledAt)?.let(mainButtons::put) }
             }
         }
 
@@ -233,7 +234,7 @@ object LegacyControlConverter {
                     val drawerButtons = JSONArray()
                     drawer.optJSONArray("buttonProperties")?.let { btnArr ->
                         for (j in 0 until btnArr.length()) {
-                            btnArr.optJSONObject(j)?.let { buildButton(it)?.let(drawerButtons::put) }
+                            btnArr.optJSONObject(j)?.let { buildButton(it, scaledAt)?.let(drawerButtons::put) }
                         }
                     }
                     val drawerLayer = JSONObject().apply {
@@ -249,7 +250,7 @@ object LegacyControlConverter {
                     }
                     extraLayers.put(drawerLayer)
 
-                    val triggerBtn = drawer.optJSONObject("properties")?.let { buildButton(it) }
+                    val triggerBtn = drawer.optJSONObject("properties")?.let { buildButton(it, scaledAt) }
                     if (triggerBtn != null) {
                         val switchEvent = JSONObject().apply {
                             put("type", "switch_layer")
@@ -305,7 +306,7 @@ object LegacyControlConverter {
         put("matchQueue", JSONArray())
     }
 
-    private fun buildButton(btn: JSONObject): JSONObject? = try {
+    private fun buildButton(btn: JSONObject, preferredScale: Float = 100f): JSONObject? = try {
         val width  = btn.optDouble("width",  50.0).toFloat().coerceAtLeast(5f)
         val height = btn.optDouble("height", 50.0).toFloat().coerceAtLeast(5f)
 
@@ -318,8 +319,8 @@ object LegacyControlConverter {
         val dpFracX = DEFAULT_DENSITY / REF_W
         val dpFracY = DEFAULT_DENSITY / REF_H
 
-        val xLeft = parseExpr(btn.optString("dynamicX", ""), wFracX, hFracX, dpFracX)
-        val yTop  = parseExpr(btn.optString("dynamicY", ""), wFracY, hFracY, dpFracY)
+        val xLeft = parseExpr(btn.optString("dynamicX", ""), wFracX, hFracX, dpFracX, preferredScale)
+        val yTop  = parseExpr(btn.optString("dynamicY", ""), wFracY, hFracY, dpFracY, preferredScale)
 
         val xCenter = (xLeft + wFracX / 2f).coerceIn(0f, 1f)
         val yCenter = (yTop  + hFracY / 2f).coerceIn(0f, 1f)
@@ -426,7 +427,7 @@ object LegacyControlConverter {
      * The dollar-variable trick avoids Kotlin string interpolation of the variable names.
      * Any unrecognised tokens are replaced with "0.0" as a safe fallback.
      */
-    private fun parseExpr(expr: String, wFrac: Float = 0f, hFrac: Float = 0f, dpFrac: Float = 0f): Float {
+    private fun parseExpr(expr: String, wFrac: Float = 0f, hFrac: Float = 0f, dpFrac: Float = 0f, preferredScale: Float = 100f): Float {
         if (expr.isBlank()) return 0.5f
         return try {
             // Use a local val for "$" to avoid Kotlin string interpolation of variable names.
@@ -437,7 +438,7 @@ object LegacyControlConverter {
                 .replace(d + "{width}",           "%.8f".format(wFrac))
                 .replace(d + "{height}",          "%.8f".format(hFrac))
                 .replace(d + "{dp}",              "%.8f".format(dpFrac))
-                .replace(d + "{preferred_scale}", "100.0")
+                .replace(d + "{preferred_scale}", "%.2f".format(preferredScale))
                 .replace(d + "{ratio}",           "1.0")
                 .replace(d + "{margin}",          "0.0")
                 .replace(d + "{right}",           "(1.0 - %.8f)".format(wFrac))
