@@ -21,7 +21,7 @@ import java.io.IOException;
 /**
  * ZL1 Legacy Control Editor Activity (Backport).
  * Hosts the original Zalith Launcher 1 canvas-based control editor.
- * Navigation: Settings -> Layout -> Legacy (Zalith 1)
+ * Navigation: Settings -> Layout -> Legacy (Zalith 1) -> edit.
  */
 public class CustomControlsActivity extends BaseAppCompatActivity implements EditorExitable {
 
@@ -51,7 +51,7 @@ public class CustomControlsActivity extends BaseAppCompatActivity implements Edi
 
         // When editing a legacy file, wire save/exit buttons to operate on the
         // original file path instead of opening a save-as dialog that targets
-        // the ZL2 layout directory.
+        // the ZL2 layout directory (DIR_CTRLMAP_PATH).
         if (mControlPath != null) {
             final String filePath = mControlPath;
 
@@ -60,7 +60,7 @@ public class CustomControlsActivity extends BaseAppCompatActivity implements Edi
                     controlLayout.saveLayout(filePath);
                     com.movtery.zalithlauncher.game.control.legacy.LegacyControlManager.INSTANCE.refresh();
                     Toast.makeText(this,
-                            getString(com.movtery.zalithlauncher.R.string.generic_save) + ": OK",
+                            getString(com.movtery.zalithlauncher.R.string.generic_saved),
                             Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     Tools.showError(this, e);
@@ -77,13 +77,20 @@ public class CustomControlsActivity extends BaseAppCompatActivity implements Edi
                 }
             });
 
-            // Exit button still uses the standard ask-to-exit dialog so the user
-            // can choose to discard unsaved changes safely.
+            // Exit still uses the standard ask-to-exit flow so the user can
+            // choose to discard unsaved changes or cancel.
             controlMenuBinding.exit.setOnClickListener(v ->
                     controlLayout.askToExit(CustomControlsActivity.this));
+
+            // Load the legacy layout file into the editor canvas.
+            try {
+                controlLayout.loadLayout(filePath);
+            } catch (IOException e) {
+                Tools.showError(this, e);
+            }
         }
 
-        // Floating menu-toggle button (opens/closes the control menu drawer)
+        // Floating action button opens/closes the control menu panel.
         binding.customctrlMenuToggle.setOnClickListener(v -> {
             if (drawerLayout.isDrawerOpen(drawerNavigationView)) {
                 drawerLayout.closeDrawer(drawerNavigationView);
@@ -91,13 +98,6 @@ public class CustomControlsActivity extends BaseAppCompatActivity implements Edi
                 drawerLayout.openDrawer(drawerNavigationView);
             }
         });
-
-        try {
-            if (mControlPath == null) controlLayout.loadLayout((String) null);
-            else controlLayout.loadLayout(mControlPath);
-        } catch (IOException e) {
-            Tools.showError(this, e);
-        }
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -108,10 +108,9 @@ public class CustomControlsActivity extends BaseAppCompatActivity implements Edi
     }
 
     /**
-     * Called by ControlLayout's exit/save-and-exit dialogs to close this activity.
-     * The default in EditorExitable is a no-op -- we must override it here so that
-     * confirming exit dialogs actually finishes the activity and returns to the
-     * previous screen.
+     * Called by ControlLayout's exit/save-and-exit dialogs to finish this activity.
+     * The default implementation in EditorExitable is a no-op, so we override it here
+     * to actually close the editor and return the user to the previous screen.
      */
     @Override
     public void exitEditor() {

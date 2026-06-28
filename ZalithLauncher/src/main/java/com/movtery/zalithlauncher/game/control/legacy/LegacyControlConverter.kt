@@ -32,27 +32,15 @@ import java.util.UUID
 /**
  * Converts Zalith Launcher 1 legacy control layouts to the LayerController ControlLayout format.
  *
- * ZL1 coordinate system:
- *   - dynamicX/dynamicY evaluate to the LEFT/TOP edge of the button on a 1280x720 dp reference screen.
- *   - Variables: ${screen_width}=actual_screen_px, ${screen_height}=actual_screen_px,
- *     ${width}=button_width_px, ${height}=button_height_px, ${dp}=density.
- *   - When normalised by screen dimension: fractions suitable for conversion.
+ * ZL1 coordinate system: dynamicX/Y evaluate to the LEFT/TOP edge of the button.
+ * Variables screen_width, screen_height are actual screen pixels at runtime; width/height are
+ * button pixels; dp = display density; preferred_scale = layout scale (100 = default).
  *
- * LayerController coordinate system:
- *   - ButtonPosition {x, y} in 0-10000 represents the CENTER of the button as a percentage
- *     (5000 = 50% = screen center).
- *
- * Conversion: left_edge_fraction + half_button_fraction -> center_fraction x 10000.
- *
- * Expression accuracy improvements:
- *   - ${preferred_scale} is resolved to 100.0 (editor default).
- *   - px(value) function calls are evaluated as value * dpFrac (1 dp normalised).
- *   - ${right}/${bottom} anchors are expanded before evaluation.
- *   - Any remaining unresolved ${...} tokens fall back to 0.0 instead of crashing the parser.
+ * Conversion: normalise each expression to [0,1] fraction, add half-button-size to get center,
+ * then multiply by 10000 for the LayerController coordinate space.
  */
 object LegacyControlConverter {
 
-    // Zalith 1 special button keycodes
     private const val SPECIALBTN_KEYBOARD     = -1
     private const val SPECIALBTN_TOGGLECTRL   = -2
     private const val SPECIALBTN_MOUSEPRI     = -3
@@ -63,38 +51,23 @@ object LegacyControlConverter {
     private const val SPECIALBTN_SCROLLDOWN   = -8
     private const val SPECIALBTN_MENU         = -9
 
-    // GLFW mouse button event strings
     private const val GLFW_MOUSE_LEFT   = "GLFW_MOUSE_BUTTON_LEFT"
     private const val GLFW_MOUSE_RIGHT  = "GLFW_MOUSE_BUTTON_RIGHT"
     private const val GLFW_MOUSE_MIDDLE = "GLFW_MOUSE_BUTTON_MIDDLE"
 
-    // ZL1 reference landscape screen dimensions (dp).
-    // Positions are interpreted relative to a 1280x720 dp canvas.
     private const val REF_W = 1280f
     private const val REF_H = 720f
 
-    fun convert(file: File): ControlLayout? {
-        return try { convert(file.readText(), file.nameWithoutExtension) } catch (_: Exception) { null }
-    }
+    fun convert(file: File): ControlLayout? =
+        try { convert(file.readText(), file.nameWithoutExtension) } catch (_: Exception) { null }
 
-    /**
-     * Converts a ZL1 legacy control layout file to a LayerController-format JSON string.
-     * Returns null if the file cannot be read or parsed.
-     */
-    fun convertToJson(file: File): String? {
-        return try {
-            val src = JSONObject(file.readText())
-            buildLayoutJson(src, file.nameWithoutExtension)
-        } catch (_: Exception) { null }
-    }
+    fun convertToJson(file: File): String? = try {
+        buildLayoutJson(JSONObject(file.readText()), file.nameWithoutExtension)
+    } catch (_: Exception) { null }
 
-    fun convert(jsonString: String, layoutName: String = "Legacy Layout"): ControlLayout? {
-        return try {
-            val src = JSONObject(jsonString)
-            val layoutJson = buildLayoutJson(src, layoutName)
-            loadLayoutFromString(layoutJson)
-        } catch (_: Exception) { null }
-    }
+    fun convert(jsonString: String, layoutName: String = "Legacy Layout"): ControlLayout? = try {
+        loadLayoutFromString(buildLayoutJson(JSONObject(jsonString), layoutName))
+    } catch (_: Exception) { null }
 
     private fun buildLayoutJson(src: JSONObject, layoutName: String): String {
         val infoJson = src.optJSONObject("mControlInfoDataList")
@@ -106,20 +79,16 @@ object LegacyControlConverter {
         val mainButtons = JSONArray()
         val extraLayers = JSONArray()
 
-        // Regular buttons
         src.optJSONArray("mControlDataList")?.let { arr ->
             for (i in 0 until arr.length()) {
                 arr.optJSONObject(i)?.let { buildButton(it)?.let(mainButtons::put) }
             }
         }
 
-        // Drawer controls: each drawer gets its own hidden layer with a trigger button
         src.optJSONArray("mDrawerDataList")?.let { arr ->
             for (i in 0 until arr.length()) {
                 arr.optJSONObject(i)?.let { drawer ->
                     val drawerLayerUuid = UUID.randomUUID().toString()
-
-                    // Build drawer content layer (hidden by default)
                     val drawerButtons = JSONArray()
                     drawer.optJSONArray("buttonProperties")?.let { btnArr ->
                         for (j in 0 until btnArr.length()) {
@@ -127,7 +96,7 @@ object LegacyControlConverter {
                         }
                     }
                     val drawerLayer = JSONObject().apply {
-                        put("name", "Drawer ${i + 1}")
+                        put("name", "Drawer " + (i + 1))
                         put("uuid", drawerLayerUuid)
                         put("hide", true)
                         put("hideWhenMouse", false)
@@ -139,7 +108,6 @@ object LegacyControlConverter {
                     }
                     extraLayers.put(drawerLayer)
 
-                    // Build drawer trigger button with SwitchLayer event
                     val triggerBtn = drawer.optJSONObject("properties")?.let { buildButton(it) }
                     if (triggerBtn != null) {
                         val switchEvent = JSONObject().apply {
@@ -152,10 +120,7 @@ object LegacyControlConverter {
                         triggerBtn.put("clickEvents", newEvents)
                         mainButtons.put(triggerBtn)
                     } else {
-                        // No trigger properties: flatten drawer contents into main layer
-                        for (j in 0 until drawerButtons.length()) {
-                            mainButtons.put(drawerButtons.getJSONObject(j))
-                        }
+                        for (j in 0 until drawerButtons.length()) mainButtons.put(drawerButtons.getJSONObject(j))
                     }
                 }
             }
@@ -172,7 +137,6 @@ object LegacyControlConverter {
             put("normalButtons", mainButtons)
             put("textBoxes", JSONArray())
         }
-
         val allLayers = JSONArray().put(mainLayer)
         for (k in 0 until extraLayers.length()) allLayers.put(extraLayers.getJSONObject(k))
 
@@ -183,7 +147,6 @@ object LegacyControlConverter {
             put("versionCode", 0)
             put("versionName", verName)
         }
-
         return JSONObject().apply {
             put("info",          info)
             put("layers",        allLayers)
@@ -201,74 +164,59 @@ object LegacyControlConverter {
         put("matchQueue", JSONArray())
     }
 
-    private fun buildButton(btn: JSONObject): JSONObject? {
-        return try {
-            val width  = btn.optDouble("width",  50.0).toFloat().coerceAtLeast(5f)
-            val height = btn.optDouble("height", 50.0).toFloat().coerceAtLeast(5f)
+    private fun buildButton(btn: JSONObject): JSONObject? = try {
+        val width  = btn.optDouble("width",  50.0).toFloat().coerceAtLeast(5f)
+        val height = btn.optDouble("height", 50.0).toFloat().coerceAtLeast(5f)
 
-            // Fractions for X expressions (reference axis = REF_W = screen width)
-            val wFracX  = width  / REF_W   // ${width}  in X context
-            val hFracX  = height / REF_W   // ${height} in X context
-            val dpFracX = 1f     / REF_W   // ${dp}     in X context: 1 dp as fraction of ref width
+        val wFracX = width  / REF_W; val hFracX = height / REF_W; val dpFracX = 1f / REF_W
+        val wFracY = width  / REF_H; val hFracY = height / REF_H; val dpFracY = 1f / REF_H
 
-            // Fractions for Y expressions (reference axis = REF_H = screen height)
-            val wFracY  = width  / REF_H   // ${width}  in Y context
-            val hFracY  = height / REF_H   // ${height} in Y context
-            val dpFracY = 1f     / REF_H   // ${dp}     in Y context: 1 dp as fraction of ref height
+        val xLeft = parseExpr(btn.optString("dynamicX", ""), wFracX, hFracX, dpFracX)
+        val yTop  = parseExpr(btn.optString("dynamicY", ""), wFracY, hFracY, dpFracY)
 
-            // ZL1 dynamicX/Y = LEFT / TOP edge of button as a [0,1] screen fraction
-            val xLeft = parseExpr(btn.optString("dynamicX", ""), wFracX, hFracX, dpFracX)
-            val yTop  = parseExpr(btn.optString("dynamicY", ""), wFracY, hFracY, dpFracY)
+        val xCenter = (xLeft + wFracX / 2f).coerceIn(0f, 1f)
+        val yCenter = (yTop  + hFracY / 2f).coerceIn(0f, 1f)
+        val xPos = (xCenter * 10000).toInt().coerceIn(0, 10000)
+        val yPos = (yCenter * 10000).toInt().coerceIn(0, 10000)
 
-            // LayerController ButtonPosition = CENTER of button (0-10000)
-            val xCenter = (xLeft + wFracX / 2f).coerceIn(0f, 1f)
-            val yCenter = (yTop  + hFracY / 2f).coerceIn(0f, 1f)
+        val nameText = btn.optString("name", "Button")
+            .let { if (it == "null" || it.isBlank()) "Button" else it }
 
-            val xPos = (xCenter * 10000).toInt().coerceIn(0, 10000)
-            val yPos = (yCenter * 10000).toInt().coerceIn(0, 10000)
+        val displayInGame = btn.optBoolean("displayInGame", true)
+        val displayInMenu = btn.optBoolean("displayInMenu", true)
+        val visType = when {
+            displayInGame && displayInMenu -> "always"
+            displayInGame -> "in_game"
+            displayInMenu -> "in_menu"
+            else -> "always"
+        }
+        val clickEventsArr = JSONArray()
+        parseKeycodes(btn).forEach { kc -> keycodeToEventJson(kc)?.let(clickEventsArr::put) }
 
-            val nameText = btn.optString("name", "Button")
-                .let { if (it == "null" || it.isBlank()) "Button" else it }
-
-            val displayInGame = btn.optBoolean("displayInGame", true)
-            val displayInMenu = btn.optBoolean("displayInMenu", true)
-            val visType = when {
-                displayInGame && displayInMenu -> "always"
-                displayInGame -> "in_game"
-                displayInMenu -> "in_menu"
-                else -> "always"
-            }
-
-            val clickEventsArr = JSONArray()
-            parseKeycodes(btn).forEach { kc ->
-                keycodeToEventJson(kc)?.let(clickEventsArr::put)
-            }
-
-            JSONObject().apply {
-                put("text",           tsJson(nameText))
-                put("uuid",           UUID.randomUUID().toString())
-                put("position",       JSONObject().apply { put("x", xPos); put("y", yPos) })
-                put("buttonSize",     JSONObject().apply {
-                    put("type",             "dp")
-                    put("widthDp",          width.toDouble())
-                    put("heightDp",         height.toDouble())
-                    put("widthPercentage",  1000)
-                    put("heightPercentage", 1000)
-                    put("widthReference",   "screen_width")
-                    put("heightReference",  "screen_height")
-                })
-                put("textAlignment",  "Left")
-                put("textBold",       false)
-                put("textItalic",     false)
-                put("textUnderline",  false)
-                put("visibilityType", visType)
-                put("clickEvents",    clickEventsArr)
-                put("isSwipple",      btn.optBoolean("isSwipeable", false))
-                put("isPenetrable",   false)
-                put("isToggleable",   btn.optBoolean("isToggle", false))
-            }
-        } catch (_: Exception) { null }
-    }
+        JSONObject().apply {
+            put("text",           tsJson(nameText))
+            put("uuid",           UUID.randomUUID().toString())
+            put("position",       JSONObject().apply { put("x", xPos); put("y", yPos) })
+            put("buttonSize",     JSONObject().apply {
+                put("type",             "dp")
+                put("widthDp",          width.toDouble())
+                put("heightDp",         height.toDouble())
+                put("widthPercentage",  1000)
+                put("heightPercentage", 1000)
+                put("widthReference",   "screen_width")
+                put("heightReference",  "screen_height")
+            })
+            put("textAlignment",  "Left")
+            put("textBold",       false)
+            put("textItalic",     false)
+            put("textUnderline",  false)
+            put("visibilityType", visType)
+            put("clickEvents",    clickEventsArr)
+            put("isSwipple",      btn.optBoolean("isSwipeable", false))
+            put("isPenetrable",   false)
+            put("isToggleable",   btn.optBoolean("isToggle", false))
+        }
+    } catch (_: Exception) { null }
 
     private fun parseKeycodes(btn: JSONObject): List<Int> {
         val arr = btn.optJSONArray("keycodes")
@@ -283,16 +231,16 @@ object LegacyControlConverter {
     }
 
     private fun keycodeToEventJson(keycode: Int): JSONObject? = when (keycode) {
-        SPECIALBTN_KEYBOARD    -> launcherEventJson(LAUNCHER_EVENT_SWITCH_IME)
+        SPECIALBTN_KEYBOARD     -> launcherEventJson(LAUNCHER_EVENT_SWITCH_IME)
         SPECIALBTN_TOGGLECTRL,
-        SPECIALBTN_MENU        -> launcherEventJson(LAUNCHER_EVENT_SWITCH_MENU)
-        SPECIALBTN_MOUSEPRI    -> launcherEventJson(GLFW_MOUSE_LEFT)
-        SPECIALBTN_MOUSESEC    -> launcherEventJson(GLFW_MOUSE_RIGHT)
-        SPECIALBTN_MOUSEMID    -> launcherEventJson(GLFW_MOUSE_MIDDLE)
-        SPECIALBTN_SCROLLUP    -> launcherEventJson(LAUNCHER_EVENT_SCROLL_UP)
-        SPECIALBTN_SCROLLDOWN  -> launcherEventJson(LAUNCHER_EVENT_SCROLL_DOWN)
+        SPECIALBTN_MENU         -> launcherEventJson(LAUNCHER_EVENT_SWITCH_MENU)
+        SPECIALBTN_MOUSEPRI     -> launcherEventJson(GLFW_MOUSE_LEFT)
+        SPECIALBTN_MOUSESEC     -> launcherEventJson(GLFW_MOUSE_RIGHT)
+        SPECIALBTN_MOUSEMID     -> launcherEventJson(GLFW_MOUSE_MIDDLE)
+        SPECIALBTN_SCROLLUP     -> launcherEventJson(LAUNCHER_EVENT_SCROLL_UP)
+        SPECIALBTN_SCROLLDOWN   -> launcherEventJson(LAUNCHER_EVENT_SCROLL_DOWN)
         SPECIALBTN_VIRTUALMOUSE -> null
-        0                      -> null
+        0                       -> null
         else -> JSONObject().apply { put("type", "key"); put("key", keycode.toString()) }
     }
 
@@ -303,93 +251,91 @@ object LegacyControlConverter {
     /**
      * Evaluate a ZL1 dynamic position expression to a screen fraction in [0, 1].
      *
-     * Handles all known ZL1/ZL2 expression variables:
-     *   ${screen_width}, ${screen_height} -> 1.0
-     *   ${width}  -> wFrac  (button width  as fraction of reference axis)
-     *   ${height} -> hFrac  (button height as fraction of reference axis)
-     *   ${dp}     -> dpFrac (1 dp as fraction of reference axis)
-     *   ${preferred_scale} -> 100.0
-     *   ${ratio}  -> 1.0
-     *   ${margin} -> 0.0
-     *   ${right}  -> (1.0 - wFrac) -- right edge anchor
-     *   ${bottom} -> (1.0 - hFrac) -- bottom edge anchor
-     *   px(value)  -> value * dpFrac (dp-to-px in normalised space)
-     *   Any remaining unresolved ${...} -> 0.0 (safe fallback)
+     * All known variable tokens are substituted before the arithmetic parser runs.
+     * The dollar-variable trick avoids Kotlin string interpolation of the variable names.
+     * Any unrecognised tokens are replaced with "0.0" as a safe fallback.
      */
-    private fun parseExpr(
-        expr: String,
-        wFrac: Float = 0f,
-        hFrac: Float = 0f,
-        dpFrac: Float = 0f
-    ): Float {
+    private fun parseExpr(expr: String, wFrac: Float = 0f, hFrac: Float = 0f, dpFrac: Float = 0f): Float {
         if (expr.isBlank()) return 0.5f
         return try {
-            var processed = expr.trim()
-                // Core screen variables
-                .replace("${screen_width}",  "1.0")
-                .replace("${screen_height}", "1.0")
-                // Button dimension variables
-                .replace("${width}",   "%.8f".format(wFrac))
-                .replace("${height}",  "%.8f".format(hFrac))
-                .replace("${dp}",      "%.8f".format(dpFrac))
-                // Layout/editor variables
-                .replace("${preferred_scale}", "100.0")
-                .replace("${ratio}",   "1.0")
-                .replace("${margin}",  "0.0")
-                // Edge anchors (expanded before evaluation)
-                .replace("${right}",   "(1.0 - %.8f)".format(wFrac))
-                .replace("${bottom}",  "(1.0 - %.8f)".format(hFrac))
+            // Use a local val for "$" to avoid Kotlin string interpolation of variable names.
+            val d = "$"
+            var s = expr.trim()
+                .replace(d + "{screen_width}",    "1.0")
+                .replace(d + "{screen_height}",   "1.0")
+                .replace(d + "{width}",           "%.8f".format(wFrac))
+                .replace(d + "{height}",          "%.8f".format(hFrac))
+                .replace(d + "{dp}",              "%.8f".format(dpFrac))
+                .replace(d + "{preferred_scale}", "100.0")
+                .replace(d + "{ratio}",           "1.0")
+                .replace(d + "{margin}",          "0.0")
+                .replace(d + "{right}",           "(1.0 - %.8f)".format(wFrac))
+                .replace(d + "{bottom}",          "(1.0 - %.8f)".format(hFrac))
 
-            // Evaluate px(value) function calls: px(dp) -> dp * dpFrac in normalised space
-            val pxPattern = Regex("px\(([0-9.]+)\)")
-            processed = pxPattern.replace(processed) { m ->
-                val dp = m.groupValues[1].toFloatOrNull() ?: 0f
-                "%.8f".format(dp * dpFrac)
-            }
+            // Replace px(value) -> value * dpFrac (dp-to-px normalised).
+            // Scan manually to avoid Regex dollar-sign issues.
+            s = replacePxCalls(s, dpFrac)
 
-            // Safety: replace any remaining unresolved ${...} with 0.0
-            processed = processed.replace(Regex("\$\{[^}]+\}"), "0.0")
+            // Strip any remaining unresolved variable tokens.
+            s = stripUnresolved(s, d)
 
-            ExprParser(processed).parse().coerceIn(0f, 1f)
+            ExprParser(s).parse().coerceIn(0f, 1f)
         } catch (_: Exception) { 0.5f }
     }
 
-    /** Minimal recursive-descent arithmetic parser. Handles +, -, *, /, (), unary minus, numbers. */
+    /** Replace px(number) calls in [expr] with the dp value times [dpFrac]. */
+    private fun replacePxCalls(expr: String, dpFrac: Float): String {
+        val sb = StringBuilder()
+        var i = 0
+        while (i < expr.length) {
+            if (expr.startsWith("px(", i)) {
+                val start = i + 3
+                val end   = expr.indexOf(')', start)
+                if (end > start) {
+                    val dpVal = expr.substring(start, end).toFloatOrNull() ?: 0f
+                    sb.append("%.8f".format(dpVal * dpFrac))
+                    i = end + 1
+                    continue
+                }
+            }
+            sb.append(expr[i])
+            i++
+        }
+        return sb.toString()
+    }
+
+    /** Replace any remaining variable tokens that look like dollar+{name} with "0.0". */
+    private fun stripUnresolved(expr: String, dollar: String): String {
+        val sb = StringBuilder()
+        var i = 0
+        while (i < expr.length) {
+            if (expr.startsWith(dollar + "{", i)) {
+                val end = expr.indexOf('}', i + dollar.length + 1)
+                if (end >= 0) { sb.append("0.0"); i = end + 1; continue }
+            }
+            sb.append(expr[i])
+            i++
+        }
+        return sb.toString()
+    }
+
+    /** Minimal recursive-descent arithmetic parser supporting +, -, *, /, (), unary minus, floats. */
     private class ExprParser(private val s: String) {
         private var i = 0
         fun parse() = expr()
         private fun expr(): Float {
             var r = term(); spaces()
-            while (i < s.length) {
-                when (s[i]) {
-                    '+' -> { i++; r += term() }
-                    '-' -> { i++; r -= term() }
-                    else -> break
-                }
-                spaces()
-            }
+            while (i < s.length) { when (s[i]) { '+' -> { i++; r += term() }; '-' -> { i++; r -= term() }; else -> break }; spaces() }
             return r
         }
         private fun term(): Float {
             var r = factor(); spaces()
-            while (i < s.length) {
-                when (s[i]) {
-                    '*' -> { i++; val d2 = factor(); r *= d2 }
-                    '/' -> { i++; val d2 = factor(); if (d2 != 0f) r /= d2 }
-                    else -> break
-                }
-                spaces()
-            }
+            while (i < s.length) { when (s[i]) { '*' -> { i++; r *= factor() }; '/' -> { i++; val d2 = factor(); if (d2 != 0f) r /= d2 }; else -> break }; spaces() }
             return r
         }
         private fun factor(): Float {
-            spaces()
-            if (i >= s.length) return 0f
-            return when {
-                s[i] == '(' -> { i++; val r = expr(); spaces(); if (i < s.length && s[i] == ')') i++; r }
-                s[i] == '-' -> { i++; -factor() }
-                else -> num()
-            }
+            spaces(); if (i >= s.length) return 0f
+            return when { s[i] == '(' -> { i++; val r = expr(); spaces(); if (i < s.length && s[i] == ')') i++; r }; s[i] == '-' -> { i++; -factor() }; else -> num() }
         }
         private fun num(): Float {
             spaces(); val start = i
