@@ -687,14 +687,14 @@ object AllSettings : SettingsRegistry() {
     val fsrEnabled = boolSetting("fsrEnabled", false)
     val fsrQuality = intSetting("fsrQuality", 2, 1..4) // 1=UltraQuality, 2=Quality, 3=Balanced, 4=Performance
 
-      // ZL1 Legacy Backport setting
-      val disableGestures = boolSetting("zl1_disableGestures", false)
+      // ZL1 Legacy Backport setting (named to avoid JVM signature clash with getDisableGestures)
+      val zl1DisableGestures = boolSetting("zl1_disableGestures", false)
 
       // ZL1 Legacy Backport @JvmStatic accessors — callable as AllSettings.xxx() from Java
       @JvmStatic fun getGyroSmoothing() = gyroscopeSmoothing
       @JvmStatic fun getGyroSampleRate() = gyroscopeSampleRate
       @JvmStatic fun getMouseScale() = mouseSize
       @JvmStatic fun getMouseSpeed() = mouseCaptureSensitivity
-      @JvmStatic fun getDisableGestures() = disableGestures
+      @JvmStatic fun getDisableGestures() = zl1DisableGestures
   
 }
