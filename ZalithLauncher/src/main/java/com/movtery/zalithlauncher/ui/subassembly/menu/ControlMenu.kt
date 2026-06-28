@@ -109,7 +109,7 @@ class ControlMenu(
         binding.apply {
             when (seekBar) {
                 snappingDistance -> {
-                    if (saveValue) AllSettings.buttonSnappingDistance.put(progress).save()
+                    if (saveValue) AllSettings.buttonSnappingDistance.save(progress)
                     MenuUtils.updateSeekbarValue(progress, snappingDistanceValue, "dp")
                 }
                 else -> {}
@@ -117,10 +117,10 @@ class ControlMenu(
         }
     }
 
-    override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
+    override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
         binding.apply {
             when (buttonView) {
-                snapping -> AllSettings.buttonSnapping.put(isChecked).save()
+                snapping -> AllSettings.buttonSnapping.save(isChecked)
                 else -> {}
             }
         }
