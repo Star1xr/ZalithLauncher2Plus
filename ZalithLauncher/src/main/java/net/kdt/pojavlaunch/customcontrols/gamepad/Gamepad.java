@@ -340,7 +340,6 @@ public class Gamepad implements GrabListener, GamepadHandler {
         mMouseSensitivity = 19 * AllStaticSettings.scaleFactor / mSensitivityFactor;
     }
 
-    @Override
     public void handleGamepadInput(int keycode, float value) {
         boolean isKeyEventDown = value == 1f;
         switch (keycode){
@@ -451,5 +450,17 @@ public class Gamepad implements GrabListener, GamepadHandler {
                 sendKeyPress(LwjglGlfwKeycode.GLFW_KEY_SPACE, CallbackBridge.getCurrentMods(), isKeyEventDown);
                 break;
         }
+    }
+
+    // GamepadHandler.onMotionEvent — required by interface
+    @Override
+    public boolean onMotionEvent(android.view.MotionEvent event) {
+        return false;
+    }
+
+    // GamepadHandler.onKeyEvent — required by interface
+    @Override
+    public boolean onKeyEvent(android.view.KeyEvent event) {
+        return false;
     }
 }

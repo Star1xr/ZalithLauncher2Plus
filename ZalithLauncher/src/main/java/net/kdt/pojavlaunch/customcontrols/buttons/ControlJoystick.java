@@ -69,7 +69,6 @@ public class ControlJoystick extends JoystickView implements ControlInterface {
                 }
             }
 
-            @Override
             public void onForwardLock(boolean isLocked) {
                 sendInput(mDirectionForwardLock, isLocked);
             }

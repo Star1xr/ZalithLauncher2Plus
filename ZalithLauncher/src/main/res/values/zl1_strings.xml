@@ -7,6 +7,7 @@
       <string name="customctrl_editor_exit_msg">You have unsaved changes. Do you want to save before exiting?</string>
       <string name="customctrl_addsubbutton">Add button</string>
       <string name="generic_clone">Clone</string>
+      <string name="generic_select">Select</string>
       <string name="percent_format">%d%%</string>
 
       <!-- Keycode special button labels -->
@@ -20,6 +21,33 @@
       <string name="keycode_special_scrolldown">Scroll down</string>
       <string name="keycode_special_menu">GUI/Menu</string>
 
+      <!-- Gamepad special keycode names -->
+      <string name="keycode_unspecified">Unspecified</string>
+      <string name="keycode_mouse_right">Mouse Right</string>
+      <string name="keycode_mouse_middle">Mouse Middle</string>
+      <string name="keycode_mouse_left">Mouse Left</string>
+      <string name="keycode_scroll_up">Scroll Up</string>
+      <string name="keycode_scroll_down">Scroll Down</string>
+
+      <!-- Controller button names -->
+      <string name="controller_button_a">A</string>
+      <string name="controller_button_b">B</string>
+      <string name="controller_button_x">X</string>
+      <string name="controller_button_y">Y</string>
+      <string name="controller_button_start">Start</string>
+      <string name="controller_button_trigger_right">R2</string>
+      <string name="controller_button_trigger_left">L2</string>
+      <string name="controller_button_shoulder_right">R1</string>
+      <string name="controller_button_shoulder_left">L1</string>
+      <string name="controller_direction_forward">Forward</string>
+      <string name="controller_direction_right">Right</string>
+      <string name="controller_direction_left">Left</string>
+      <string name="controller_direction_backward">Backward</string>
+      <string name="controller_right_stick_up">Right Stick Up</string>
+      <string name="controller_right_stick_down">Right Stick Down</string>
+      <string name="controller_right_stick_left">Right Stick Left</string>
+      <string name="controller_right_stick_right">Right Stick Right</string>
+
       <!-- Orientation labels for ControlDrawerData -->
       <string name="controls_orientation_down">Down</string>
       <string name="controls_orientation_left">Left</string>
@@ -28,3 +56,4 @@
       <string name="controls_orientation_free">Free</string>
       <string name="controls_add_control_drawer">Add Drawer</string>
   </resources>
+  
