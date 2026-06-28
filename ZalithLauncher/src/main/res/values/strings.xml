@@ -1438,4 +1438,10 @@
     <string name="generic_load">Load</string>
     <!-- ZL1 Backport: file provider authority for control layout export -->
     <string name="storageProviderAuthorities" translatable="false">com.movtery.zalithlauncher.v2.provider</string>
+
+      <string name="legacy_control_editor_add_joystick">Add Joystick</string>
+      <string name="legacy_control_editor_add_drawer">Add Drawer</string>
+      <string name="legacy_control_editor_forward_lock">Forward Lock (stay forward)</string>
+      <string name="legacy_control_editor_absolute_mode">Absolute Mode (jump to touch)</string>
+      <string name="legacy_control_editor_hint_joystick_keycodes">Keycodes: W=17 · S=31 · A=30 · D=32</string>
 </resources>
