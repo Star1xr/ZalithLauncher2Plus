@@ -47,8 +47,7 @@
                 android:text="@string/customctrl_addbutton"
                 android:gravity="center_horizontal"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"
-                app:ripple_for_text="true"/>
+                android:paddingHorizontal="8dp"/>
 
             <com.movtery.zalithlauncher.ui.view.AnimTextView
                 android:id="@+id/add_drawer"
@@ -59,8 +58,7 @@
                 android:text="@string/customctrl_addbutton_drawer"
                 android:gravity="center_horizontal"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"
-                app:ripple_for_text="true"/>
+                android:paddingHorizontal="8dp"/>
 
             <com.movtery.zalithlauncher.ui.view.AnimTextView
                 android:id="@+id/add_joystick"
@@ -71,8 +69,7 @@
                 android:text="@string/customctrl_addbutton_joystick"
                 android:gravity="center_horizontal"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"
-                app:ripple_for_text="true"/>
+                android:paddingHorizontal="8dp"/>
 
             <TextView
                 android:layout_width="match_parent"
@@ -96,8 +93,7 @@
                 android:text="@string/generic_load"
                 android:gravity="center_horizontal"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"
-                app:ripple_for_text="true"/>
+                android:paddingHorizontal="8dp"/>
 
             <com.movtery.zalithlauncher.ui.view.AnimTextView
                 android:id="@+id/save"
@@ -108,8 +104,7 @@
                 android:text="@string/generic_save"
                 android:gravity="center_horizontal"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"
-                app:ripple_for_text="true"/>
+                android:paddingHorizontal="8dp"/>
 
             <com.movtery.zalithlauncher.ui.view.AnimTextView
                 android:id="@+id/save_and_exit"
@@ -120,8 +115,7 @@
                 android:text="@string/global_save_and_exit"
                 android:gravity="center_horizontal"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"
-                app:ripple_for_text="true"/>
+                android:paddingHorizontal="8dp"/>
 
             <com.movtery.zalithlauncher.ui.view.AnimTextView
                 android:id="@+id/save_and_export"
@@ -132,8 +126,7 @@
                 android:text="@string/customctrl_export"
                 android:gravity="center_horizontal"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"
-                app:ripple_for_text="true"/>
+                android:paddingHorizontal="8dp"/>
 
             <TextView
                 android:layout_width="match_parent"
@@ -154,8 +147,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/background_item"
-                android:padding="8dp"
-                app:ripple_for_relative="true">
+                android:padding="8dp">
 
                 <TextView
                     android:id="@+id/snapping_title"
@@ -252,8 +244,7 @@
                 android:text="@string/customctrl_selectdefault"
                 android:gravity="center_horizontal"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"
-                app:ripple_for_text="true"/>
+                android:paddingHorizontal="8dp"/>
 
             <com.movtery.zalithlauncher.ui.view.AnimTextView
                 android:id="@+id/exit"
@@ -264,8 +255,7 @@
                 android:text="@string/customctrl_editor_exit"
                 android:gravity="center_horizontal"
                 android:paddingVertical="12dp"
-                android:paddingHorizontal="8dp"
-                app:ripple_for_text="true"/>
+                android:paddingHorizontal="8dp"/>
 
         </LinearLayout>
 
