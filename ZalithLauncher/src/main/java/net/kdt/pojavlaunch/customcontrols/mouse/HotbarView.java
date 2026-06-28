@@ -210,7 +210,7 @@ public class HotbarView extends View implements View.OnLayoutChangeListener, Run
         if (hotbarType == HotbarType.AUTO) {
             adaptiveReset();
         } else {
-            manualReset(AllSettings.getHotbarWidth().getValue(), AllSettings.getHotbarHeight().getValue(), false);
+            manualReset(AllSettings.getHotbarWidth().getValue().getValue(), AllSettings.getHotbarHeight().getValue().getValue(), false);
         }
     }
 
