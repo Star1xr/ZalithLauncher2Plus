@@ -597,16 +597,41 @@ private fun buildButtonJson(btn: CanvasButton): JSONObject = JSONObject().apply 
       ): Float {
           if (expr.isBlank()) return 0.5f
           return try {
-              val s = expr.trim()
-                  .replace("\${screen_width}",  "1.0")
-                  .replace("\${screen_height}", "1.0")
-                  .replace("\${width}",   "%.8f".format(wFrac))
-                  .replace("\${height}",  "%.8f".format(hFrac))
-                  .replace("\${dp}",      "%.8f".format(dpFrac))
-                  .replace("\${ratio}",   "1.0")
+              val marginFrac = 8f / 1280f  // ~8dp as screen fraction
+              var s = expr.trim()
+                  .replace("${screen_width}",   "1.0")
+                  .replace("${screen_height}",  "1.0")
+                  .replace("${width}",          "%.8f".format(wFrac))
+                  .replace("${height}",         "%.8f".format(hFrac))
+                  .replace("${dp}",             "%.8f".format(dpFrac))
+                  .replace("${ratio}",          "1.0")
+                  .replace("${margin}",         "%.8f".format(marginFrac))
+                  .replace("${right}",          "(1.0 - %.8f)".format(wFrac))
+                  .replace("${bottom}",         "(1.0 - %.8f)".format(hFrac))
+                  .replace("${preferred_scale}","100.0")
+              s = evalReplacePx(s, dpFrac)
+              s = s.replace(Regex("\$\{[^}]*\}"), "0.0")
               MiniCalc(s).eval().coerceIn(0f, 1f)
           } catch (_: Exception) { 0.5f }
-}
+      }
+
+      private fun evalReplacePx(expr: String, dpFrac: Float): String {
+          val sb = StringBuilder()
+          var i = 0
+          while (i < expr.length) {
+              if (expr.startsWith("px(", i)) {
+                  val st = i + 3
+                  val en = expr.indexOf(')', st)
+                  if (en > st) {
+                      val dpVal = expr.substring(st, en).toFloatOrNull() ?: 0f
+                      sb.append("%.8f".format(dpVal * dpFrac))
+                      i = en + 1; continue
+                  }
+              }
+              sb.append(expr[i]); i++
+          }
+          return sb.toString()
+      }
 
 private class MiniCalc(private val s: String) {
     private var i = 0
