@@ -113,8 +113,11 @@ public class ControlLayout extends FrameLayout {
 		System.gc();
 		mapTable.clear();
 
-		// Cleanup buttons only when input layout is null
-		if (controlLayout == null) return;
+		// When no layout provided, init to empty so add-button operations work
+		if (controlLayout == null) {
+			mLayout = new CustomControls();
+			return;
+		}
 
 		mLayout = controlLayout;
 		
@@ -561,4 +564,19 @@ public class ControlLayout extends FrameLayout {
 	public boolean areControlVisible(){
 		return mControlVisible;
 	}
+
+	/**
+	 * Update CallbackBridge screen dimensions when the editor canvas is measured,
+	 * then refresh all button positions so they appear on-screen.
+	 */
+	@Override
+	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		super.onSizeChanged(w, h, oldw, oldh);
+		if (w > 0 && h > 0) {
+			org.lwjgl.glfw.CallbackBridge.physicalWidth = w;
+			org.lwjgl.glfw.CallbackBridge.physicalHeight = h;
+			refreshControlButtonPositions();
+		}
+	}
+
 }
