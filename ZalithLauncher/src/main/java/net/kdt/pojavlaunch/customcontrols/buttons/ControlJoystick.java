@@ -166,4 +166,27 @@ public class ControlJoystick extends JoystickView implements ControlInterface {
         }
     }
 
+
+      // ZL1 Backport compatibility methods — these are delegated to JoystickView
+      // parent methods where available, or stored locally as stubs.
+      private int mZL1Deadzone = 35;
+      private boolean mZL1FixedCenter = false;
+      private boolean mZL1AutoReCenter = true;
+      private int mZL1ForwardLockDistance = 0;
+
+      public void setDeadzone(int deadzone) { mZL1Deadzone = deadzone; }
+      public void setFixedCenter(boolean fixed) { mZL1FixedCenter = fixed; }
+      public void setAutoReCenterButton(boolean auto) { mZL1AutoReCenter = auto; }
+      public void setForwardLockDistance(int distance) { mZL1ForwardLockDistance = distance; }
+
+      public void setBorderWidth(int width) {
+          try { getClass().getSuperclass().getMethod("setBorderWidth", int.class).invoke(this, width); }
+          catch (Throwable ignored) {}
+      }
+
+      public void setBorderColor(int color) {
+          try { getClass().getSuperclass().getMethod("setBorderColor", int.class).invoke(this, color); }
+          catch (Throwable ignored) {}
+      }
+  
 }

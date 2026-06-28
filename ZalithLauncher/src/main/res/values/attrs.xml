@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <resources>
+      <!-- ZL1 Legacy Backport attribute stubs -->
+      <attr name="colorAccent" format="color" />
+      <attr name="colorPrimary" format="color" />
+      <attr name="colorControlNormal" format="color" />
+  </resources>

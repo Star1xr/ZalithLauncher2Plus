@@ -27,4 +27,20 @@ package net.kdt.pojavlaunch.colorselector;
       public void setSelectedColor(int color) {}
       public int getSelectedColor() { return 0xFFFFFFFF; }
   }
+
+        /** Show the color selector pre-loaded with the given color */
+        public void show(int color) {
+            setSelectedColor(color);
+        }
+
+        /** Enable or disable alpha channel selection */
+        public void setAlphaEnabled(boolean enabled) {
+            // no-op in stub
+        }
+
+        /** Set the color selection listener (alias for setOnColorSelectedListener) */
+        public void setColorSelectionListener(OnColorSelectedListener l) {
+            setOnColorSelectedListener(l);
+        }
+  
   

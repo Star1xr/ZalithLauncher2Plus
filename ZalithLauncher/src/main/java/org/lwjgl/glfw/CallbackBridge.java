@@ -297,5 +297,15 @@ public class CallbackBridge {
     static {
         NativeLibraryLoader.loadPojavLib();
     }
+
+      // ZL1 Legacy Backport stub: grab listener management
+      public static void addGrabListener(net.kdt.pojavlaunch.GrabListener listener) {
+          // ZL2 uses a different grab listener mechanism; no-op for ZL1 compat
+      }
+
+      public static void removeGrabListener(net.kdt.pojavlaunch.GrabListener listener) {
+          // no-op for ZL1 compat
+      }
+  
 }
 

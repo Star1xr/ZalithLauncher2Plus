@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <resources>
+      <!-- ZL1 Legacy Backport dimensions (sdp-style naming for compatibility) -->
+      <dimen name="_10sdp">10dp</dimen>
+      <dimen name="_16sdp">16dp</dimen>
+      <dimen name="_20sdp">20dp</dimen>
+      <dimen name="_22sdp">22dp</dimen>
+      <dimen name="_24sdp">24dp</dimen>
+      <dimen name="_28sdp">28dp</dimen>
+      <dimen name="_30sdp">30dp</dimen>
+      <dimen name="_40sdp">40dp</dimen>
+      <dimen name="_48sdp">48dp</dimen>
+      <dimen name="_280sdp">280dp</dimen>
+  </resources>

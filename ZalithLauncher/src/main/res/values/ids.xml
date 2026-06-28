@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <resources>
+      <!-- ZL1 Legacy Backport view ID stubs -->
+      <item name="main_game_render_view" type="id" />
+  </resources>

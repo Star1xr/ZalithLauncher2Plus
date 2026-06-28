@@ -168,6 +168,7 @@ class MainActivity : BaseAppCompatActivity() {
     private var isCaptureKey = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        sInstance = this
         super.onCreate(savedInstanceState)
 
         //初始化通知管理（创建渠道）
@@ -800,4 +801,31 @@ class MainActivity : BaseAppCompatActivity() {
         }
         return super.dispatchKeyEvent(event)
     }
+
+      companion object {
+          private var sInstance: MainActivity? = null
+
+          /**
+           * ZL1 Backport: toggle the software keyboard state.
+           */
+          @JvmStatic
+          fun switchKeyboardState() {
+              sInstance?.let { activity ->
+                  activity.runOnUiThread {
+                      val imm = activity.getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
+                              as android.view.inputmethod.InputMethodManager
+                      imm.toggleSoftInput(android.view.inputmethod.InputMethodManager.SHOW_FORCED, 0)
+                  }
+              }
+          }
+
+          /**
+           * ZL1 Backport: toggle the virtual mouse.
+           */
+          @JvmStatic
+          fun toggleMouse(context: android.content.Context) {
+              // No-op stub: ZL2 handles mouse toggle differently.
+          }
+      }
+  
 }

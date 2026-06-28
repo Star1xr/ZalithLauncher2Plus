@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <resources>
+      <!-- ZL1 Legacy Backport string resources -->
+
+      <!-- Editor dialogs -->
+      <string name="customctrl_editor_exit_title">Exit editor?</string>
+      <string name="customctrl_editor_exit_msg">You have unsaved changes. Do you want to save before exiting?</string>
+      <string name="customctrl_addsubbutton">Add button</string>
+      <string name="generic_clone">Clone</string>
+      <string name="percent_format">%d%%</string>
+
+      <!-- Keycode special button labels -->
+      <string name="keycode_special">Special: %s</string>
+      <string name="keycode_special_keyboard">Keyboard</string>
+      <string name="keycode_special_pri">Primary click</string>
+      <string name="keycode_special_sec">Secondary click</string>
+      <string name="keycode_special_mouse">Virtual mouse</string>
+      <string name="keycode_special_mid">Middle click</string>
+      <string name="keycode_special_scrollup">Scroll up</string>
+      <string name="keycode_special_scrolldown">Scroll down</string>
+      <string name="keycode_special_menu">GUI/Menu</string>
+
+      <!-- Orientation labels for ControlDrawerData -->
+      <string name="controls_orientation_down">Down</string>
+      <string name="controls_orientation_left">Left</string>
+      <string name="controls_orientation_up">Up</string>
+      <string name="controls_orientation_right">Right</string>
+      <string name="controls_orientation_free">Free</string>
+      <string name="controls_add_control_drawer">Add Drawer</string>
+  </resources>

@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
  */
 
+@file:JvmName("ImageUtils")
+
 package com.movtery.zalithlauncher.utils.image
 
 import android.graphics.Bitmap
@@ -113,3 +115,18 @@ fun File.isImageFile(): Boolean {
         false
     }
 }
+
+  /**
+   * Resize [width] x [height] to fit within [scale] units (maintaining aspect ratio).
+   * Used by ZL1 legacy backport mouse rendering.
+   */
+  fun resizeWithRatio(width: Int, height: Int, scale: Int): Dimension {
+      if (width <= 0 || height <= 0) return Dimension.square(scale.coerceAtLeast(1))
+      val maxDim = maxOf(width, height)
+      val ratio = scale.toFloat() / maxDim
+      return Dimension.of(
+          (width * ratio).toInt().coerceAtLeast(1),
+          (height * ratio).toInt().coerceAtLeast(1)
+      )
+  }
+  

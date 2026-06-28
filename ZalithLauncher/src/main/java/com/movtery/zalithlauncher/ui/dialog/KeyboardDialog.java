@@ -1,17 +1,37 @@
 package com.movtery.zalithlauncher.ui.dialog;
 
-  import android.app.AlertDialog;
   import android.content.Context;
-  import net.kdt.pojavlaunch.GrabListener;
 
-  public class KeyboardDialog extends AlertDialog {
-      public KeyboardDialog(Context context) { super(context); }
-      public KeyboardDialog(Context context, GrabListener listener) { super(context); }
-      public void setCurrentKey(int keyCode) {}
-      public void setOnKeySelectedListener(OnKeySelectedListener l) {}
+  /**
+   * Keyboard dialog stub for ZL1 Legacy Backport compatibility.
+   * Provides a keycode selection dialog interface.
+   */
+  public class KeyboardDialog {
+      private final Context mContext;
+      private OnKeycodeSelectListener mListener;
 
-      public interface OnKeySelectedListener {
-          void onKeySelected(int keyCode);
+      public interface OnKeycodeSelectListener {
+          void onKeycodeSelected(int index);
+      }
+
+      public KeyboardDialog(Context context) {
+          mContext = context;
+      }
+
+      public KeyboardDialog setOnKeycodeSelectListener(OnKeycodeSelectListener listener) {
+          mListener = listener;
+          return this;
+      }
+
+      /** Show the keyboard dialog. */
+      public KeyboardDialog show() {
+          // Stub: no-op; in a full implementation this would show a dialog.
+          return this;
+      }
+
+      /** Show the keyboard dialog with a pre-selected index. */
+      public KeyboardDialog show(int preSelectedIndex) {
+          return show();
       }
   }
   
