@@ -82,6 +82,13 @@ public class CustomControlsActivity extends BaseAppCompatActivity implements Edi
             controlMenuBinding.exit.setOnClickListener(v ->
                     controlLayout.askToExit(CustomControlsActivity.this));
 
+            // Ensure CallbackBridge has real screen dimensions for insertDynamicPos()
+            // before loading the layout, so buttons appear on-screen immediately.
+            if (org.lwjgl.glfw.CallbackBridge.physicalWidth == 0) {
+                org.lwjgl.glfw.CallbackBridge.physicalWidth = Tools.currentDisplayMetrics.widthPixels;
+                org.lwjgl.glfw.CallbackBridge.physicalHeight = Tools.currentDisplayMetrics.heightPixels;
+            }
+
             // Load the legacy layout file into the editor canvas.
             try {
                 controlLayout.loadLayout(filePath);
