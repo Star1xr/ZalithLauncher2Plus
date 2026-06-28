@@ -123,6 +123,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
+        viewBinding = true
         compose = true
         buildConfig = true
         prefab = true

@@ -1436,4 +1436,6 @@
     <string name="global_save_and_exit">Save and Exit</string>
     <string name="customctrl_menu_open">Open menu</string>
     <string name="generic_load">Load</string>
+    <!-- ZL1 Backport: file provider authority for control layout export -->
+    <string name="storageProviderAuthorities" translatable="false">com.movtery.zalithlauncher.v2.provider</string>
 </resources>
