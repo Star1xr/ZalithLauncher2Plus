@@ -11,5 +11,7 @@ package com.movtery.zalithlauncher.ui.dialog;
       public SelectControlsDialog(Context context, OnFileSelectedListener listener) {
           super(context);
       }
+      public void setTitleText(CharSequence text) {}
+      public void setTitleText(int resId) {}
   }
   
