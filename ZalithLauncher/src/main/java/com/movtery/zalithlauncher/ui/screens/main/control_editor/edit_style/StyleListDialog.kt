@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_style
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -112,6 +114,10 @@ fun StyleListDialog(
                                 .fadeEdge(state = scrollState)
                                 .weight(1f, fill = false)
                                 .fillMaxWidth()
+                                .scrollbar(
+                                    state = scrollState.scrollIndicatorState,
+                                    orientation = Orientation.Vertical,
+                                )
                                 .animateContentSize(),
                             state = scrollState,
                             contentPadding = PaddingValues(vertical = 12.dp),

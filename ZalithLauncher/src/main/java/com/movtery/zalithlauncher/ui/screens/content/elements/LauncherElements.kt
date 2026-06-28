@@ -317,13 +317,13 @@ fun Background(
     modifier: Modifier = Modifier,
     allowVideo: Boolean = true
 ) {
-    if (viewModel.isValid) {
-        Box(
-            modifier = modifier.backgroundBlur(
-                blur = AllSettings.backgroundBlur.state,
-                hazeState = viewModel.hazeState,
-            )
-        ) {
+    Box(
+        modifier = modifier.backgroundBlur(
+            blur = AllSettings.backgroundBlur.state,
+            hazeState = viewModel.hazeState,
+        )
+    ) {
+        if (viewModel.isValid) {
             when {
                 viewModel.isVideo && allowVideo -> {
                     VideoPlayer(

@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.ui.screens.main.control_editor
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
@@ -41,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -621,7 +623,12 @@ private fun ColumnScope.ControlLayerMenu(
     }
 
     LazyColumn(
-        modifier = Modifier.weight(1f),
+        modifier = Modifier
+            .weight(1f)
+            .scrollbar(
+                state = lazyListState.scrollIndicatorState,
+                orientation = Orientation.Vertical,
+            ),
         state = lazyListState,
         contentPadding = PaddingValues(all = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)

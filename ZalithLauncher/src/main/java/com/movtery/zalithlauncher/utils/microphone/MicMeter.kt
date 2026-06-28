@@ -36,6 +36,7 @@ import kotlinx.coroutines.withContext
 import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.sqrt
+import kotlin.time.Duration.Companion.milliseconds
 
 class MicMeter {
     private val sampleRate = 44100
@@ -99,7 +100,7 @@ class MicMeter {
 
                             onLevelUpdate(level)
                         }
-                        delay(50)
+                        delay(50L.milliseconds)
                     } catch (_: CancellationException) {
                         break
                     }

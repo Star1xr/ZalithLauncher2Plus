@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.screens.content.download.game
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -45,6 +47,7 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -185,7 +188,7 @@ private class VersionsViewModel: ViewModel() {
                     else -> {
                         Logger.error(TAG, "An unknown exception was caught!", e)
                         val errorMessage = e.localizedMessage ?: e.message ?: e::class.qualifiedName ?: "Unknown error"
-                        R.string.error_unknown to arrayOf(errorMessage)
+                        R.string.empty_holder to arrayOf(errorMessage)
                     }
                 }
                 VersionState.Failure(message.first, message.second)
@@ -435,9 +438,14 @@ private fun VersionList(
     onVersionSelect: (String) -> Unit,
     openLink: (url: String) -> Unit
 ) {
+    val scrollState = rememberLazyListState()
     LazyColumn(
-        modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+        modifier = modifier.scrollbar(
+            state = scrollState.scrollIndicatorState,
+            orientation = Orientation.Vertical,
+        ),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+        state = scrollState,
     ) {
         items(versions) { version ->
             VersionItemLayout(

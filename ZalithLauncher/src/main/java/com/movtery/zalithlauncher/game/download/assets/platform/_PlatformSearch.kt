@@ -53,7 +53,6 @@ private val mirrorModrinthSearcher = ModrinthSearcher(
 private val curseForgeSearcher = CurseForgeSearcher()
 private val mirrorCurseForgeSearcher = CurseForgeSearcher(
     api = MCIM_CURSEFORGE_API,
-    apiKey = null, //不向镜像源提供 api key
     source = "MCIM CurseForge"
 )
 
@@ -145,27 +144,48 @@ suspend fun searchAssets(
 ) {
     runCatching {
         val (containsChinese, englishKeywords) = searchFilter.searchName.localizedModSearchKeywords(platformClasses)
-        val query = englishKeywords?.joinToString(" ") ?: searchFilter.searchName
-        val result = when (searchPlatform) {
-            Platform.CURSEFORGE -> mirroredPlatformSearcher(
-                searchers = mirroredCurseForgeSource()
-            ) { searcher ->
-                searcher.searchAssets(
-                    query = query,
-                    searchFilter = searchFilter,
-                    platformClasses = platformClasses
-                )
-            }
-            Platform.MODRINTH -> mirroredPlatformSearcher(
-                searchers = mirroredModrinthSource()
-            ) { searcher ->
-                searcher.searchAssets(
-                    query = query,
-                    searchFilter = searchFilter,
-                    platformClasses = platformClasses
-                )
+        //参考源代码：[HMCL Github](https://github.com/HMCL-dev/HMCL/blob/d295e60/HMCL/src/main/java/org/jackhuang/hmcl/game/LocalizedRemoteModRepository.java#L56-L68)
+        //逐个英文短语尝试搜索，取第一个有非空结果的
+        val queries = if (!englishKeywords.isNullOrEmpty()) {
+            englishKeywords.toList()
+        } else {
+            listOf(searchFilter.searchName)
+        }
+
+        var lastResult: PlatformSearchResult? = null
+        for (query in queries) {
+            try {
+                val r = when (searchPlatform) {
+                    Platform.CURSEFORGE -> mirroredPlatformSearcher(
+                        searchers = mirroredCurseForgeSource(),
+                        printLog = false
+                    ) { searcher ->
+                        searcher.searchAssets(
+                            query = query,
+                            searchFilter = searchFilter,
+                            platformClasses = platformClasses
+                        )
+                    }
+                    Platform.MODRINTH -> mirroredPlatformSearcher(
+                        searchers = mirroredModrinthSource(),
+                        printLog = false
+                    ) { searcher ->
+                        searcher.searchAssets(
+                            query = query,
+                            searchFilter = searchFilter,
+                            platformClasses = platformClasses
+                        )
+                    }
+                }
+                lastResult = r
+                if (r.getAssetsPage(platformClasses).data.isNotEmpty()) break
+            } catch (_: Exception) {
+                //当前关键词搜索失败，继续尝试下一个
             }
         }
+
+        val result = lastResult ?: throw IOException("Failed to search for all queries")
+
         onSuccess(
             if (containsChinese) result.processChineseSearchResults(searchFilter.searchName, platformClasses)
             else result

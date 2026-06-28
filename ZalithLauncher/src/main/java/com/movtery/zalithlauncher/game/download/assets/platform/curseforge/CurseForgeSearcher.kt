@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.game.download.assets.platform.curseforge
 
-import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.game.download.assets.platform.AbstractPlatformSearcher
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
@@ -28,10 +27,12 @@ import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.model
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeProject
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeVersion
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeVersions
+import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.isApproved
 import com.movtery.zalithlauncher.utils.file.MurmurHash2Incremental
 import com.movtery.zalithlauncher.utils.network.httpGetJson
 import com.movtery.zalithlauncher.utils.network.httpPostJson
 import io.ktor.http.Parameters
+import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
@@ -40,7 +41,6 @@ import java.io.File
 
 class CurseForgeSearcher(
     val api: String = CURSEFORGE_API,
-    val apiKey: String? = BuildKeys.CURSEFORGE_API,
     source: String = "Official CurseForge"
 ): AbstractPlatformSearcher(
     platform = Platform.CURSEFORGE,
@@ -53,7 +53,6 @@ class CurseForgeSearcher(
     ): CurseForgeSearchResult {
         return httpGetJson(
             url = "$api/mods/search",
-            headers = listOf("x-api-key" to apiKey),
             parameters = searchFilter.toCurseForgeRequest(
                 query = query,
                 platformClasses = platformClasses
@@ -62,10 +61,11 @@ class CurseForgeSearcher(
     }
 
     override suspend fun getProject(projectID: String): CurseForgeProject {
-        return httpGetJson(
-            url = "$api/mods/$projectID",
-            headers = listOf("x-api-key" to apiKey)
+        val project = httpGetJson<CurseForgeProject>(
+            url = "$api/mods/$projectID"
         )
+        if (!project.isApproved()) throw NotFoundException("The project {$projectID} is not in a publicly available state.")
+        return project
     }
 
     /**
@@ -76,8 +76,7 @@ class CurseForgeSearcher(
         fileID: String,
     ): CurseForgeVersion {
         return httpGetJson(
-            url = "$api/mods/$projectID/files/$fileID",
-            headers = listOf("x-api-key" to apiKey)
+            url = "$api/mods/$projectID/files/$fileID"
         )
     }
 
@@ -92,7 +91,6 @@ class CurseForgeSearcher(
         pageSize: Int = 100
     ): CurseForgeVersions = httpGetJson(
         url = "$api/mods/$projectID/files",
-        headers = listOf("x-api-key" to apiKey),
         parameters = Parameters.build {
             append("index", index.toString())
             append("pageSize", pageSize.toString())
@@ -132,7 +130,6 @@ class CurseForgeSearcher(
         val hash = MurmurHash2Incremental.computeHash(file, byteToSkip = listOf(0x9, 0xa, 0xd, 0x20))
         return httpPostJson<CurseForgeFingerprintsMatches>(
             url = "$api/fingerprints",
-            headers = listOf("x-api-key" to apiKey),
             body = mapOf("fingerprints" to listOf(hash))
         ).data.exactMatches
             ?.takeIf { it.isNotEmpty() }

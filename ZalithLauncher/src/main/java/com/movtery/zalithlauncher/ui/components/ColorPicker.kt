@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -148,7 +147,7 @@ fun ColorPickerDialog(
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .verticalScroll(rememberScrollState()),
+                                    .verticalScrollWithBar(rememberScrollState()),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 if (showAlpha || showHue) {

@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.screens.game.multiplayer
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CardDefaults
@@ -46,6 +48,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +69,7 @@ import com.movtery.zalithlauncher.terracotta.TerracottaState
 import com.movtery.zalithlauncher.terracotta.profile.TerracottaProfile
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -459,7 +463,7 @@ private fun OkRoomUI(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScrollWithBar(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(text = okText)
@@ -521,9 +525,16 @@ private fun ProfileListPanel(
         Text(text = title)
         HorizontalDivider()
 
+        val scrollState = rememberLazyListState()
         LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .weight(1f)
+                .scrollbar(
+                    state = scrollState.scrollIndicatorState,
+                    orientation = Orientation.Vertical,
+                ),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            state = scrollState,
         ) {
             items(items = profiles, key = { it.toString() }) { profile ->
                 TerracottaProfileLayout(
@@ -577,7 +588,7 @@ private fun ExceptionUI(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(scrollState),
+                .verticalScrollWithBar(scrollState),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(text = title)
@@ -615,7 +626,7 @@ private fun LogUI(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(scrollState),
+                .verticalScrollWithBar(scrollState),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(text = logString)
@@ -649,7 +660,7 @@ private fun CommonProgressLayout(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(scrollState),
+                .verticalScrollWithBar(scrollState),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) c1@{
             Text(text = progress)

@@ -26,6 +26,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "GameJVMRunner"
 
@@ -46,7 +47,7 @@ suspend fun runJvmRetryRuntimes(
 ): Unit = withContext(Dispatchers.Default) {
     while (!isOnlyMainProcessesRunning(context = GlobalContext)) {
         Logger.info(TAG, "$logId Waiting for other processes stop...")
-        delay(100)
+        delay(100L.milliseconds)
     }
 
     start()

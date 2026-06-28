@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.download.assets.elements
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -227,7 +229,11 @@ private fun DownloadDialog(
                                 LazyColumn(
                                     modifier = Modifier
                                         .fadeEdge(state = listState)
-                                        .weight(1f),
+                                        .weight(1f)
+                                        .scrollbar(
+                                            state = listState.scrollIndicatorState,
+                                            orientation = Orientation.Vertical,
+                                        ),
                                     contentPadding = PaddingValues(vertical = 8.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                     state = listState
@@ -327,7 +333,10 @@ private fun ChoseGameVersionLayout(
 ) {
     if (versions.isNotEmpty()) {
         LazyColumn(
-            modifier = modifier,
+            modifier = modifier.scrollbar(
+                state = listState.scrollIndicatorState,
+                orientation = Orientation.Vertical,
+            ),
             contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = listState

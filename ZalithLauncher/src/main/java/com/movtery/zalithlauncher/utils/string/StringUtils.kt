@@ -125,8 +125,8 @@ fun String.splitPreservingQuotes(delimiter: Char = ' '): List<String> {
                 // 切换引号状态（忽略转义引号）
                 inQuotes = !inQuotes
             }
-            c == delimiter && !inQuotes -> {
-                // 如果不在引号内且遇到空格，则结束当前部分并添加到结果中
+            (if (delimiter == ' ') c.isWhitespace() else c == delimiter) && !inQuotes -> {
+                // 如果不在引号内且遇到分隔符（默认是任意空白字符），则结束当前部分并添加到结果中
                 if (currentPart.isNotEmpty()) {
                     result.add(currentPart.toString())
                     currentPart.clear() // 清空当前部分

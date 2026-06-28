@@ -48,6 +48,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 简单的手柄摇杆、按键事件捕获层
@@ -140,7 +141,7 @@ fun SimpleGamepadCapture(
                     if (pollLevel == GamepadViewModel.PollLevel.Close) break
 
                     gamepadViewModel.pollJoystick()
-                    delay(pollLevel.delayMs)
+                    delay(pollLevel.delayMs.milliseconds)
                 } catch (_: CancellationException) {
                     break
                 }

@@ -63,6 +63,7 @@ import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.NotificationCheck
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.influencedByBackgroundColor
+import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
@@ -397,7 +398,7 @@ private fun SingleTitleColumn(
 ) {
     TitleTextLayout(
         modifier = modifier
-            .verticalScroll(scrollState)
+            .verticalScrollWithBar(scrollState)
             .padding(all = 16.dp),
         title = title,
         text = text
@@ -418,7 +419,7 @@ private fun DoubleTitleColumn(
 ) {
     Column(
         modifier = modifier
-            .verticalScroll(scrollState)
+            .verticalScrollWithBar(scrollState)
             .padding(all = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {

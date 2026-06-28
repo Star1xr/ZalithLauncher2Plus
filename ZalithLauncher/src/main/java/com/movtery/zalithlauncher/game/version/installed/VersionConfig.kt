@@ -291,8 +291,11 @@ class VersionConfig(
 }
 
 enum class SettingState(val textRes: Int) {
+    @SerializedName("FOLLOW_GLOBAL")
     FOLLOW_GLOBAL(R.string.generic_follow_global),
+    @SerializedName("ENABLE")
     ENABLE(R.string.generic_enable),
+    @SerializedName("DISABLE")
     DISABLE(R.string.generic_disable)
 }
 
@@ -301,12 +304,16 @@ enum class GraphicsApi(
     val option: String
 ) {
     /** 默认使用游戏设定 */
+    @SerializedName("DEFAULT")
     DEFAULT("", "\"default\""),
     /** 强制切换到OpenGL，覆盖游戏原有设定 */
+    @SerializedName("OPENGL")
     OPENGL("OpenGL", "\"opengl\""),
     /** 默认切换到OpenGL，如果游戏有设定过则不覆盖 */
+    @SerializedName("DEFAULT_OPENGL")
     DEFAULT_OPENGL(OPENGL.displayName, OPENGL.option),
     /** 强制切换到Vulkan，覆盖游戏原有设定 */
+    @SerializedName("VULKAN")
     VULKAN("Vulkan", "\"vulkan\"")
 }
 

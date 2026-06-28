@@ -44,7 +44,7 @@
     <string name="generic_ignore">İptal</string>
     <string name="generic_authorization">Yetkilendirme</string>
     <string name="generic_file_name">Dosya adı:%s</string>
-    <string name="generic_file_size">Dosya Boyutu:%s</string>
+    <string name="generic_file_size">Dosya Boyutu: %s</string>
     <string name="generic_all">Hepsi</string>
     <string name="generic_unspecified">Belirtilmemiş</string>
     <string name="generic_save">Kaydet</string>
@@ -95,8 +95,6 @@
     <string name="error_parse_failed">Veri işlenemedi</string>
     <string name="error_unauthorized">(%s) Lütfen kimlik bilgilerinizi kontrol edin ve tekrar deneyin.</string>
     <string name="error_notfound">(%s) İstenilen kaynak bulunamadı</string>
-    <string name="error_client_error">(%s) İstemci hatası</string>
-    <string name="error_unknown">Bilinmeyen hata: %s</string>
     <string name="splash_screen_unpack_desc">Başlatıcı, Minecraft\'ın düzgün çalışmasını sağlamak için bu dosyaları yüklemelidir. Dosyalar uygulamaya dahil edilmiştir ve önce çıkarılmaları gerekir. Çıkarmayı ve güncellemeyi başlatmak için aşağıdaki düğmeye tıklayın.</string>
     <string name="splash_screen_installing">Başlatıcı bu içerikleri çıkarıyor; çıkarma tamamlandıktan sonra otomatik olarak ana ekrana geçilecektir. Lütfen sabırlı olun.</string>
     <string name="splash_screen_agree">Kur</string>
@@ -392,7 +390,7 @@
     <string name="files_select_dir">Klasör Seç</string>
     <string name="files_current_path">Geçerli yol: %s</string>
     <string name="files_no_selectable_content">Seçilebilecek içerik yok</string>
-    <string name="file_invalid_length">Ad çok uzun! (Şu an: %d, Maks: %d)</string>
+    <string name="file_invalid_length" formatted="false">Ad çok uzun! (Şu an: %d, Maks: %d)</string>
     <string name="multirt_runtime_corrupt">Bozuk Java çalışma zamanı</string>
     <string name="multirt_runtime_incompatible_arch">Uyumsuz mimari: %s</string>
     <string name="multirt_runtime_delete_message">Java çalışma ortamı %s\'yi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!</string>
@@ -705,10 +703,10 @@
     <string name="generic_saved">Kaydedildi</string>
     <string name="generic_no_matching_items">Eşleşen ürün bulunamadı</string>
     <string name="sort_by">Sırala</string>
-    <string name="sort_by_name">İsme göre sırala</string>
-    <string name="sort_by_file_name">Dosya ismine göre sırala</string>
-    <string name="sort_by_last_modified">Son değiştirilmeye göre sürala</string>
-    <string name="sort_by_last_played">Son oynatılmaya göre sırala</string>
+    <string name="sort_by_name">İsme Göre Sırala</string>
+    <string name="sort_by_file_name">Dosya İsmine Göre Sırala</string>
+    <string name="sort_by_last_modified">Son Değiştirilmeye Göre Sırala</string>
+    <string name="sort_by_last_played">Son Oynanmaya Göre Sırala</string>
     <string name="generic_follow_system">Sistemi Takip Et</string>
     <string name="notification_data_terracotta_message">Çok oyunculu oturumlar sırasında, başlatıcı mevcut bağlantı durumunu görüntülemek için ön planda çalışan bir hizmet kullanır, bu nedenle bildirim izni gereklidir.</string>
     <string name="version_summary_fools_the_love_and_hugs_update">Sevgi ve Kucaklama Güncellemesi, dünyayı barış ve gökkuşağıyla dolduruyor.</string>
@@ -1125,12 +1123,12 @@
     <string name="servers_list_failed_to_connect">Sunucuya bağlanılamadı.</string>
     <string name="servers_list_undefined">Tanımlanmamış</string>
     <string name="servers_list_players_full">Dolu</string>
-    <string name="servers_list_add_server">Sunucu ekle</string>
+    <string name="servers_list_add_server">Sunucu Ekle</string>
     <string name="servers_list_add_server_name">Sunucu ismi</string>
     <string name="servers_list_add_server_default_name">Minecraft Sunucusu</string>
     <string name="servers_list_add_server_ip">Sunucu Adresi</string>
-    <string name="servers_list_delete_server">Sunucuyu sil</string>
-    <string name="servers_list_delete_server_text">Sunucu %s\'yi silmek istediğinizden emin misiniz?</string>
+    <string name="servers_list_delete_server">Sunucuyu Sil</string>
+    <string name="servers_list_delete_server_text">%s Sunucu\'yu silmek istediğinizden emin misiniz?</string>
     <string name="servers_list_edit_server">Sunucuyu Düzenle</string>
     <string name="servers_list_copy_server_address">Adresi Kopyala</string>
     <string name="settings_launcher_language">Dil</string>

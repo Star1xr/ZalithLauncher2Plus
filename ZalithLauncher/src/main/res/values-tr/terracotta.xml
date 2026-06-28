@@ -8,7 +8,7 @@
     <string name="terracotta_back">Çıkış</string>
     <string name="terracotta_enable">Çok oyunculu modu etkinleştirin</string>
     <string name="terracotta_difficulty_easiest">Mükemmel ağ bağlantısı: neredeyse bağlantı kuruldu!</string>
-    <string name="terracotta_difficulty_simple">İyi ağ bağlantısı: bağlantı biraz zaman alabilir</string>
+    <string name="terracotta_difficulty_simple">İyi ağ bağlantısı: bağlantı biraz zaman alabilir…</string>
     <string name="terracotta_difficulty_medium">Ortalama ağ: Yedek yönlendirme yolları etkinleştiriliyor, ancak bağlantı başarısız olabilir</string>
     <string name="terracotta_difficulty_tough">Zayıf ağ: Yedek yollar etkinleştiriliyor, ancak bağlantı başarısız olabilir</string>
     <string name="terracotta_difficulty_estimate_only">Başarı oranı, sunucu ve istemci NAT türlerine dayalı bir tahmindir ve yalnızca referans amaçlıdır!</string>

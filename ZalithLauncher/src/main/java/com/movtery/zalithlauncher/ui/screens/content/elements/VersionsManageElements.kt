@@ -18,6 +18,9 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
+import androidx.compose.ui.graphics.DefaultAlpha
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
@@ -34,7 +37,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -638,7 +641,7 @@ fun CleanupOperation(
                         Column(
                             modifier = Modifier
                                 .fadeEdge(state = scrollState)
-                                .verticalScroll(state = scrollState)
+                                .verticalScrollWithBar(state = scrollState)
                         ) {
                             Text(stringResource(R.string.versions_manage_cleanup_failed_files))
                             error.files.forEach { file ->
@@ -1034,7 +1037,7 @@ fun VersionIconImage(
     refreshKey: Any? = null
 ) {
     val defaultIconRes = remember(version) {
-        version?.let { getLoaderIconRes(it) } ?: R.drawable.img_minecraft
+        version?.let { getLoaderIconRes(it.getVersionInfo()?.loaderInfo?.loader) } ?: R.drawable.img_minecraft
     }
     val defaultIcon = painterResource(defaultIconRes)
 
@@ -1066,8 +1069,39 @@ fun VersionIconImage(
     }
 }
 
-private fun getLoaderIconRes(version: Version): Int {
-    return when (version.getVersionInfo()?.loaderInfo?.loader) {
+
+  /**
+   * 模组加载器图标展示组件，包装 [Image]
+   */
+  @Composable
+  fun ModLoaderIcon(
+      modloader: ModLoader,
+      @DrawableRes
+      defaultIcon: Int,
+      modifier: Modifier = Modifier,
+      alignment: Alignment = Alignment.Center,
+      contentScale: ContentScale = ContentScale.Fit,
+      alpha: Float = DefaultAlpha,
+      colorFilter: ColorFilter? = null,
+  ) {
+      val icon = getLoaderIconRes(modloader, defaultIcon)
+      Image(
+          painter = painterResource(icon),
+          contentDescription = null,
+          modifier = modifier,
+          alignment = alignment,
+          contentScale = contentScale,
+          alpha = alpha,
+          colorFilter = colorFilter,
+      )
+  }
+
+  private fun getLoaderIconRes(
+    loader: ModLoader?,
+    @DrawableRes
+    defaultIcon: Int = R.drawable.img_minecraft,
+): Int {
+    return when (loader) {
         ModLoader.FABRIC,
         ModLoader.BABRIC -> R.drawable.img_loader_fabric
         ModLoader.LEGACY_FABRIC -> R.drawable.img_loader_legacy_fabric
@@ -1078,7 +1112,7 @@ private fun getLoaderIconRes(version: Version): Int {
         ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
         ModLoader.LITE_LOADER -> R.drawable.img_chicken_old
         ModLoader.CLEANROOM -> R.drawable.img_loader_cleanroom
-        else -> R.drawable.img_minecraft
+        else -> defaultIcon
     }
 }
 

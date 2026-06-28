@@ -18,8 +18,13 @@
 
 package com.movtery.zalithlauncher.ui.components
 
+import androidx.compose.foundation.OverscrollEffect
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
@@ -235,3 +240,38 @@ fun createDefaultFadeStyle(
         blendMode = BlendMode.DstOut
     )
 }
+
+
+@Composable
+fun Modifier.verticalScrollWithBar(
+    state: ScrollState,
+    enabled: Boolean = true,
+    flingBehavior: FlingBehavior? = null,
+    reverseScrolling: Boolean = false
+): Modifier = this.scrollbar(
+    state = state.scrollIndicatorState,
+    orientation = Orientation.Vertical
+).verticalScroll(
+    state = state,
+    enabled = enabled,
+    flingBehavior = flingBehavior,
+    reverseScrolling = reverseScrolling,
+)
+
+@Composable
+fun Modifier.verticalScrollWithBar(
+    state: ScrollState,
+    overscrollEffect: OverscrollEffect?,
+    enabled: Boolean = true,
+    flingBehavior: FlingBehavior? = null,
+    reverseScrolling: Boolean = false
+): Modifier = this.scrollbar(
+    state = state.scrollIndicatorState,
+    orientation = Orientation.Vertical
+).verticalScroll(
+    state = state,
+    overscrollEffect = overscrollEffect,
+    enabled = enabled,
+    flingBehavior = flingBehavior,
+    reverseScrolling = reverseScrolling,
+)

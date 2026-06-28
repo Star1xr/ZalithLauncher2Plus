@@ -19,10 +19,10 @@
 package com.movtery.zalithlauncher.setting
 
 import android.content.Context
-import com.movtery.zalithlauncher.game.launch.parseJavaArguments
 import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.platform.bytesToMB
 import com.movtery.zalithlauncher.utils.platform.getTotalMemory
+import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 
 private const val LWJGL_LIB_NAME_ARG = "-Dorg.lwjgl.opengl.libname="
 
@@ -37,7 +37,7 @@ fun loadAllSettings(context: Context, reloadAll: Boolean = false) {
         AllSettings.ramAllocation.save(ram)
     }
     val jvmArgs = AllSettings.jvmArgs.getValue()
-    parseJavaArguments(jvmArgs).find { it.startsWith(LWJGL_LIB_NAME_ARG) }?.let { arg ->
+    jvmArgs.splitPreservingQuotes().find { it.startsWith(LWJGL_LIB_NAME_ARG) }?.let { arg ->
         AllSettings.jvmArgs.save(jvmArgs.replace(arg, ""))
     }
 }

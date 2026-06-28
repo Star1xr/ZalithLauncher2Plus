@@ -22,8 +22,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
+import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.RectF
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -98,6 +100,7 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -110,6 +113,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
@@ -148,9 +153,9 @@ import com.movtery.zalithlauncher.ui.components.PlayerSkin
 import com.movtery.zalithlauncher.ui.components.RadioCard
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleListDialog
-import com.movtery.zalithlauncher.ui.components.SimpleListItem
 import com.movtery.zalithlauncher.ui.components.SingleLineTextCheck
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
@@ -302,8 +307,8 @@ fun rememberChromaBrush(): Brush {
 @Composable
 fun AccountAvatar(
     modifier: Modifier = Modifier,
-    avatarSize: Int = 64,
     account: Account?,
+    avatarSize: Dp = 64.dp,
     refreshKey: Any? = null,
     onClick: () -> Unit = {}
 ) {
@@ -374,19 +379,18 @@ fun AccountAvatar(
 fun PlayerFace(
     modifier: Modifier = Modifier,
     account: Account,
-    avatarSize: Int = 64,
+    avatarSize: Dp = 64.dp,
     refreshKey: Any? = null
 ) {
     val context = LocalContext.current
+    val density = LocalDensity.current
     val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
-    val avatarBitmap = remember(account, account.getCapeFile(), refreshKey, refreshWardrobe) {
-        getSkinAvatarFromAccount(context, account, avatarSize).asImageBitmap()
+    val avatarBitmap = remember(account, refreshKey, refreshWardrobe, density) {
+        getSkinAvatarFromAccount(context, account, avatarSize, density).asImageBitmap()
     }
 
-    val newAvatarSize = avatarBitmap.width.dp
-
     Image(
-        modifier = modifier.size(newAvatarSize),
+        modifier = modifier.size(avatarSize),
         bitmap = avatarBitmap,
         contentDescription = null
     )
@@ -397,6 +401,7 @@ fun AccountItem(
     modifier: Modifier = Modifier,
     currentAccount: Account?,
     account: Account,
+    avatarSize: Dp = 46.dp,
     color: Color = itemColor(),
     contentColor: Color = onItemColor(),
     enabled: Boolean = true,
@@ -443,7 +448,7 @@ fun AccountItem(
             PlayerFace(
                 modifier = Modifier.align(Alignment.CenterVertically),
                 account = account,
-                avatarSize = 46,
+                avatarSize = avatarSize,
                 refreshKey = refreshKey
             )
             Spacer(modifier = Modifier.width(18.dp))
@@ -849,7 +854,7 @@ fun LocalLoginDialog(
                         modifier = Modifier
                             .fadeEdge(state = scrollState)
                             .weight(1f, fill = false)
-                            .verticalScroll(state = scrollState)
+                            .verticalScrollWithBar(state = scrollState)
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -1074,7 +1079,7 @@ fun OtherServerLoginDialog(
                         modifier = Modifier
                             .fadeEdge(state = scrollState)
                             .weight(1f, fill = false)
-                            .verticalScroll(state = scrollState)
+                            .verticalScrollWithBar(state = scrollState)
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -1746,9 +1751,12 @@ fun SelectCapeDialog(
     capes: List<PlayerProfile.Cape>,
     selectedCape: PlayerProfile.Cape?,
     onSelected: (PlayerProfile.Cape, translatedName: String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    capeSize: Dp = 32.dp,
 ) {
     val context = LocalContext.current
+    val density = LocalDensity.current
+
     val capeLocals = remember(capes) {
         buildMap {
             capes.forEach { cape ->
@@ -1773,27 +1781,15 @@ fun SelectCapeDialog(
         },
         current = selectedCape,
         itemLayout = { cape, isCurrent, text, onClick ->
-            val avatar = remember(cape) {
-                if (cape != EmptyCape) {
-                    getCapeAvatar(cape = cape, size = 32)
-                } else null
-            }
-            if (avatar != null) {
-                CapeListItem(
-                    selected = isCurrent,
-                    name = text,
-                    avatar = avatar,
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onClick
-                )
-            } else {
-                SimpleListItem(
-                    selected = isCurrent,
-                    itemName = text,
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onClick
-                )
-            }
+            CapeListItem(
+                modifier = Modifier.fillMaxWidth(),
+                selected = isCurrent,
+                cape = cape,
+                name = text,
+                size = capeSize,
+                density = density,
+                onClick = onClick,
+            )
         },
         onDismissRequest = { selected ->
             if (!selected) {
@@ -1807,10 +1803,22 @@ fun SelectCapeDialog(
 fun CapeListItem(
     modifier: Modifier = Modifier,
     selected: Boolean,
+    cape: PlayerProfile.Cape,
     name: String,
-    avatar: Bitmap,
-    onClick: () -> Unit = {}
+    size: Dp,
+    density: Density,
+    onClick: () -> Unit,
 ) {
+    val avatar = remember(cape, density) {
+        if (cape != EmptyCape) {
+            getCapeAvatar(
+                cape = cape,
+                size = size,
+                density = density
+            )?.asImageBitmap()
+        } else null
+    }
+
     Row(
         modifier = modifier
             .clip(shape = MaterialTheme.shapes.large)
@@ -1822,19 +1830,19 @@ fun CapeListItem(
             onClick = onClick
         )
 
-        val avatarBitmap = remember(avatar) {
-            avatar.asImageBitmap()
+        if (avatar != null) {
+            val displayWidth = with(density) { avatar.width.toDp() }
+            val displayHeight = with(density) { avatar.height.toDp() }
+            Image(
+                modifier = Modifier
+                    .width(displayWidth)
+                    .height(displayHeight),
+                bitmap = avatar,
+                contentDescription = null
+            )
+
+            Spacer(Modifier.width(12.dp))
         }
-
-        Image(
-            modifier = Modifier
-                .width(avatarBitmap.width.dp)
-                .height(avatarBitmap.height.dp),
-            bitmap = avatarBitmap,
-            contentDescription = null
-        )
-
-        Spacer(Modifier.width(12.dp))
 
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -1847,14 +1855,20 @@ fun CapeListItem(
     }
 }
 
-private fun getCapeAvatar(cape: PlayerProfile.Cape, size: Int): Bitmap? {
+private val avatarPaint = Paint().apply { isFilterBitmap = false }
+
+private fun getCapeAvatar(
+    cape: PlayerProfile.Cape,
+    size: Dp,
+    density: Density
+): Bitmap? {
     val capeFile = cape.getFile(PathManager.DIR_ACCOUNT_CAPE)
     if (capeFile.exists()) {
         runCatching {
-            Files.newInputStream(capeFile.toPath()).use { `is` ->
-                val bitmap = BitmapFactory.decodeStream(`is`)
+            Files.newInputStream(capeFile.toPath()).use { stream ->
+                val bitmap = BitmapFactory.decodeStream(stream)
                     ?: throw IOException("Failed to read the cape picture and try to parse it to a bitmap")
-                return getCapeAvatar(bitmap, size)
+                return getCapeAvatar(bitmap, size, density)
             }
         }.onFailure { e ->
             Logger.error(TAG, "Failed to load cape avatar from locally!", e)
@@ -1863,65 +1877,92 @@ private fun getCapeAvatar(cape: PlayerProfile.Cape, size: Int): Bitmap? {
     return null
 }
 
-private fun getCapeAvatar(cape: Bitmap, size: Int): Bitmap {
+private fun getCapeAvatar(
+    cape: Bitmap,
+    size: Dp,
+    density: Density
+): Bitmap {
+    val pixelSize = with(density) { size.roundToPx() }
     val scaleFactor = cape.width / 64.0f
     val start = scaleFactor.roundToInt()
     val capeWidth = (10 * scaleFactor).roundToInt()
     val capeHeight = (16 * scaleFactor).roundToInt()
-    val capeBitmap = Bitmap.createBitmap(cape, start, start, capeWidth, capeHeight, null, false)
-    val scale = size.toFloat() / capeHeight
-    val matrix = Matrix()
-    matrix.postScale(scale, scale)
-    return Bitmap.createBitmap(capeBitmap, 0, 0, capeBitmap.width, capeBitmap.height, matrix, false)
+    val targetWidth = (pixelSize.toFloat() * capeWidth / capeHeight).roundToInt()
+    val avatar = createBitmap(targetWidth, pixelSize)
+    val canvas = Canvas(avatar)
+
+    canvas.drawBitmap(
+        cape,
+        Rect(start, start, start + capeWidth, start + capeHeight),
+        RectF(0f, 0f, targetWidth.toFloat(), pixelSize.toFloat()),
+        avatarPaint
+    )
+    return avatar
 }
 
-private fun getSkinAvatarFromAccount(context: Context, account: Account, size: Int): Bitmap {
+private fun getSkinAvatarFromAccount(
+    context: Context,
+    account: Account,
+    size: Dp,
+    density: Density
+): Bitmap {
     val skin = account.getSkinFile()
     if (skin.exists()) {
         runCatching {
-            Files.newInputStream(skin.toPath()).use { `is` ->
-                val bitmap = BitmapFactory.decodeStream(`is`)
+            Files.newInputStream(skin.toPath()).use { stream ->
+                val bitmap = BitmapFactory.decodeStream(stream)
                     ?: throw IOException("Failed to read the skin picture and try to parse it to a bitmap")
-                return getSkinAvatar(bitmap, size)
+                return getSkinAvatar(bitmap, size, density)
             }
         }.onFailure { e ->
             Logger.error(TAG, "Failed to load skin avatar from locally!", e)
         }
     }
-    return getDefaultAvatar(context, size)
+    return getDefaultAvatar(context, size, density)
 }
 
 @Throws(Exception::class)
-private fun getDefaultAvatar(context: Context, size: Int): Bitmap {
-    val `is` = context.assets.open("steve.png")
-    return getSkinAvatar(BitmapFactory.decodeStream(`is`), size)
+private fun getDefaultAvatar(
+    context: Context,
+    size: Dp,
+    density: Density
+): Bitmap {
+    return getSkinAvatar(
+        skin = BitmapFactory.decodeStream(
+            context.assets.open("steve.png")
+        ),
+        size = size,
+        density = density
+    )
 }
 
-private fun getSkinAvatar(skin: Bitmap, size: Int): Bitmap {
-    val faceOffset = (size / 18.0).roundToInt().toFloat()
+private fun getSkinAvatar(
+    skin: Bitmap,
+    size: Dp,
+    density: Density
+): Bitmap {
+    val pixelSize = with(density) { size.roundToPx() }
+    val faceOffset = (pixelSize / 18.0).roundToInt().toFloat()
     val scaleFactor = skin.width / 64.0f
     val faceSize = (8 * scaleFactor).roundToInt()
-    val faceBitmap = Bitmap.createBitmap(skin, faceSize, faceSize, faceSize, faceSize, null, false)
-    val hatBitmap = Bitmap.createBitmap(
+    val faceEndY = faceSize * 2
+    val hatSrcX = (40 * scaleFactor).roundToInt()
+    val avatar = createBitmap(pixelSize, pixelSize)
+    val canvas = Canvas(avatar)
+
+    val innerEnd = pixelSize - faceOffset
+    canvas.drawBitmap(
         skin,
-        (40 * scaleFactor).roundToInt(),
-        faceSize,
-        faceSize,
-        faceSize,
-        null,
-        false
+        Rect(faceSize, faceSize, faceEndY, faceEndY),
+        RectF(faceOffset, faceOffset, innerEnd, innerEnd),
+        avatarPaint
     )
-    val avatar = createBitmap(size, size)
-    val canvas = android.graphics.Canvas(avatar)
-    val faceScale = ((size - 2 * faceOffset) / faceSize)
-    val hatScale = (size.toFloat() / faceSize)
-    var matrix = Matrix()
-    matrix.postScale(faceScale, faceScale)
-    val newFaceBitmap = Bitmap.createBitmap(faceBitmap, 0, 0, faceSize, faceSize, matrix, false)
-    matrix = Matrix()
-    matrix.postScale(hatScale, hatScale)
-    val newHatBitmap = Bitmap.createBitmap(hatBitmap, 0, 0, faceSize, faceSize, matrix, false)
-    canvas.drawBitmap(newFaceBitmap, faceOffset, faceOffset, Paint(Paint.ANTI_ALIAS_FLAG))
-    canvas.drawBitmap(newHatBitmap, 0f, 0f, Paint(Paint.ANTI_ALIAS_FLAG))
+
+    canvas.drawBitmap(
+        skin,
+        Rect(hatSrcX, faceSize, hatSrcX + faceSize, faceEndY),
+        RectF(0f, 0f, pixelSize.toFloat(), pixelSize.toFloat()),
+        avatarPaint
+    )
     return avatar
 }

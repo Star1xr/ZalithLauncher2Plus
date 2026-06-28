@@ -43,6 +43,7 @@ import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.device.Architecture.ARCH_X86
 import com.movtery.zalithlauncher.utils.device.Architecture.is64BitsDevice
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import com.oracle.dalvik.VMLauncher
 import org.apache.commons.io.FileUtils
 import java.io.File
@@ -153,7 +154,7 @@ abstract class Launcher(
         screenSize: IntSize,
         useLocalLanguage: Boolean
     ): List<String> {
-        val userArguments = parseJavaArguments(userArgumentsString).toMutableList()
+        val userArguments = userArgumentsString.splitPreservingQuotes().toMutableList()
         val resolvFile = ensureDNSConfig()
 
         val overridableArguments = mutableMapOf<String, String>().apply {
@@ -446,45 +447,6 @@ abstract class Launcher(
     protected open fun dlopenEngine() {
         ZLBridge.dlopen("${PathManager.DIR_NATIVE_LIB}/libopenal.so")
     }
-}
-
-/**
- * [Modified from PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/blob/98947f2/app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java#L411-L456)
- */
-fun parseJavaArguments(args: String): List<String> {
-    val parsedArguments = mutableListOf<String>()
-    var cleanedArgs = args.trim().replace(" ", "")
-    val separators = listOf("-XX:-", "-XX:+", "-XX:", "--", "-D", "-X", "-javaagent:", "-verbose")
-
-    for (prefix in separators) {
-        while (true) {
-            val start = cleanedArgs.indexOf(prefix)
-            if (start == -1) break
-
-            val end = separators
-                .mapNotNull { sep ->
-                    val i = cleanedArgs.indexOf(sep, start + prefix.length)
-                    if (i != -1) i else null
-                }
-                .minOrNull() ?: cleanedArgs.length
-
-            val parsedSubstring = cleanedArgs.substring(start, end)
-            cleanedArgs = cleanedArgs.replace(parsedSubstring, "")
-
-            if (parsedSubstring.indexOf('=') == parsedSubstring.lastIndexOf('=')) {
-                val last = parsedArguments.lastOrNull()
-                if (last != null && (last.endsWith(',') || parsedSubstring.contains(','))) {
-                    parsedArguments[parsedArguments.lastIndex] = last + parsedSubstring
-                } else {
-                    parsedArguments.add(parsedSubstring)
-                }
-            } else {
-                Logger.warning(TAG, "Removed improper arguments: $parsedSubstring")
-            }
-        }
-    }
-
-    return parsedArguments
 }
 
 fun getCacioJavaArgs(

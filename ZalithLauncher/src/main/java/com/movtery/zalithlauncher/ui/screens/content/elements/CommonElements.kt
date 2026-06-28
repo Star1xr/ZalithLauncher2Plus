@@ -101,6 +101,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * [androidx.compose.material3.DisabledAlpha]
@@ -650,7 +651,7 @@ private suspend fun infinityCancellableBlock(
         try {
             block()
             ensureActive()
-            delay(delay)
+            delay(delay.milliseconds)
         } catch (_: CancellationException) {
             break
         }

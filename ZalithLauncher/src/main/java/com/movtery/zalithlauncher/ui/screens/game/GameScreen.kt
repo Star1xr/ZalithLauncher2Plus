@@ -144,6 +144,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.filterIsInstance
@@ -192,7 +193,7 @@ private class GameViewModel(
                     break
                 }
                 gameFps = CallbackBridge.getCurrentFps()
-                delay(1000L)
+                delay(1000L.milliseconds)
             }
         }
     }
@@ -301,7 +302,7 @@ private class GameViewModel(
             withContext(Dispatchers.Main) {
                 observableLayout = null
                 val layout = withContext(Dispatchers.IO) {
-                    delay(10L) //刻意等待一会再加载
+                    delay(10L.milliseconds) //刻意等待一会再加载
                     currentControlFile = layoutFile
                     getLayout(layoutFile)
                 }
@@ -432,7 +433,7 @@ private class MouseScrollEvent(
                 try {
                     ensureActive()
                     CallbackBridge.sendScroll(0.0, offset)
-                    delay(50)
+                    delay(50L.milliseconds)
                 } catch (_: Exception) {
                     break
                 }
@@ -499,9 +500,9 @@ private class GameTextSender(private val scope: CoroutineScope) {
                 //如果找不到，则忽略这次事件
                 mapToKeycode(OPEN_CHAT, OPEN_CHAT_VALUE)?.let { openChat ->
                     CallbackBridge.sendKeyPress(openChat)
-                    delay(50)
+                    delay(50L.milliseconds)
                     sendText()
-                    delay(50)
+                    delay(50L.milliseconds)
                     LWJGLCharSender.sendEnter()
                 }
             } else {

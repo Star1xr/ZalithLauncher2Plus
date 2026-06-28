@@ -26,7 +26,6 @@ import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.coroutine.addTask
 import com.movtery.zalithlauncher.coroutine.buildPhase
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.download.assets.platform.getProjectByVersion
 import com.movtery.zalithlauncher.game.version.mod.ModProject
 import com.movtery.zalithlauncher.game.version.mod.RemoteMod
@@ -62,7 +61,7 @@ class ModUpdater(
     private val minecraft: String,
     private val modLoader: ModLoader,
     scope: CoroutineScope,
-    private val waitForUserConfirm: suspend (Map<ModData, PlatformVersion>) -> Boolean
+    private val waitForUserConfirm: suspend (List<ModManifest>) -> List<SelectableModManifest>
 ) {
     private val taskExecutor = TaskFlowExecutor(scope)
     val tasksFlow: StateFlow<List<TitledTask>> = taskExecutor.tasksFlow
@@ -75,7 +74,12 @@ class ModUpdater(
     /**
      * 需要更新的模组列表
      */
-    val allModsUpdate: MutableMap<ModData, PlatformVersion> = mutableMapOf()
+    val allModsUpdate: MutableList<ModManifest> = mutableListOf()
+
+    /**
+     * 最终更新的模组列表
+     */
+    val finalModsUpdate: MutableList<ModManifest> = mutableListOf()
 
     /**
      * 开始更新所有已选择的模组
@@ -123,6 +127,7 @@ class ModUpdater(
     private suspend fun getTaskPhases() = withContext(Dispatchers.IO) {
         dataList.clear()
         allModsUpdate.clear()
+        finalModsUpdate.clear()
         val tempModUpdaterDir = PathManager.DIR_CACHE_MOD_UPDATER
 
         listOf(
@@ -156,6 +161,9 @@ class ModUpdater(
                             message = R.string.empty_holder,
                             file.nameWithoutExtension
                         )
+
+                        // 过滤不可检查远端的模组
+                        if (!mod.localMod.checkRemote) return@forEachIndexed
 
                         val modFile = mod.remoteFile
                         val project = mod.projectInfo
@@ -222,7 +230,7 @@ class ModUpdater(
                     }.awaitAll().filterNotNull() // 等待所有任务完成，并过滤掉不需要更新的 null 结果
 
                     updateResults.forEach { (data, version) ->
-                        allModsUpdate[data] = version
+                        allModsUpdate.add(ModManifest(data, version))
                     }
 
                     if (allModsUpdate.isEmpty()) {
@@ -237,10 +245,14 @@ class ModUpdater(
                     title = context.getString(R.string.mods_update_task_wait_for_user),
                     icon = R.drawable.ic_schedule_outlined
                 ) {
-                    if (!waitForUserConfirm(allModsUpdate.toMap())) {
-                        //用户取消了更新，这里抛出取消异常，结束全部任务
+                    val finalList = waitForUserConfirm(allModsUpdate).toFinalList()
+                    if (finalList.isEmpty()) {
+                        // 用户取消了更新，或用户未选择要更新的模组
+                        // 这里抛出取消异常，结束全部任务
                         throw ModUpdateCancelledException()
                     }
+                    allModsUpdate.clear()
+                    finalModsUpdate.addAll(finalList)
                 }
 
                 //下载新版本模组
@@ -248,8 +260,10 @@ class ModUpdater(
                     id = "ModUpdater.UpdateMod",
                     title = context.getString(R.string.mods_update_task_download)
                 ) { task ->
-                    val mods = allModsUpdate.values.toList()
-                    val updater = ModVersionUpdater(mods, tempModUpdaterDir)
+                    val updater = ModVersionUpdater(
+                        mods = finalModsUpdate.allNews(),
+                        targetDir = tempModUpdaterDir
+                    )
                     updater.startDownload(task)
                 }
 
@@ -259,10 +273,10 @@ class ModUpdater(
                     title = context.getString(R.string.mods_update_task_replace),
                     icon = R.drawable.ic_build_outlined
                 ) { task ->
-                    val totalCount = allModsUpdate.entries.size
-                    allModsUpdate.entries.forEachIndexed { index, entry ->
-                        val oldMod = entry.key
-                        val newVersion = entry.value
+                    val totalCount = finalModsUpdate.size
+                    finalModsUpdate.forEachIndexed { index, entry ->
+                        val oldMod = entry.data
+                        val newVersion = entry.new
 
                         val oldFile = oldMod.file
                         val newFileName = newVersion.platformFileName()

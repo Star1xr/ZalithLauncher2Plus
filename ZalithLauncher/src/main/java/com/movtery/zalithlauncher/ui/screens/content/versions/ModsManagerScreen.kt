@@ -29,6 +29,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,10 +52,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -70,6 +71,7 @@ import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -103,7 +105,6 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.download.assets.utils.getMcmodTitle
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
@@ -112,8 +113,10 @@ import com.movtery.zalithlauncher.game.version.mod.LocalMod
 import com.movtery.zalithlauncher.game.version.mod.RemoteMod
 import com.movtery.zalithlauncher.game.version.mod.isDisabled
 import com.movtery.zalithlauncher.game.version.mod.isEnabled
-import com.movtery.zalithlauncher.game.version.mod.update.ModData
+import com.movtery.zalithlauncher.game.version.mod.update.ModManifest
 import com.movtery.zalithlauncher.game.version.mod.update.ModUpdater
+import com.movtery.zalithlauncher.game.version.mod.update.SelectableModManifest
+import com.movtery.zalithlauncher.game.version.mod.update.toSelectableList
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
@@ -128,6 +131,7 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.ImportMultipleFileButton
+import com.movtery.zalithlauncher.ui.screens.content.elements.ModLoaderIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.SortByDropdownMenu
 import com.movtery.zalithlauncher.ui.screens.content.elements.SortByEnum
 import com.movtery.zalithlauncher.ui.screens.content.elements.rememberMultipleUriImportTaskBuilder
@@ -167,6 +171,7 @@ import java.io.File
 import java.util.LinkedList
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.milliseconds
 
 private class ModsManageViewModel(
     modsDir: File
@@ -198,6 +203,12 @@ private class ModsManageViewModel(
      * 已选择的模组
      */
     val selectedMods = mutableStateListOf<RemoteMod>()
+
+    /**
+     * 是否可以更新选中的模组
+     */
+    var canUpdate by mutableStateOf(false)
+        private set
 
     /**
      * 删除所有已选择模组的操作流程
@@ -233,6 +244,8 @@ private class ModsManageViewModel(
             }
             modsState = LoadingState.Loading
             selectedMods.clear() //清空所有已选择的模组
+            canUpdate = false
+
             if (checkCount) modsCount.checkDir()
             try {
                 allMods = modReader.readAllForRemote()
@@ -327,12 +340,19 @@ private class ModsManageViewModel(
                 selectedMods.add(mod)
             }
         }
+        checkCanUpdate()
     }
 
     fun clearSelected() {
         filteredMods?.let {
             selectedMods.removeAll(it)
         }
+        checkCanUpdate()
+    }
+
+    fun checkCanUpdate() {
+        // 寻找列表中是否存在能够检查远端的模组
+        canUpdate = selectedMods.any { it.localMod.checkRemote }
     }
 
     /** 在ViewModel的生命周期协程内调用 */
@@ -354,7 +374,7 @@ private class ModsManageViewModel(
                 val task = queueMutex.withLock {
                     loadQueue.poll()
                 } ?: run {
-                    delay(100)
+                    delay(100.milliseconds)
                     continue
                 }
 
@@ -423,19 +443,19 @@ private class ModsUpdaterViewModel(
         private set
 
     //等待用户确认模组更新
-    private var waitingUserContinuation: (Continuation<Boolean>)? = null
-    suspend fun waitingForUserConfirm(map: Map<ModData, PlatformVersion>): Boolean {
+    private var waitingUserContinuation: (Continuation<List<SelectableModManifest>>)? = null
+    suspend fun waitingForUserConfirm(list: List<ModManifest>): List<SelectableModManifest> {
         return suspendCancellableCoroutine { cont ->
             waitingUserContinuation = cont
-            modsConfirmOperation = ModsConfirmOperation.WaitingConfirm(map)
+            modsConfirmOperation = ModsConfirmOperation.WaitingConfirm(list.toSelectableList())
         }
     }
 
     /**
      * 用户确认更新模组
      */
-    fun modsUserConfirm(confirm: Boolean) {
-        waitingUserContinuation?.resume(confirm)
+    fun modsUserConfirm(manifests: List<SelectableModManifest>) {
+        waitingUserContinuation?.resume(manifests)
         waitingUserContinuation = null
         modsConfirmOperation = ModsConfirmOperation.None
     }
@@ -609,10 +629,10 @@ fun ModsManagerScreen(
         ModsConfirmOperation(
             operation = updaterViewModel.modsConfirmOperation,
             onCancel = {
-                updaterViewModel.modsUserConfirm(false)
+                updaterViewModel.modsUserConfirm(emptyList())
             },
-            onConfirm = {
-                updaterViewModel.modsUserConfirm(true)
+            onConfirm = { manifests ->
+                updaterViewModel.modsUserConfirm(manifests)
             }
         )
 
@@ -692,6 +712,7 @@ fun ModsManagerScreen(
                                 }
                             },
                             isModsSelected = viewModel.selectedMods.isNotEmpty(),
+                            canUpdate = viewModel.canUpdate,
                             onSelectAll = {
                                 viewModel.selectAllMods()
                             },
@@ -712,9 +733,11 @@ fun ModsManagerScreen(
                             selectedMods = viewModel.selectedMods,
                             removeFromSelected = { mod ->
                                 viewModel.selectedMods.remove(mod)
+                                viewModel.checkCanUpdate()
                             },
                             addToSelected = { mod ->
                                 viewModel.selectedMods.add(mod)
+                                viewModel.checkCanUpdate()
                             },
                             onLoad = { mod ->
                                 viewModel.loadMod(mod)
@@ -783,6 +806,7 @@ private fun ModsActionsHeader(
     modsDir: File,
     onDeleteAll: () -> Unit,
     isModsSelected: Boolean,
+    canUpdate: Boolean,
     onSelectAll: () -> Unit,
     onClearModsSelected: () -> Unit,
     swapToDownload: () -> Unit,
@@ -894,7 +918,7 @@ private fun ModsActionsHeader(
                     visible = isModsSelected
                 ) {
                     Row {
-                        if (hasModLoader) {
+                        if (hasModLoader && canUpdate) {
                             IconButton(
                                 onClick = onUpdateMods
                             ) {
@@ -1017,10 +1041,17 @@ private fun ModsList(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
+        val scrollState = rememberLazyListState()
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .scrollbar(
+                    state = scrollState.scrollIndicatorState,
+                    orientation = Orientation.Vertical,
+                ),
             contentPadding = PaddingValues(all = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            state = scrollState,
         ) {
             if (!hasModLoader) {
                 item(key = "warning_no_modloader") {
@@ -1317,12 +1348,22 @@ private fun ModIcon(
 
         val projectInfo = mod.projectInfo
         if (projectInfo == null) {
-            ByteArrayIcon(
-                modifier = Modifier.size(iconSize),
-                triggerRefresh = mod,
-                icon = mod.localMod.icon,
-                colorFilter = ColorFilter.colorMatrix(colorMatrix)
-            )
+            if (mod.localMod.icon == null) {
+                ModLoaderIcon(
+                    modifier = Modifier.size(iconSize),
+                    modloader = mod.localMod.loader,
+                    defaultIcon = R.drawable.ic_unknown_pack,
+                    colorFilter = ColorFilter.colorMatrix(colorMatrix),
+
+                )
+            } else {
+                ByteArrayIcon(
+                    modifier = Modifier.size(iconSize),
+                    triggerRefresh = mod,
+                    icon = mod.localMod.icon,
+                    colorFilter = ColorFilter.colorMatrix(colorMatrix),
+                )
+            }
         } else {
             AssetsIcon(
                 iconUrl = projectInfo.iconUrl,
@@ -1420,10 +1461,7 @@ private fun LocalModInfoTooltip(
                 title = { Text(text = stringResource(R.string.mods_manage_info)) },
                 shadowElevation = 3.dp
             ) {
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                ) {
+                Column {
                     //文件大小
                     Text(text = stringResource(R.string.generic_file_size, formatFileSize(mod.fileSize)))
                     //模组版本
@@ -1431,9 +1469,7 @@ private fun LocalModInfoTooltip(
                         Text(text = stringResource(R.string.mods_manage_version, version))
                     }
                     //作者
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
+                    Row {
                         Text(text = stringResource(R.string.mods_manage_authors))
                         FlowRow(
                             modifier = Modifier.weight(1f, fill = false),
@@ -1446,9 +1482,7 @@ private fun LocalModInfoTooltip(
                     }
                     //模组描述
                     mod.description?.takeIf { it.isNotEmptyOrBlank() }?.let { description ->
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
+                        Row {
                             Text(text = stringResource(R.string.mods_manage_description))
                             Text(
                                 modifier = Modifier.weight(1f, fill = false),

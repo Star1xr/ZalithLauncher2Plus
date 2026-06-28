@@ -102,6 +102,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlin.time.Duration.Companion.milliseconds
 
 private class DownloadScreenViewModel(
     private val platform: Platform,
@@ -450,7 +451,7 @@ private fun Versions(
                 val scrollState = rememberLazyListState()
 
                 LaunchedEffect(Unit) {
-                    delay(100)
+                    delay(100L.milliseconds)
                     runCatching {
                         val result = versions.result
                         val index = versions.result.indexOfFirst { it.isAdapt }

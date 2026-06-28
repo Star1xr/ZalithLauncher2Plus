@@ -141,22 +141,24 @@ public class CallbackBridge {
     @Keep
     public static @Nullable String accessAndroidClipboard(int type, String copy) {
         ClipboardManager clipboard = (ClipboardManager) ContextsKt.getGlobalContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        String result = null;
         switch (type) {
             case CLIPBOARD_COPY:
                 ClipData clip = ClipData.newPlainText(BuildKeys.INSTANCE.getLAUNCHER_IDENTIFIER(), copy);
                 clipboard.setPrimaryClip(clip);
-                return null;
+                break;
             case CLIPBOARD_PASTE:
                 if (clipboard.hasPrimaryClip() && clipboard.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
-                    return clipboard.getPrimaryClip().getItemAt(0).getText().toString();
+                    result = clipboard.getPrimaryClip().getItemAt(0).getText().toString();
                 } else {
-                    return "";
+                    result = "";
                 }
+                break;
             case CLIPBOARD_OPEN:
                 ZLNativeInvoker.openLink(copy);
-            default:
-                return null;
+                break;
         }
+        return result;
     }
 
 
@@ -306,6 +308,5 @@ public class CallbackBridge {
       public static void removeGrabListener(net.kdt.pojavlaunch.GrabListener listener) {
           // no-op for ZL1 compat
       }
-  
 }
 
