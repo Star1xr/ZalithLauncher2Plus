@@ -696,5 +696,6 @@ object AllSettings : SettingsRegistry() {
       @JvmStatic fun getMouseScale() = mouseSize
       @JvmStatic fun getMouseSpeed() = mouseCaptureSensitivity
       @JvmStatic fun getDisableGestures() = zl1DisableGestures
+      @JvmStatic fun getDeadZoneScale() = gamepadDeadZoneScale
   
 }
