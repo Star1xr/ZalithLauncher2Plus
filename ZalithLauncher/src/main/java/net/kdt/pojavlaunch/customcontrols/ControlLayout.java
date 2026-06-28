@@ -71,7 +71,7 @@ public class ControlLayout extends FrameLayout {
 
 
 	public void loadLayout(String jsonPath) throws IOException, JsonSyntaxException {
-		File jsonFile = jsonPath != null ? new File(jsonPath) : new File(AllSettings.getDefaultCtrl().getValue());
+		File jsonFile = jsonPath != null ? new File(jsonPath) : new File(AllSettings.INSTANCE.getControlLayout().getValue());
 
 		CustomControls layout;
 		if (jsonFile.exists()) {
@@ -135,7 +135,7 @@ public class ControlLayout extends FrameLayout {
 			if(mModifiable) drawer.areButtonsVisible = true;
 		}
 
-		mLayout.scaledAt = AllSettings.getButtonScale().getValue();
+		mLayout.scaledAt = 100f;
 
 		setModified(sanitizedModified);
 		mButtons = null;
@@ -540,7 +540,7 @@ public class ControlLayout extends FrameLayout {
 		SelectControlsDialog dialog = new SelectControlsDialog(getContext(), file -> {
 			String absolutePath = file.getAbsolutePath();
 			try {
-				AllSettings.getDefaultCtrl().put(absolutePath).save();
+				AllSettings.INSTANCE.getControlLayout().save(absolutePath);
 				loadLayout(absolutePath);
 			} catch (IOException|JsonSyntaxException e) {
 				Tools.showError(getContext(), e);

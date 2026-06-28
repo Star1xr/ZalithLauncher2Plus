@@ -78,8 +78,8 @@ public interface ControlInterface extends View.OnLongClickListener, GrabListener
      */
     default ControlData preProcessProperties(ControlData properties, ControlLayout layout) {
         //Size
-        properties.setWidth(properties.getWidth() / layout.getLayoutScale() * AllSettings.getButtonScale().getValue());
-        properties.setHeight(properties.getHeight() / layout.getLayoutScale() * AllSettings.getButtonScale().getValue());
+        properties.setWidth(properties.getWidth() / layout.getLayoutScale() * 100f);
+        properties.setHeight(properties.getHeight() / layout.getLayoutScale() * 100f);
 
         //Visibility
         properties.isHideable = !properties.containsKeycode(ControlData.SPECIALBTN_TOGGLECTRL) && !properties.containsKeycode(ControlData.SPECIALBTN_VIRTUALMOUSE);
@@ -193,8 +193,8 @@ public interface ControlInterface extends View.OnLongClickListener, GrabListener
         return equation
                 .replace("${right}", "(${screen_width} - ${width})")
                 .replace("${bottom}", "(${screen_height} - ${height})")
-                .replace("${height}", "(px(" + Tools.pxToDp(button.getProperties().getHeight()) + ") /" + AllSettings.getButtonScale().getValue() + " * ${preferred_scale})")
-                .replace("${width}", "(px(" + Tools.pxToDp(button.getProperties().getWidth()) + ") / " + AllSettings.getButtonScale().getValue() + " * ${preferred_scale})");
+                .replace("${height}", "(px(" + Tools.pxToDp(button.getProperties().getHeight()) + ") /" + 100f + " * ${preferred_scale})")
+                .replace("${width}", "(px(" + Tools.pxToDp(button.getProperties().getWidth()) + ") / " + 100f + " * ${preferred_scale})");
     }
 
 
@@ -214,7 +214,7 @@ public interface ControlInterface extends View.OnLongClickListener, GrabListener
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     default boolean canSnap(ControlInterface button) {
-        if (!AllSettings.getButtonSnapping().getValue()) return false;
+        if (!AllSettings.INSTANCE.getButtonSnapping().getValue()) return false;
 
         float MIN_DISTANCE = getSnapDistance();
 
@@ -409,7 +409,7 @@ public interface ControlInterface extends View.OnLongClickListener, GrabListener
     }
 
     static float getSnapDistance() {
-        return Tools.dpToPx(AllSettings.getButtonSnappingDistance().getValue());
+        return Tools.dpToPx((float)AllSettings.INSTANCE.getButtonSnappingDistance().getValue());
     }
     static float getMarginDistance() {
         return Tools.dpToPx(2);
