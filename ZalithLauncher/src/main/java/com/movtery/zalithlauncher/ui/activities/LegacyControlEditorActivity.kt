@@ -365,15 +365,15 @@ package com.movtery.zalithlauncher.ui.activities
               val canvasHPx = with(density) { maxHeight.toPx() }
 
               // Grid
+              val gridLineColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f)
               Canvas(modifier = Modifier.fillMaxSize()) {
-                  val g = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.06f)
                   for (i in 1..9) {
                       val x = size.width * i / 10f
-                      drawLine(g, Offset(x, 0f), Offset(x, size.height), 1f)
+                      drawLine(gridLineColor, Offset(x, 0f), Offset(x, size.height), 1f)
                   }
                   for (j in 1..5) {
                       val y = size.height * j / 6f
-                      drawLine(g, Offset(0f, y), Offset(size.width, y), 1f)
+                      drawLine(gridLineColor, Offset(0f, y), Offset(size.width, y), 1f)
                   }
               }
 
