@@ -305,7 +305,7 @@ public class ControlData {
         valueMap.put("height", Float.toString(getHeight()));
         valueMap.put("screen_width", Integer.toString(CallbackBridge.physicalWidth));
         valueMap.put("screen_height", Integer.toString(CallbackBridge.physicalHeight));
-        valueMap.put("preferred_scale", "100");
+        valueMap.put("preferred_scale", Integer.toString(AllSettings.INSTANCE.getButtonScale().getValue()));
 
         return valueMap;
     }

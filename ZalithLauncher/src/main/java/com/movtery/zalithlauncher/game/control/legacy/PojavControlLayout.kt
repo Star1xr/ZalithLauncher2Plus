@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import net.kdt.pojavlaunch.Tools
 import net.kdt.pojavlaunch.customcontrols.ControlButtonMenuListener
 import net.kdt.pojavlaunch.customcontrols.ControlLayout
 import java.io.File
@@ -36,6 +37,9 @@ fun PojavControlLayout(
 
     AndroidView(
         factory = { context ->
+            // CRITICAL: initialize Tools.currentDisplayMetrics before any dp↔px conversion
+            // in the ZL1 control system (density=0 makes all button sizes 0px).
+            Tools.currentDisplayMetrics.setTo(context.resources.displayMetrics)
             ControlLayout(context).also { layout ->
                 layout.setMenuListener(ControlButtonMenuListener { currentOnMenu() })
                 runCatching {

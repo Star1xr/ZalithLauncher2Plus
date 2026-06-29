@@ -466,6 +466,12 @@ object AllSettings : SettingsRegistry() {
     /** Legacy (ZL1 backport) button snapping distance in dp */
     val buttonSnappingDistance = intSetting("buttonSnappingDistance", 8, 1..64)
 
+    /** Legacy (ZL1 backport) global button scale percentage (25–200 %) */
+    val buttonScale = intSetting("buttonscale", 100, 25..200)
+
+    /** Legacy (ZL1 backport) whether button labels are shown in all-caps */
+    val buttonAllCaps = boolSetting("buttonAllCaps", false)
+
     //Other
     /**
      * 当前选择的账号

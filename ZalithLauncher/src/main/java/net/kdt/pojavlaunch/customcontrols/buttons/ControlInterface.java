@@ -78,8 +78,8 @@ public interface ControlInterface extends View.OnLongClickListener, GrabListener
      */
     default ControlData preProcessProperties(ControlData properties, ControlLayout layout) {
         //Size
-        properties.setWidth(properties.getWidth() / layout.getLayoutScale() * 100f);
-        properties.setHeight(properties.getHeight() / layout.getLayoutScale() * 100f);
+        properties.setWidth(properties.getWidth() / layout.getLayoutScale() * AllSettings.INSTANCE.getButtonScale().getValue());
+        properties.setHeight(properties.getHeight() / layout.getLayoutScale() * AllSettings.INSTANCE.getButtonScale().getValue());
 
         //Visibility
         properties.isHideable = !properties.containsKeycode(ControlData.SPECIALBTN_TOGGLECTRL) && !properties.containsKeycode(ControlData.SPECIALBTN_VIRTUALMOUSE);
@@ -193,8 +193,8 @@ public interface ControlInterface extends View.OnLongClickListener, GrabListener
         return equation
                 .replace("${right}", "(${screen_width} - ${width})")
                 .replace("${bottom}", "(${screen_height} - ${height})")
-                .replace("${height}", "(px(" + Tools.pxToDp(button.getProperties().getHeight()) + ") /" + 100f + " * ${preferred_scale})")
-                .replace("${width}", "(px(" + Tools.pxToDp(button.getProperties().getWidth()) + ") / " + 100f + " * ${preferred_scale})");
+                .replace("${height}", "(px(" + Tools.pxToDp(button.getProperties().getHeight()) + ") /" + AllSettings.INSTANCE.getButtonScale().getValue() + " * ${preferred_scale})")
+                .replace("${width}", "(px(" + Tools.pxToDp(button.getProperties().getWidth()) + ") / " + AllSettings.INSTANCE.getButtonScale().getValue() + " * ${preferred_scale})");
     }
 
 
