@@ -18,8 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
