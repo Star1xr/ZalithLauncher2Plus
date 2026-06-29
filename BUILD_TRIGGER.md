@@ -1,46 +1,36 @@
 # Build Trigger
 
-  This file was updated to trigger the final GitHub Actions APK build.
+This file triggers the final GitHub Actions APK build.
 
-  ## Upstream Sync: v2.4.7 → v2.4.9_hotfix1
+## Upstream Sync: post-v2.4.9_hotfix1
 
-  Integrated 88 upstream commits from Star1xr/ZalithLauncher2Plus (fix branch):
+Synced with Star1xr/ZalithLauncher2Plus upstream (1b8c96c5).
 
-  ### Bug Fixes
-  - CurseForge API key injection via OkHttp interceptor (new CurseForge features work correctly)
-  - OkHttp file download client (DOWNLOAD_OKHTTP_CLIENT) - fixes download timeout/hang issues
-  - Duration API migration for delay() calls throughout codebase
-  - Version enum serialization fix - prevents ProGuard obfuscation breaking version configs
-  - Clipboard null-safety fix in CallbackBridge (getClipboardText)
-  - Multi-window mode title bar safe area fix
-  - Always provide haze source fix
+### New upstream changes integrated:
+- CurseForge API key support during file downloads
+- JVM argument parsing fix (concatenation bug)
+- In-game clipboard null safety fix  
+- Dependency library updates
+- Scrollbar added to version list screen
+- 14 new HTTP error string resources (400/401/403/404/408/409/410/429/500/502/503/504)
 
-  ### New Features
-  - OptiFine separate mod check (OptiFineModReader) - no longer requires remote project lookup
-  - Selectable mod updates (choose which mods to update)
-  - Mod update filter improvements (exclude unreachable remote projects)
-  - Scrollbars on most scrollable components (verticalScrollWithBar)
-  - ModLoaderIcon composable refactor in VersionsManageElements
-  - CurseForge download files now include API key
+### Merge conflicts resolved (7 files):
+- README.md — kept Zeryth branding description
+- gradle.properties — kept our indented format
+- strings.xml — merged all upstream HTTP error strings
+- VersionsManageScreen.kt — added scrollbar + kept onLaunchClick
+- VersionsManageElements.kt — kept our imports, modifier-first Image
+- ControlManageScreen.kt — merged imports, removed duplicates
+- ControlSettingsScreen.kt — kept verticalScrollWithBar import
 
-  ### Dependency Updates
-  - Material3 rolled back to 1.5.0-alpha20 (stability fix)
-  - Other dependency updates (libs.versions.toml)
+### Preserved Zeryth features:
+- Bottom Navigation (NOT replaced by upstream sidebar)
+- Zeryth Launcher branding
+- Legacy Controls (ZL1 Backport)
+- Custom Material 3 redesign
+- Quick Access Panel
+- Statistics page
+- Version cards/grid/list
+- All custom UI animations
 
-  ### Translations
-  - Vietnamese (full update + new terracotta.xml)
-  - Turkish, Portuguese, Chinese, and other language updates
-
-  ### Version
-  - Bumped to 2.4.9_hotfix1 (version code 200032)
-
-  ### Zeryth Customizations Preserved
-  - Zeryth branding (launcher_name, launcher_app_name, URL_PROJECT, URL_RAMI1L)
-  - OAuth client ID (00000000402b5328) for Microsoft login
-  - Bottom Navigation (LauncherScreen untouched)
-  - Dashboard/Stats/Version cards/grid implementation
-  - Legacy ZL1 control support in ControlManageScreen
-  - LegacyControlEditorActivity + ZL1 stubs in CallbackBridge
-  - All Zeryth-specific string resources
-  - Microsoft auth improvements
-  
+Build date: 2026-06-29
