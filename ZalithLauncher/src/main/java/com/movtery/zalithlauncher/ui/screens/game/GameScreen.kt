@@ -82,6 +82,7 @@ import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlConverter
+import com.movtery.zalithlauncher.game.control.legacy.PojavControlLayout
 import com.movtery.zalithlauncher.game.input.LWJGLCharSender
 import com.movtery.zalithlauncher.game.keycodes.ControlEventKeycode
 import com.movtery.zalithlauncher.game.keycodes.LwjglGlfwKeycode
@@ -315,24 +316,10 @@ private class GameViewModel(
 
     private fun getLayout(layoutFile: File? = currentControlFile): ControlLayout {
         if (AllSettings.controlType.getValue() == "legacy") {
-            val legacyFileName = AllSettings.legacyControlLayout.getValue()
-            if (legacyFileName.isNotEmpty()) {
-                val legacyFile = File(PathManager.DIR_LEGACY_CONTROL_LAYOUTS, legacyFileName)
-                if (legacyFile.exists()) {
-                    return try {
-                        // Try LayerController format first (already-migrated files)
-                        loadLayoutFromFile(legacyFile)
-                    } catch (_: Exception) {
-                        try {
-                            // Fall back to ZL1 legacy conversion
-                            LegacyControlConverter.convert(legacyFile) ?: EmptyControlLayout
-                        } catch (e: Exception) {
-                            Logger.warning(TAG, "Failed to load legacy layout: $legacyFile", e)
-                            EmptyControlLayout
-                        }
-                    }
-                }
-            }
+            // In legacy mode, PojavControlLayout (View-based) renders the ZL1 controls
+            // directly — no LayerController conversion needed. Return an empty layout so
+            // the ZL2 ControlBoxLayout renders nothing.
+            return EmptyControlLayout
         }
         return layoutFile?.let {
             try {
@@ -558,6 +545,12 @@ fun GameScreen(
     val isGrabbing = remember(cursorMode) {
         cursorMode == CURSOR_DISABLED
     }
+    // Legacy mode: PojavLauncher native ControlLayout replaces the LayerController system.
+    val isLegacyMode = AllSettings.controlType.getValue() == "legacy"
+    val legacyFile: File? = if (isLegacyMode) {
+        val name = AllSettings.legacyControlLayout.getValue()
+        if (name.isNotEmpty()) File(PathManager.DIR_LEGACY_CONTROL_LAYOUTS, name).takeIf { it.exists() } else null
+    } else null
     val joystickMovementViewModel: JoystickMovementViewModel = viewModel()
     val terracottaViewModel = rememberTerracottaViewModel(
         keyTag = gameHandler.toString() + "_Terracotta",
@@ -635,36 +628,49 @@ fun GameScreen(
             }
 
             //控制布局层
-            ControlBoxLayout(
-                modifier = Modifier.fillMaxSize(),
-                observedLayout = viewModel.observableLayout,
-                eventHandler = viewModel.eventHandler,
-                checkOccupiedPointers = { viewModel.occupiedPointers.contains(it) },
-                opacity = (AllSettings.controlsOpacity.state.toFloat() / 100f).coerceIn(0f, 1f),
-                markPointerAsMoveOnly = { viewModel.moveOnlyPointers.add(it) },
-                isUsingJoystick = isGrabbing && AllSettings.enableJoystickControl.state,
-                isCursorGrabbing = isGrabbing,
-                hideLayerWhen = viewModel.controlLayerHideState,
-                isDark = isLauncherInDarkTheme()
-            ) {
-                //虚拟鼠标控制层
-                MouseControlLayout(
-                    isTouchProxyEnabled = isTouchProxyEnabled,
+            if (isLegacyMode && legacyFile != null) {
+                // Legacy (Zalith 1) mode: PojavLauncher's native View-based ControlLayout.
+                // It renders buttons/joysticks and dispatches CallbackBridge events by itself;
+                // no LayerController or JoystickControlLayout is needed.
+                PojavControlLayout(
                     modifier = Modifier.fillMaxSize(),
-                    cursorMode = cursorMode,
-                    screenSize = screenSize,
-                    onInputAreaRectUpdated = onInputAreaRectUpdated,
-                    textInputMode = textInputMode,
-                    isMoveOnlyPointer = { viewModel.moveOnlyPointers.contains(it) },
-                    onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
-                    onReleasePointer = {
-                        viewModel.occupiedPointers.remove(it)
-                        viewModel.moveOnlyPointers.remove(it)
-                    },
-                    onMouseMoved = { viewModel.switchControlLayer(HideLayerWhen.WhenMouse) },
-                    onTouch = { viewModel.switchControlLayer(HideLayerWhen.None) },
-                    gamepadViewModel = gamepadViewModel.takeIf { AllSettings.gamepadControl.state }
+                    legacyFile = legacyFile,
+                    isGrabbing = isGrabbing,
+                    onMenuButtonClicked = { viewModel.switchMenu() }
                 )
+            } else if (!isLegacyMode) {
+                // Zalith 2 mode: use LayerController's ControlBoxLayout.
+                ControlBoxLayout(
+                    modifier = Modifier.fillMaxSize(),
+                    observedLayout = viewModel.observableLayout,
+                    eventHandler = viewModel.eventHandler,
+                    checkOccupiedPointers = { viewModel.occupiedPointers.contains(it) },
+                    opacity = (AllSettings.controlsOpacity.state.toFloat() / 100f).coerceIn(0f, 1f),
+                    markPointerAsMoveOnly = { viewModel.moveOnlyPointers.add(it) },
+                    isUsingJoystick = isGrabbing && AllSettings.enableJoystickControl.state,
+                    isCursorGrabbing = isGrabbing,
+                    hideLayerWhen = viewModel.controlLayerHideState,
+                    isDark = isLauncherInDarkTheme()
+                ) {
+                    //虚拟鼠标控制层
+                    MouseControlLayout(
+                        isTouchProxyEnabled = isTouchProxyEnabled,
+                        modifier = Modifier.fillMaxSize(),
+                        cursorMode = cursorMode,
+                        screenSize = screenSize,
+                        onInputAreaRectUpdated = onInputAreaRectUpdated,
+                        textInputMode = textInputMode,
+                        isMoveOnlyPointer = { viewModel.moveOnlyPointers.contains(it) },
+                        onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
+                        onReleasePointer = {
+                            viewModel.occupiedPointers.remove(it)
+                            viewModel.moveOnlyPointers.remove(it)
+                        },
+                        onMouseMoved = { viewModel.switchControlLayer(HideLayerWhen.WhenMouse) },
+                        onTouch = { viewModel.switchControlLayer(HideLayerWhen.None) },
+                        gamepadViewModel = gamepadViewModel.takeIf { AllSettings.gamepadControl.state }
+                    )
+                }
             }
 
             //物品栏触发层
@@ -682,20 +688,22 @@ fun GameScreen(
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) }
             )
 
-            //摇杆控制层
-            viewModel.observableLayout?.let { layout ->
-                val special by layout.special.collectAsStateWithLifecycle()
-                JoystickControlLayout(
-                    screenSize = screenSize,
-                    isGrabbing = isGrabbing,
-                    special = special,
-                    defaultStyle = viewModel.launcherJoystickStyle,
-                    hideLayerWhen = viewModel.controlLayerHideState,
-                    viewModel = joystickMovementViewModel,
-                    onKeyEvent = { event, pressed ->
-                        viewModel.onKeyEvent(event, pressed)
-                    }
-                )
+            //摇杆控制层 (Zalith 2 only — ControlJoystick handles movement in legacy mode)
+            if (!isLegacyMode) {
+                viewModel.observableLayout?.let { layout ->
+                    val special by layout.special.collectAsStateWithLifecycle()
+                    JoystickControlLayout(
+                        screenSize = screenSize,
+                        isGrabbing = isGrabbing,
+                        special = special,
+                        defaultStyle = viewModel.launcherJoystickStyle,
+                        hideLayerWhen = viewModel.controlLayerHideState,
+                        viewModel = joystickMovementViewModel,
+                        onKeyEvent = { event, pressed ->
+                            viewModel.onKeyEvent(event, pressed)
+                        }
+                    )
+                }
             }
         }
 
