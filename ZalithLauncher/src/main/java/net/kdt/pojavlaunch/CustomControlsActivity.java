@@ -32,6 +32,8 @@ public class CustomControlsActivity extends BaseAppCompatActivity implements Edi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Ensure dp↔px conversions work before loading any control layout
+        Tools.currentDisplayMetrics.setTo(getResources().getDisplayMetrics());
         parseBundle();
         binding = ActivityCustomControlsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
