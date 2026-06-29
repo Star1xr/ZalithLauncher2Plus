@@ -154,6 +154,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.lwjgl.glfw.CallbackBridge
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "GameScreen"
 
@@ -875,7 +876,7 @@ fun GameScreen(
                                 key = ControlEventKeycode.GLFW_KEY_ESCAPE
                             )
                             viewModel.onKeyEvent(event, true)
-                            delay(10)
+                            delay(10L.milliseconds)
                             viewModel.onKeyEvent(event, false)
                         }
                     }

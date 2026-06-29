@@ -18,8 +18,8 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
-import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -64,6 +64,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
@@ -95,6 +97,7 @@ import com.movtery.zalithlauncher.ui.components.SimpleEditDialog
 import com.movtery.zalithlauncher.ui.components.SimpleTaskDialog
 import com.movtery.zalithlauncher.ui.components.TextRailItem
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
@@ -1070,33 +1073,33 @@ fun VersionIconImage(
 }
 
 
-  /**
-   * 模组加载器图标展示组件，包装 [Image]
-   */
-  @Composable
-  fun ModLoaderIcon(
-      modloader: ModLoader,
-      @DrawableRes
-      defaultIcon: Int,
-      modifier: Modifier = Modifier,
-      alignment: Alignment = Alignment.Center,
-      contentScale: ContentScale = ContentScale.Fit,
-      alpha: Float = DefaultAlpha,
-      colorFilter: ColorFilter? = null,
-  ) {
-      val icon = getLoaderIconRes(modloader, defaultIcon)
-      Image(
-          painter = painterResource(icon),
-          contentDescription = null,
-          modifier = modifier,
-          alignment = alignment,
-          contentScale = contentScale,
-          alpha = alpha,
-          colorFilter = colorFilter,
-      )
-  }
+/**
+ * 模组加载器图标展示组件，包装 [Image]
+ */
+@Composable
+fun ModLoaderIcon(
+    modloader: ModLoader,
+    @DrawableRes
+    defaultIcon: Int,
+    modifier: Modifier = Modifier,
+    alignment: Alignment = Alignment.Center,
+    contentScale: ContentScale = ContentScale.Fit,
+    alpha: Float = DefaultAlpha,
+    colorFilter: ColorFilter? = null,
+) {
+    val icon = getLoaderIconRes(modloader, defaultIcon)
+    Image(
+        modifier = modifier,
+        painter = painterResource(icon),
+        contentDescription = null,
+        alignment = alignment,
+        contentScale = contentScale,
+        alpha = alpha,
+        colorFilter = colorFilter,
+    )
+}
 
-  private fun getLoaderIconRes(
+private fun getLoaderIconRes(
     loader: ModLoader?,
     @DrawableRes
     defaultIcon: Int = R.drawable.img_minecraft,

@@ -147,10 +147,8 @@
     <string name="error_network_unreachable">Network unavailable</string>
     <string name="error_connection_failed">Failed to connect to server</string>
     <string name="error_parse_failed">Failed to parse data</string>
-    <string name="error_client_error">(%s) Error from your client</string>
-    <string name="error_unknown">(%s) Unknown error</string>
-
     <string name="error_bad_request">(%s) The server could not understand the request</string>
+    <string name="error_client_error">(%s) Error from your client</string>
     <string name="error_unauthorized">(%s) Please check your credentials and try again</string>
     <string name="error_forbidden">(%s) You do not have permission to access this resource</string>
     <string name="error_notfound">(%s) The requested resource could not be found</string>
@@ -163,6 +161,22 @@
     <string name="error_bad_gateway">(%s) The server received an invalid response from an upstream server</string>
     <string name="error_service_unavailable">(%s) The server is temporarily unable to handle the request</string>
     <string name="error_gateway_timeout">(%s) The server did not receive a timely response</string>
+    <string name="error_unknown">(%s) Unknown error</string>
+    <string name="error_bad_request">(%s) The server could not understand the request</string>
+    <string name="error_client_error">(%s) Error from your client</string>
+    <string name="error_unauthorized">(%s) Please check your credentials and try again</string>
+    <string name="error_forbidden">(%s) You do not have permission to access this resource</string>
+    <string name="error_notfound">(%s) The requested resource could not be found</string>
+    <string name="error_not_acceptable">(%s) Not Acceptable</string>
+    <string name="error_request_timeout">(%s) The server timed out waiting for the request</string>
+    <string name="error_conflict">(%s) The request conflicts with the current state</string>
+    <string name="error_gone">(%s) The requested resource is no longer available</string>
+    <string name="error_too_many_requests">(%s) Please try again later</string>
+    <string name="error_internal_server_error">(%s) The server encountered an unexpected condition</string>
+    <string name="error_bad_gateway">(%s) The server received an invalid response from an upstream server</string>
+    <string name="error_service_unavailable">(%s) The server is temporarily unable to handle the request</string>
+    <string name="error_gateway_timeout">(%s) The server did not receive a timely response</string>
+    <string name="error_unknown">(%s) Unknown error</string>
     <!-- Splash Screen -->
     <string name="splash_screen_unpack_desc">The launcher needs to install these files to ensure Minecraft runs properly. They are included in the app and must be extracted first. Click the button below to start extraction and update.</string>
     <string name="splash_screen_installing">The launcher is extracting these files. Once done, it will automatically enter the main screen. Please wait patiently.</string>
@@ -462,7 +476,6 @@
     <string name="game_styles_joystick_hide_when_gamepad">Hide When Using Gamepad</string>
     <string name="game_styles_save_failed">Failed to Save Style</string>
     <string name="game_saponsorship_finished_game">The launcher has successfully launched the game %s times! If you find it useful, please consider supporting the developer! :)</string>
-
     <string name="game_vulkan_check_title">Vulkan Check</string>
     <string name="game_vulkan_check_text">Check whether your device supports running Minecraft 26.2+ with Vulkan. Results are for reference only.</string>
     <string name="game_vulkan_check_version">Vulkan version: %s</string>
@@ -1346,7 +1359,6 @@
     <string name="vibrate_kind_double_click">Double Click</string>
     <string name="vibrate_kind_heavy_click">Heavy Click</string>
     <string name="vibrate_kind_tick">Tick</string>
-
     <string name="festivals_new_year">Happy New Year!</string>
     <string name="festivals_april_fools">Happy April Fools\' Day!</string>
     <string name="festivals_christmas">Merry Christmas!</string>

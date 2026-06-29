@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.screens.content
 
 import android.content.Context
 import android.os.Environment
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,10 +34,12 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -552,57 +555,63 @@ private fun VersionsLayout(
                 }
 
                 if (versions.isNotEmpty()) {
-                      LazyColumn(
-                          modifier = Modifier
-                              .fillMaxWidth()
-                              .weight(1f)
-                              .clipToBounds(),
-                          contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                      ) {
-                          items(versions, key = { it.toString() }) { version ->
-                              val callbacks = remember(version) {
-                                  VersionItemCallbacks(
-                                      submitError = submitError,
-                                      onSelected = {
-                                          if (version == currentVersion) return@VersionItemCallbacks
-                                          if (!VersionsManager.saveVersion(version)) {
-                                              versionsOperation = VersionsOperation.InvalidDelete(version)
-                                          }
-                                      },
-                                      onSettingsClick = { navigateToVersions(version) },
-                                      onRenameClick = { versionsOperation = VersionsOperation.Rename(version) },
-                                      onCopyClick = { versionsOperation = VersionsOperation.Copy(version) },
-                                      onExportClick = { navigateToExport(version) },
-                                      onDeleteClick = { versionsOperation = VersionsOperation.Delete(version) },
-                                      onPinned = onVersionPinned,
-                                      onAddShortcutClick = { ShortcutUtils.pinVersion(context, version) },
-                                      onLaunchClick = { onLaunchGame(version) }
-                                  )
-                              }
-                              VersionItemLayout(
-                                  version = version,
-                                  selected = version == currentVersion,
-                                  callbacks = callbacks,
-                                  modifier = Modifier
-                                      .fillMaxWidth()
-                                      .padding(vertical = 6.dp)
-                                      .animateItem()
-                              )
-                          }
-                      }
-                  } else {
-                      Box(
-                          modifier = Modifier
-                              .fillMaxWidth()
-                              .weight(1f)
-                      ) {
-                          ScalingLabel(
-                              modifier = Modifier.align(Alignment.Center),
-                              text = stringResource(R.string.versions_manage_no_versions)
-                          )
-                      }
-                  }
-              }
-          }
-      }
-  }
+                    val scrollState = rememberLazyListState()
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .scrollbar(
+                                state = scrollState.scrollIndicatorState,
+                                orientation = Orientation.Vertical,
+                            )
+                            .clipToBounds(),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        state = scrollState,
+                    ) {
+                        items(versions, key = { it.toString() }) { version ->
+                            val callbacks = remember(version) {
+                                VersionItemCallbacks(
+                                    submitError = submitError,
+                                    onSelected = {
+                                        if (version == currentVersion) return@VersionItemCallbacks
+                                        if (!VersionsManager.saveVersion(version)) {
+                                            versionsOperation = VersionsOperation.InvalidDelete(version)
+                                        }
+                                    },
+                                    onSettingsClick = { navigateToVersions(version) },
+                                    onRenameClick = { versionsOperation = VersionsOperation.Rename(version) },
+                                    onCopyClick = { versionsOperation = VersionsOperation.Copy(version) },
+                                    onExportClick = { navigateToExport(version) },
+                                    onDeleteClick = { versionsOperation = VersionsOperation.Delete(version) },
+                                    onPinned = onVersionPinned,
+                                    onAddShortcutClick = { ShortcutUtils.pinVersion(context, version) },
+                                    onLaunchClick = { onLaunchGame(version) }
+                                )
+                            }
+                            VersionItemLayout(
+                                version = version,
+                                selected = version == currentVersion,
+                                callbacks = callbacks,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp)
+                                    .animateItem()
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        ScalingLabel(
+                            modifier = Modifier.align(Alignment.Center),
+                            text = stringResource(R.string.versions_manage_no_versions)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
