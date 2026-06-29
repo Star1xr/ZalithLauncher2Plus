@@ -162,21 +162,6 @@
     <string name="error_service_unavailable">(%s) The server is temporarily unable to handle the request</string>
     <string name="error_gateway_timeout">(%s) The server did not receive a timely response</string>
     <string name="error_unknown">(%s) Unknown error</string>
-    <string name="error_bad_request">(%s) The server could not understand the request</string>
-    <string name="error_client_error">(%s) Error from your client</string>
-    <string name="error_unauthorized">(%s) Please check your credentials and try again</string>
-    <string name="error_forbidden">(%s) You do not have permission to access this resource</string>
-    <string name="error_notfound">(%s) The requested resource could not be found</string>
-    <string name="error_not_acceptable">(%s) Not Acceptable</string>
-    <string name="error_request_timeout">(%s) The server timed out waiting for the request</string>
-    <string name="error_conflict">(%s) The request conflicts with the current state</string>
-    <string name="error_gone">(%s) The requested resource is no longer available</string>
-    <string name="error_too_many_requests">(%s) Please try again later</string>
-    <string name="error_internal_server_error">(%s) The server encountered an unexpected condition</string>
-    <string name="error_bad_gateway">(%s) The server received an invalid response from an upstream server</string>
-    <string name="error_service_unavailable">(%s) The server is temporarily unable to handle the request</string>
-    <string name="error_gateway_timeout">(%s) The server did not receive a timely response</string>
-    <string name="error_unknown">(%s) Unknown error</string>
     <!-- Splash Screen -->
     <string name="splash_screen_unpack_desc">The launcher needs to install these files to ensure Minecraft runs properly. They are included in the app and must be extracted first. Click the button below to start extraction and update.</string>
     <string name="splash_screen_installing">The launcher is extracting these files. Once done, it will automatically enter the main screen. Please wait patiently.</string>
