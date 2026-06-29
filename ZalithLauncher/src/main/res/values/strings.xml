@@ -1440,5 +1440,6 @@
       <string name="legacy_control_editor_add_drawer">Add Drawer</string>
       <string name="legacy_control_editor_forward_lock">Forward Lock (stay forward)</string>
       <string name="legacy_control_editor_absolute_mode">Absolute Mode (jump to touch)</string>
-      <string name="legacy_control_editor_hint_joystick_keycodes">Keycodes: W=17 · S=31 · A=30 · D=32</string>
+      <string name="legacy_control_editor_hint_joystick_keycodes">Keycodes: W=87 · S=83 · A=65 · D=68 (GLFW key integers)</string>
+      <string name="legacy_control_editor_joystick_options">Joystick Options</string>
 </resources>

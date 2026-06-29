@@ -450,13 +450,15 @@
               else -> "always"
           }
 
-          // Read custom keycodes if available; fall back to W/A/S/D
+          // Read custom keycodes if available; fall back to W/A/S/D for any missing slot.
+          // ZL1 joysticks store [forward, backward, left, right] but may have fewer than 4 entries.
           val keycodes = run {
+              val defaults = intArrayOf(JOYSTICK_FORWARD, JOYSTICK_BACKWARD, JOYSTICK_LEFT, JOYSTICK_RIGHT)
               val arr = joystick.optJSONArray("keycodes")
-              if (arr != null && arr.length() >= 4) {
-                  IntArray(4) { i -> arr.optInt(i, 0) }
+              if (arr != null && arr.length() > 0) {
+                  IntArray(4) { i -> arr.optInt(i, 0).let { v -> if (v != 0) v else defaults[i] } }
               } else {
-                  intArrayOf(JOYSTICK_FORWARD, JOYSTICK_BACKWARD, JOYSTICK_LEFT, JOYSTICK_RIGHT)
+                  defaults
               }
           }
 

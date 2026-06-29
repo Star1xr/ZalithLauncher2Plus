@@ -225,7 +225,7 @@ package com.movtery.zalithlauncher.ui.activities
               val defaultJoy = CanvasButton(
                   type = ButtonType.JOYSTICK, name = "Joystick",
                   xFrac = 0.15f, yFrac = 0.7f, widthDp = 120f, heightDp = 120f,
-                  keycodes = listOf(17, 31, 30, 32),
+                  keycodes = listOf(87, 83, 65, 68),
                   isToggle = false, isSwipeable = false, passThruEnabled = false,
                   displayInGame = true, displayInMenu = false,
                   opacity = 1f, bgColor = 0x4D000000.toInt(), fgColor = 0xFFFFFFFF.toInt(),
@@ -588,13 +588,16 @@ package com.movtery.zalithlauncher.ui.activities
   ): CanvasButton {
       val w = obj.optDouble("width", 80.0).toFloat().coerceAtLeast(10f)
       val h = obj.optDouble("height", 50.0).toFloat().coerceAtLeast(10f)
+      // dpFrac: ZL1 ${dp} is display density (~2.0 px/dp). Normalised = density / screen_dim.
+      val dpFracX = 2f / 1280f
+      val dpFracY = 2f / 720f
       val xLeft = evalExpr(
           obj.optString("dynamicX", "0.5 * \${screen_width}"),
-          wFrac = w / 1280f, hFrac = h / 720f, dpFrac = 1f / 1280f
+          wFrac = w / 1280f, hFrac = h / 720f, dpFrac = dpFracX
       )
       val yTop = evalExpr(
           obj.optString("dynamicY", "0.5 * \${screen_height}"),
-          wFrac = w / 1280f, hFrac = h / 720f, dpFrac = 1f / 720f
+          wFrac = w / 1280f, hFrac = h / 720f, dpFrac = dpFracY
       )
       val rawName = obj.optString("name", "Button")
       return CanvasButton(
@@ -622,8 +625,18 @@ package com.movtery.zalithlauncher.ui.activities
   }
 
   private fun parseKeycodes(obj: JSONObject): List<Int> {
-      val arr = obj.optJSONArray("keycodes") ?: return emptyList()
-      return (0 until arr.length()).mapNotNull { arr.optInt(it, 0).takeIf { kc -> kc != 0 } }
+      val arr = obj.optJSONArray("keycodes")
+      if (arr != null) {
+          return (0 until arr.length()).mapNotNull { arr.optInt(it, 0).takeIf { kc -> kc != 0 } }
+      }
+      // Old ZL1 single-keycode format: "keycode" integer + optional modifier booleans
+      val result = mutableListOf<Int>()
+      if (obj.optBoolean("holdShift", false)) result.add(340) // GLFW_KEY_LEFT_SHIFT
+      if (obj.optBoolean("holdCtrl",  false)) result.add(341) // GLFW_KEY_LEFT_CONTROL
+      if (obj.optBoolean("holdAlt",   false)) result.add(342) // GLFW_KEY_LEFT_ALT
+      val kc = obj.optInt("keycode", 0)
+      if (kc != 0) result.add(kc)
+      return result
   }
 
   private fun buildButtonJson(btn: CanvasButton): JSONObject {
@@ -837,7 +850,7 @@ package com.movtery.zalithlauncher.ui.activities
                       if (isJoystick) {
                           HorizontalDivider()
                           Text(
-                              "Joystick Options",
+                              stringResource(R.string.legacy_control_editor_joystick_options),
                               style = MaterialTheme.typography.labelMedium,
                               color = MaterialTheme.colorScheme.primary
                           )

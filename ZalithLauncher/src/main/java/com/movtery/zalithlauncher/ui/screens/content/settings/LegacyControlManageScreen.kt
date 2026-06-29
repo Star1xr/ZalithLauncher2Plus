@@ -437,6 +437,34 @@ private fun LegacyLayoutInfo(
                         )
                     }
                 }
+                item {
+                    LegacyInfoItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.legacy_control_manage_info_buttons),
+                        value = data.buttonCount.toString()
+                    )
+                }
+                item {
+                    LegacyInfoItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.legacy_control_manage_info_joysticks),
+                        value = data.joystickCount.toString()
+                    )
+                }
+                item {
+                    LegacyInfoItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.legacy_control_manage_info_drawers),
+                        value = data.drawerCount.toString()
+                    )
+                }
+                item {
+                    LegacyInfoItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.legacy_control_manage_info_format_version),
+                        value = data.formatVersion.toString()
+                    )
+                }
 
             }
 
