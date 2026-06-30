@@ -388,13 +388,22 @@ public interface ControlInterface extends View.OnLongClickListener, GrabListener
 
     default void injectLayoutParamBehavior() {
         getControlView().addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-            getProperties().setWidth(right - left);
-            getProperties().setHeight(bottom - top);
+            int newW = right - left;
+            int newH = bottom - top;
+            int oldW = oldRight - oldLeft;
+            int oldH = oldBottom - oldTop;
+            getProperties().setWidth(newW);
+            getProperties().setHeight(newH);
             setBackground();
 
-            // Re-calculate position
-            getControlView().setX(getControlView().getX());
-            getControlView().setY(getControlView().getY());
+            // Re-evaluate dynamic expressions when button size changes so anchor-based
+            // positions like ${right} = screen_width - button_width correctly reflect
+            // the new dimensions. View.setX/Y uses translation, not layout bounds,
+            // so this cannot trigger a layout-change loop.
+            if (newW != oldW || newH != oldH) {
+                setDynamicX(getProperties().dynamicX);
+                setDynamicY(getProperties().dynamicY);
+            }
         });
     }
 
@@ -412,6 +421,9 @@ public interface ControlInterface extends View.OnLongClickListener, GrabListener
         return Tools.dpToPx((float)AllSettings.INSTANCE.getButtonSnappingDistance().getValue());
     }
     static float getMarginDistance() {
-        return Tools.dpToPx(2);
+        // ZL1 standard margin is 8dp (matches native ZalithLauncher1).
+        // Buttons using ${margin} in dynamic expressions were designed around this
+        // value; 2dp caused systematic position errors for all such buttons.
+        return Tools.dpToPx(8);
     }
 }
