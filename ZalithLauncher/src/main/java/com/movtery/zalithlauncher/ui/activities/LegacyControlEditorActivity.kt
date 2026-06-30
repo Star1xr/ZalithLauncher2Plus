@@ -207,7 +207,7 @@ package com.movtery.zalithlauncher.ui.activities
               title = stringResource(R.string.legacy_control_editor_unsaved_title),
               text = stringResource(R.string.legacy_control_editor_unsaved_message),
               onDismiss = { showExitDialog = false },
-              onConfirm = { saveFile(); showExitDialog = false; onExit() }
+              onConfirm = { if (saveFile()) { showExitDialog = false; onExit() } else { showExitDialog = false } }
           )
       }
 
