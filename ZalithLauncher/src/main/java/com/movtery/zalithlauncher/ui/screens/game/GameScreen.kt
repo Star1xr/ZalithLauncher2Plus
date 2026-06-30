@@ -632,12 +632,42 @@ fun GameScreen(
                 // Legacy (Zalith 1) mode: PojavLauncher's native View-based ControlLayout.
                 // It renders buttons/joysticks and dispatches CallbackBridge events by itself;
                 // no LayerController or JoystickControlLayout is needed.
-                PojavControlLayout(
-                    modifier = Modifier.fillMaxSize(),
-                    legacyFile = legacyFile,
-                    isGrabbing = isGrabbing,
-                    onMenuButtonClicked = { viewModel.switchMenu() }
-                )
+                //
+                // MouseControlLayout is layered BELOW PojavControlLayout (lower z-order).
+                // Compose's AndroidView interop marks a pointer as consumed when the
+                // embedded View's dispatchTouchEvent returns true (button hit). The gesture
+                // detectors inside SwitchableMouseLayout call awaitFirstDown with
+                // requireUnconsumed=true and therefore automatically skip any pointer
+                // already consumed by a control button — no explicit occupied-pointer
+                // tracking is needed for the legacy path.
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Game-area mouse/touch layer — lower z-order, processed after buttons
+                    MouseControlLayout(
+                        isTouchProxyEnabled = isTouchProxyEnabled,
+                        modifier = Modifier.fillMaxSize(),
+                        cursorMode = cursorMode,
+                        screenSize = screenSize,
+                        onInputAreaRectUpdated = onInputAreaRectUpdated,
+                        textInputMode = textInputMode,
+                        isMoveOnlyPointer = { viewModel.moveOnlyPointers.contains(it) },
+                        onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
+                        onReleasePointer = {
+                            viewModel.occupiedPointers.remove(it)
+                            viewModel.moveOnlyPointers.remove(it)
+                        },
+                        onMouseMoved = { viewModel.switchControlLayer(HideLayerWhen.WhenMouse) },
+                        onTouch = { viewModel.switchControlLayer(HideLayerWhen.None) },
+                        gamepadViewModel = gamepadViewModel.takeIf { AllSettings.gamepadControl.state }
+                    )
+                    // ZL1 control buttons — higher z-order, AndroidView wins touch priority;
+                    // button-consumed pointers are marked consumed so the mouse layer skips them.
+                    PojavControlLayout(
+                        modifier = Modifier.fillMaxSize(),
+                        legacyFile = legacyFile,
+                        isGrabbing = isGrabbing,
+                        onMenuButtonClicked = { viewModel.switchMenu() }
+                    )
+                }
             } else if (!isLegacyMode) {
                 // Zalith 2 mode: use LayerController's ControlBoxLayout.
                 ControlBoxLayout(
