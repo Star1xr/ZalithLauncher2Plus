@@ -418,10 +418,28 @@ public class ControlLayout extends FrameLayout {
                 }
         }
 
+        // Game-area touch processor (legacy ZL1 mode only): receives MotionEvents
+        // that landed on bare game surface (no button/joystick child consumed them).
+        private TouchEventProcessor mGameTouchProcessor;
+
+        public void setGameTouchProcessor(TouchEventProcessor processor) {
+                mGameTouchProcessor = processor;
+        }
+
         @SuppressLint("ClickableViewAccessibility")
         @Override
         public boolean onTouchEvent(MotionEvent event) {
-                if (mModifiable && event.getActionMasked() != MotionEvent.ACTION_UP || mControlPopup == null)
+                // Game mode (not editor): delegate to ZL1-native processor.
+                // This is only reached when no button/joystick child consumed the event.
+                if (!mModifiable) {
+                        if (mGameTouchProcessor != null) {
+                                return mGameTouchProcessor.processTouchEvent(event);
+                        }
+                        return false;
+                }
+
+                // Editor mode: suppress until ACTION_UP with popup present.
+                if (event.getActionMasked() != MotionEvent.ACTION_UP || mControlPopup == null)
                         return true;
 
                 InputMethodManager imm = (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
@@ -435,148 +453,3 @@ public class ControlLayout extends FrameLayout {
                 }
                 return true;
         }
-
-        public void removeEditWindow() {
-                InputMethodManager imm = (InputMethodManager) getContext().getSystemService(INPUT_METHOD_SERVICE);
-
-                // When the input window cannot be hidden, it returns false
-                imm.hideSoftInputFromWindow(getWindowToken(), 0);
-                if(mControlPopup != null) {
-                        mControlPopup.disappearColor();
-                        mControlPopup.disappear();
-                }
-
-                if(mActionRow != null) mActionRow.setFollowedButton(null);
-                if(mHandleView != null) mHandleView.hide();
-        }
-
-        public void save(String path){
-                try {
-                        mLayout.save(path);
-                } catch (IOException e) {
-                        Logging.e("ControlLayout", "Failed to save the layout at:" + path);}
-        }
-
-
-        public boolean hasMenuButton() {
-                for(ControlInterface controlInterface : getButtonChildren()){
-                        for (int keycode : controlInterface.getProperties().keycodes) {
-                                if (keycode == ControlData.SPECIALBTN_MENU) return true;
-                        }
-                }
-                return false;
-        }
-
-        public void setMenuListener(ControlButtonMenuListener menuListener) {
-                this.mMenuListener = menuListener;
-        }
-
-        public void notifyAppMenu() {
-                if(mMenuListener != null) mMenuListener.onClickedMenu();
-        }
-
-        /** Cached getter for perf purposes */
-        public MinecraftGLSurface getGameSurface(){
-                if(mGameSurface == null){
-                        mGameSurface = findViewById(R.id.main_game_render_view);
-                }
-                return mGameSurface;
-        }
-
-        public void askToExit(EditorExitable editorExitable) {
-                if(mIsModified) {
-                        openSaveAndExitDialog(editorExitable);
-                }else{
-                        openExitDialog(editorExitable);
-                }
-        }
-
-        public String saveToDirectory(String name) throws Exception{
-                String jsonPath = PathManager.DIR_CTRLMAP_PATH + "/" + name + ".json";
-                saveLayout(jsonPath);
-                return jsonPath;
-        }
-
-        private void saveDialog(String title, Task<?> confirmTask) {
-                EditControlInfoDialog infoDialog = new EditControlInfoDialog(getContext(), true, mLayoutFileName, mInfoData);
-
-                if (title != null && !title.isEmpty()) infoDialog.setTitle(title);
-
-                infoDialog.setOnConfirmClickListener((fileName, controlInfoData) -> {
-                        try {
-                                String jsonPath = saveToDirectory(fileName);
-                                Toast.makeText(getContext(), getContext().getString(R.string.generic_save) + ": " + jsonPath, Toast.LENGTH_SHORT).show();
-                                if (confirmTask != null) confirmTask.execute();
-                        } catch (Throwable th) {
-                                Tools.showError(getContext(), th, true);
-                        }
-
-                        infoDialog.dismiss();
-                });
-                infoDialog.show();
-        }
-
-        public void openSaveDialog() {
-                saveDialog(getContext().getString(R.string.generic_save), null);
-        }
-
-        public void openSaveAndExitDialog(EditorExitable editorExitable) {
-                saveDialog(getContext().getString(R.string.global_save_and_exit),
-                                Task.runTask(TaskExecutors.getAndroidUI(), () -> {
-                                        editorExitable.exitEditor();
-                                        return null;
-                                }));
-        }
-
-        public void openLoadDialog() {
-                SelectControlsDialog dialog = new SelectControlsDialog(getContext(), file -> {
-                        try {
-                                loadLayout(file.getAbsolutePath());
-                        } catch (IOException e) {
-                                Tools.showError(getContext(), e);
-                        }
-                });
-                dialog.show();
-        }
-
-        public void openSetDefaultDialog() {
-                SelectControlsDialog dialog = new SelectControlsDialog(getContext(), file -> {
-                        String absolutePath = file.getAbsolutePath();
-                        try {
-                                AllSettings.INSTANCE.getControlLayout().save(absolutePath);
-                                loadLayout(absolutePath);
-                        } catch (IOException|JsonSyntaxException e) {
-                                Tools.showError(getContext(), e);
-                        }
-                });
-                dialog.setTitleText(R.string.customctrl_selectdefault);
-                dialog.show();
-        }
-
-        public void openExitDialog(EditorExitable exitListener) {
-                new TipDialog.Builder(getContext())
-                                .setTitle(R.string.customctrl_editor_exit_title)
-                                .setMessage(R.string.customctrl_editor_exit_msg)
-                                .setConfirmClickListener(checked -> exitListener.exitEditor())
-                                .showDialog();
-        }
-
-        public boolean areControlVisible(){
-                return mControlVisible;
-        }
-
-        /**
-         * Update CallbackBridge screen dimensions when the editor canvas is measured,
-         * then refresh all button positions so they appear on-screen.
-         */
-        @Override
-        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-                super.onSizeChanged(w, h, oldw, oldh);
-                if (w > 0 && h > 0) {
-                        org.lwjgl.glfw.CallbackBridge.physicalWidth = w;
-                        org.lwjgl.glfw.CallbackBridge.physicalHeight = h;
-                        refreshControlButtonPositions();
-                }
-        }
-
-}
