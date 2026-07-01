@@ -6,6 +6,7 @@ package com.movtery.zalithlauncher.game.control.legacy
   import androidx.compose.runtime.rememberUpdatedState
   import androidx.compose.ui.Modifier
   import androidx.compose.ui.viewinterop.AndroidView
+  import com.movtery.zalithlauncher.setting.AllSettings
   import net.kdt.pojavlaunch.Tools
   import net.kdt.pojavlaunch.customcontrols.ControlButtonMenuListener
   import net.kdt.pojavlaunch.customcontrols.ControlLayout
@@ -22,10 +23,10 @@ package com.movtery.zalithlauncher.game.control.legacy
    * Touch routing follows ZL1 native exactly:
    *  - Button/joystick area: the button's OnTouchListener (injected by
    *    [net.kdt.pojavlaunch.customcontrols.buttons.ControlInterface.injectTouchEventBehavior])
-   *    returns {@code true} in game mode, consuming the event and sending key/mouse calls
-   *    via [CallbackBridge]. [ControlLayout.onTouchEvent] is NOT called.
+   *    returns true in game mode, consuming the event and sending key/mouse calls via
+   *    [CallbackBridge]. [ControlLayout.onTouchEvent] is NOT called.
    *  - Game surface area: no button child claims the event → Android calls
-   *    [ControlLayout.onTouchEvent] which delegates to the [TouchEventProcessor] set below:
+   *    [ControlLayout.onTouchEvent] → delegating [TouchEventProcessor]:
    *      - Grabbed (in-game): [InGameEventProcessor] — relative cursor delta movement.
    *      - Not grabbed (menu): [InGUIEventProcessor] — absolute cursor position mapping.
    */
@@ -43,9 +44,8 @@ package com.movtery.zalithlauncher.game.control.legacy
               // CRITICAL: initialize Tools.currentDisplayMetrics before any dp/px conversion
               // in the ZL1 control system (density=0 makes all button sizes 0px).
               Tools.currentDisplayMetrics.setTo(context.resources.displayMetrics)
-              // Seed physicalWidth/Height to real screen pixels BEFORE loadLayout so button
-              // dynamic-expression positions evaluate against the correct screen size on the
-              // very first render pass, before onSizeChanged() fires.
+              // Seed physicalWidth/Height BEFORE loadLayout so button dynamic-expression
+              // positions evaluate correctly on the very first render pass.
               CallbackBridge.physicalWidth = context.resources.displayMetrics.widthPixels
               CallbackBridge.physicalHeight = context.resources.displayMetrics.heightPixels
               ControlLayout(context).also { layout ->
@@ -56,10 +56,12 @@ package com.movtery.zalithlauncher.game.control.legacy
                   layout.setControlVisible(true)
 
                   // Wire ZL1-native touch processors for game-surface (non-button) touches.
-                  // The delegating wrapper reads CallbackBridge.isGrabbing() at runtime so
-                  // grab-state transitions (opening a chest, entering a menu, etc.) are
-                  // handled correctly without any extra Compose recomposition.
-                  val inGameProc = InGameEventProcessor(1.0)
+                  // Sensitivity is read once from AllSettings.mouseCaptureSensitivity (same
+                  // setting ZL2 uses for grabbed-mode cursor speed; default = 100 → 1.0×).
+                  // The delegating wrapper checks CallbackBridge.isGrabbing() at runtime so
+                  // grab-state transitions are handled without any recomposition.
+                  val sensitivity = AllSettings.getMouseSpeed().getValue().toDouble() / 100.0
+                  val inGameProc = InGameEventProcessor(sensitivity)
                   val inGUIProc  = InGUIEventProcessor()
                   layout.setGameTouchProcessor(object : TouchEventProcessor {
                       override fun processTouchEvent(event: MotionEvent): Boolean =
