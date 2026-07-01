@@ -446,14 +446,15 @@ public class ControlLayout extends FrameLayout {
          */
         @Override
         public boolean dispatchTouchEvent(MotionEvent event) {
-                boolean result = super.dispatchTouchEvent(event);
-
-                // Camera tracking only in game (non-editor) mode while the cursor is grabbed.
+                // Camera tracking MUST run before super so that ControlLayout.onTouch()'s
+                // ev.offsetLocation() call on the shared MotionEvent does not corrupt the
+                // coordinates we read.  Children call offsetLocation to translate to local
+                // View space and do not restore the event afterwards, so any read after
+                // super.dispatchTouchEvent() would see shifted, invalid coordinates.
                 if (!mModifiable) {
                         handleCameraEvent(event);
                 }
-
-                return result;
+                return super.dispatchTouchEvent(event);
         }
 
         @SuppressLint("ClickableViewAccessibility")
