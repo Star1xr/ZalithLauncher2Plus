@@ -423,12 +423,147 @@ public class ControlLayout extends FrameLayout {
         // to InGameEventProcessor (grabbed) or InGUIEventProcessor (menu) via
         // setGameTouchProcessor, set by PojavControlLayout.
         private TouchEventProcessor mGameTouchProcessor;
+        // Multi-touch camera tracking: pointer driving camera movement, or -1 if none.
+        private int mCameraPointerId = -1;
+        private float mCameraLastX, mCameraLastY;
 
         public void setGameTouchProcessor(TouchEventProcessor processor) {
                 mGameTouchProcessor = processor;
         }
 
-        @SuppressLint("ClickableViewAccessibility")
+
+          /**
+           * Intercept ALL pointer events in game mode so multi-touch camera gestures work even
+           * when the joystick already owns the primary pointer.  Android's ViewGroup assigns
+           * unclaimed ACTION_POINTER_DOWN events to the existing touch target (joystick), so
+           * ControlLayout.onTouchEvent never sees the camera pointer.  We fix this by tracking
+           * camera-candidate pointers here and routing synthetic single-pointer events through
+           * the game-touch processor.
+           */
+          @SuppressLint("ClickableViewAccessibility")
+          @Override
+          public boolean dispatchTouchEvent(MotionEvent event) {
+                  if (!mModifiable && mGameTouchProcessor != null) {
+                          int action = event.getActionMasked();
+                          switch (action) {
+                                  case MotionEvent.ACTION_DOWN: {
+                                          float x = event.getX(0);
+                                          float y = event.getY(0);
+                                          if (!isPointOverAnyChild(x, y)) {
+                                                  // Camera-only touch — init tracking and forward to processor.
+                                                  mCameraPointerId = event.getPointerId(0);
+                                                  mCameraLastX = x;
+                                                  mCameraLastY = y;
+                                                  mGameTouchProcessor.processTouchEvent(event);
+                                                  // Return without calling super so onTouchEvent doesn't
+                                                  // double-dispatch the same event to the processor.
+                                                  return true;
+                                          }
+                                          break; // button/joystick area — let super dispatch normally
+                                  }
+                                  case MotionEvent.ACTION_POINTER_DOWN: {
+                                          if (mCameraPointerId == -1) {
+                                                  int idx = event.getActionIndex();
+                                                  float x = event.getX(idx);
+                                                  float y = event.getY(idx);
+                                                  if (!isPointOverAnyChild(x, y)) {
+                                                          mCameraPointerId = event.getPointerId(idx);
+                                                          mCameraLastX = x;
+                                                          mCameraLastY = y;
+                                                          MotionEvent synth = createSinglePointerEvent(
+                                                                  event, MotionEvent.ACTION_DOWN, idx);
+                                                          mGameTouchProcessor.processTouchEvent(synth);
+                                                          synth.recycle();
+                                                  }
+                                          }
+                                          break; // still dispatch to children (joystick gets its pointer)
+                                  }
+                                  case MotionEvent.ACTION_MOVE: {
+                                          if (mCameraPointerId != -1) {
+                                                  int idx = event.findPointerIndex(mCameraPointerId);
+                                                  if (idx != -1) {
+                                                          float x = event.getX(idx);
+                                                          float y = event.getY(idx);
+                                                          mCameraLastX = x;
+                                                          mCameraLastY = y;
+                                                          MotionEvent synth = createSinglePointerEvent(
+                                                                  event, MotionEvent.ACTION_MOVE, idx);
+                                                          mGameTouchProcessor.processTouchEvent(synth);
+                                                          synth.recycle();
+                                                  }
+                                                  if (event.getPointerCount() == 1) {
+                                                          // Single-finger camera: skip super to prevent
+                                                          // onTouchEvent from dispatching again.
+                                                          return true;
+                                                  }
+                                          }
+                                          break;
+                                  }
+                                  case MotionEvent.ACTION_POINTER_UP: {
+                                          int idx = event.getActionIndex();
+                                          if (mCameraPointerId != -1
+                                                          && event.getPointerId(idx) == mCameraPointerId) {
+                                                  MotionEvent synth = createSinglePointerEvent(
+                                                          event, MotionEvent.ACTION_UP, idx);
+                                                  mGameTouchProcessor.processTouchEvent(synth);
+                                                  synth.recycle();
+                                                  mCameraPointerId = -1;
+                                          }
+                                          break;
+                                  }
+                                  case MotionEvent.ACTION_UP:
+                                  case MotionEvent.ACTION_CANCEL: {
+                                          if (mCameraPointerId != -1) {
+                                                  mGameTouchProcessor.processTouchEvent(event);
+                                                  mCameraPointerId = -1;
+                                                  return true;
+                                          }
+                                          break;
+                                  }
+                          }
+                  }
+                  return super.dispatchTouchEvent(event);
+          }
+
+          /**
+           * Returns true if (x, y) — in ControlLayout local coordinates — falls within any
+           * visible child.  Uses getX()/getY() because buttons are positioned with setX/setY.
+           */
+          private boolean isPointOverAnyChild(float x, float y) {
+                  for (int i = getChildCount() - 1; i >= 0; i--) {
+                          View child = getChildAt(i);
+                          if (child.getVisibility() != View.VISIBLE) continue;
+                          float cx = child.getX(), cy = child.getY();
+                          if (x >= cx && x <= cx + child.getWidth()
+                                          && y >= cy && y <= cy + child.getHeight()) {
+                                  return true;
+                          }
+                  }
+                  return false;
+          }
+
+          /**
+           * Creates a single-pointer MotionEvent from pointer at pointerIndex of source.
+           * Caller must call recycle() on the returned event.
+           */
+          private static MotionEvent createSinglePointerEvent(
+                          MotionEvent source, int action, int pointerIndex) {
+                  MotionEvent.PointerProperties[] props  = new MotionEvent.PointerProperties[1];
+                  MotionEvent.PointerCoords[]     coords = new MotionEvent.PointerCoords[1];
+                  props[0]  = new MotionEvent.PointerProperties();
+                  coords[0] = new MotionEvent.PointerCoords();
+                  source.getPointerProperties(pointerIndex, props[0]);
+                  source.getPointerCoords(pointerIndex, coords[0]);
+                  return MotionEvent.obtain(
+                          source.getDownTime(),   source.getEventTime(),
+                          action, 1, props, coords,
+                          source.getMetaState(),  source.getButtonState(),
+                          source.getXPrecision(), source.getYPrecision(),
+                          source.getDeviceId(),   source.getEdgeFlags(),
+                          source.getSource(),     source.getFlags());
+          }
+
+          @SuppressLint("ClickableViewAccessibility")
         @Override
         public boolean onTouchEvent(MotionEvent event) {
                 // Game mode (!mModifiable): delegate to ZL1-native touch processor.
