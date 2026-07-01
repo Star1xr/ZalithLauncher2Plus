@@ -579,25 +579,4 @@ public class ControlLayout extends FrameLayout {
                 }
         }
 
-          /**
-           * Routes MotionEvents NOT consumed by any button/joystick child to a ZL1-native
-           * {@link TouchEventProcessor}. Android calls this only when all child views
-           * returned false from dispatchTouchEvent — i.e. the finger landed on bare game
-           * surface. Set by PojavControlLayout (legacy mode).
-           */
-          private TouchEventProcessor mGameTouchProcessor;
-
-          public void setGameTouchProcessor(TouchEventProcessor processor) {
-                  mGameTouchProcessor = processor;
-          }
-
-          @Override
-          public boolean onTouchEvent(MotionEvent event) {
-                  if (mGameTouchProcessor != null) {
-                          return mGameTouchProcessor.processTouchEvent(event);
-                  }
-                  return false;
-          }
-
-  }
-  
+}
