@@ -4,6 +4,8 @@ import static android.content.Context.INPUT_METHOD_SERVICE;
 import static net.kdt.pojavlaunch.Tools.currentDisplayMetrics;
 import static org.lwjgl.glfw.CallbackBridge.isGrabbing;
 
+import org.lwjgl.glfw.CallbackBridge;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.AttributeSet;
@@ -420,11 +422,104 @@ public class ControlLayout extends FrameLayout {
 
         // Game-area touch processor (legacy ZL1 mode only).
         // Routes bare-surface MotionEvents (no button/joystick child consumed them)
-        // to InGameEventProcessor (grabbed) or InGUIEventProcessor (menu) via
-        // setGameTouchProcessor, set by PojavControlLayout.
+        // to InGUIEventProcessor (menu) via setGameTouchProcessor, set by PojavControlLayout.
+        // Camera rotation in grab mode is handled by dispatchTouchEvent below.
         private TouchEventProcessor mGameTouchProcessor;
         public void setGameTouchProcessor(TouchEventProcessor processor) {
                 mGameTouchProcessor = processor;
+        }
+
+        // Camera rotation tracking fields (grab mode, legacy ZL1 only).
+        // Owned exclusively by dispatchTouchEvent; reset to -1 when not grabbing.
+        private int mCameraPointerId = -1;
+        private float mCameraLastX, mCameraLastY;
+
+        /**
+         * In game (non-editor) mode, intercepts every touch event to track camera rotation
+         * for the pointer that lands on an empty area of the screen (not over any button/joystick).
+         * Children (buttons, joysticks) are dispatched first via super so they continue to work
+         * normally; the camera update runs afterwards using the same event object.
+         *
+         * This approach lives in the Android View layer and is always reliable, unlike a Compose
+         * pointerInteropFilter which stops receiving ACTION_MOVE events when it returns false on
+         * ACTION_DOWN (Compose interprets false as "gesture not claimed").
+         */
+        @Override
+        public boolean dispatchTouchEvent(MotionEvent event) {
+                boolean result = super.dispatchTouchEvent(event);
+
+                // Camera tracking only in game (non-editor) mode while the cursor is grabbed.
+                if (!mModifiable) {
+                        handleCameraEvent(event);
+                }
+
+                return result;
+        }
+
+        @SuppressLint("ClickableViewAccessibility")
+        private void handleCameraEvent(MotionEvent event) {
+                if (!isGrabbing()) {
+                        mCameraPointerId = -1;
+                        return;
+                }
+
+                // Read sensitivity per-event so in-session changes take effect immediately.
+                float sensitivity = ((Number) AllSettings.INSTANCE.getMouseSpeed().getValue()).floatValue() / 100f;
+
+                switch (event.getActionMasked()) {
+                        case MotionEvent.ACTION_DOWN: {
+                                float x = event.getX(0);
+                                float y = event.getY(0);
+                                if (!isPointOverAnyChild(x, y)) {
+                                        mCameraPointerId = event.getPointerId(0);
+                                        mCameraLastX = x;
+                                        mCameraLastY = y;
+                                }
+                                break;
+                        }
+                        case MotionEvent.ACTION_POINTER_DOWN: {
+                                if (mCameraPointerId == -1) {
+                                        int idx = event.getActionIndex();
+                                        float x = event.getX(idx);
+                                        float y = event.getY(idx);
+                                        if (!isPointOverAnyChild(x, y)) {
+                                                mCameraPointerId = event.getPointerId(idx);
+                                                mCameraLastX = x;
+                                                mCameraLastY = y;
+                                        }
+                                }
+                                break;
+                        }
+                        case MotionEvent.ACTION_MOVE: {
+                                if (mCameraPointerId != -1) {
+                                        int idx = event.findPointerIndex(mCameraPointerId);
+                                        if (idx >= 0) {
+                                                float x = event.getX(idx);
+                                                float y = event.getY(idx);
+                                                float dx = (x - mCameraLastX) * sensitivity;
+                                                float dy = (y - mCameraLastY) * sensitivity;
+                                                mCameraLastX = x;
+                                                mCameraLastY = y;
+                                                if (dx != 0f || dy != 0f) {
+                                                        CallbackBridge.sendCursorDelta(dx, dy);
+                                                }
+                                        }
+                                }
+                                break;
+                        }
+                        case MotionEvent.ACTION_POINTER_UP: {
+                                if (mCameraPointerId != -1 &&
+                                        event.getPointerId(event.getActionIndex()) == mCameraPointerId) {
+                                        mCameraPointerId = -1;
+                                }
+                                break;
+                        }
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_CANCEL: {
+                                mCameraPointerId = -1;
+                                break;
+                        }
+                }
         }
 
           /**
