@@ -45,6 +45,7 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.changedToDownIgnoreConsumed
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
+import com.movtery.zalithlauncher.game.control.legacy.LegacyButtonTracker
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.platform.PlatformTextInputModifierNode
@@ -695,6 +696,11 @@ fun Modifier.touchControllerInputModifier(
 
 /**
  * 单独捕获触摸事件，为TouchController模组的控制代理提供信息
+ *
+ * Touches that land on Legacy control buttons (tracked by [LegacyButtonTracker]) are
+ * excluded: those pointers belong to the button overlay and must NOT be forwarded to
+ * the mod as gameplay / camera touches.  This prevents the well-known issue where
+ * pressing Attack also causes the camera to rotate.
  */
 @Composable
 fun Modifier.touchControllerTouchModifier(
@@ -702,6 +708,9 @@ fun Modifier.touchControllerTouchModifier(
 ) = this.pointerInput(Unit) {
     awaitPointerEventScope {
         val activePointers = mutableMapOf<PointerId, Int>()
+        // Compose pointer IDs that were pressed on a Legacy button – excluded from
+        // TouchController reporting for the full lifetime of that touch gesture.
+        val buttonOwnedPointers = mutableSetOf<PointerId>()
         var nextPointerId = 1
 
         fun PointerInputChange.toProxyOffset(): Pair<Float, Float> {
@@ -716,6 +725,12 @@ fun Modifier.touchControllerTouchModifier(
             event.changes.fastForEach { change ->
                 if (change.isConsumed) return@fastForEach
                 if (change.changedToDownIgnoreConsumed()) {
+                    // If this new touch lands on a Legacy button, claim it as
+                    // button-owned for the entire gesture and skip TC reporting.
+                    if (LegacyButtonTracker.isOnButton(change.position.x, change.position.y)) {
+                        buttonOwnedPointers.add(change.id)
+                        return@fastForEach
+                    }
                     if (!activePointers.containsKey(change.id)) {
                         val pointerId = nextPointerId++
                         activePointers[change.id] = pointerId
@@ -723,10 +738,14 @@ fun Modifier.touchControllerTouchModifier(
                         proxyClient?.addPointer(pointerId, x, y)
                     }
                 } else if (change.changedToUpIgnoreConsumed()) {
+                    // Always clean up button-owned tracking on lift, regardless.
+                    buttonOwnedPointers.remove(change.id)
                     activePointers.remove(change.id)?.let { pointerId ->
                         proxyClient?.removePointer(pointerId)
                     }
                 } else if (change.pressed && event.type == PointerEventType.Move) {
+                    // Skip move updates for pointers owned by Legacy buttons.
+                    if (change.id in buttonOwnedPointers) return@fastForEach
                     activePointers[change.id]?.let { pointerId ->
                         val (x, y) = change.toProxyOffset()
                         proxyClient?.addPointer(pointerId, x, y)

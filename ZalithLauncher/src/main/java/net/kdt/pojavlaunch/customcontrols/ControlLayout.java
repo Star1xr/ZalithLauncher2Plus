@@ -16,8 +16,11 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.google.gson.JsonSyntaxException;
+import android.graphics.RectF;
+
 import com.movtery.zalithlauncher.R;
 import com.movtery.zalithlauncher.feature.log.Logging;
+import com.movtery.zalithlauncher.game.control.legacy.LegacyButtonTracker;
 import com.movtery.zalithlauncher.setting.AllSettings;
 import com.movtery.zalithlauncher.task.Task;
 import com.movtery.zalithlauncher.task.TaskExecutors;
@@ -453,8 +456,31 @@ public class ControlLayout extends FrameLayout {
                 // super.dispatchTouchEvent() would see shifted, invalid coordinates.
                 if (!mModifiable) {
                         handleCameraEvent(event);
+                        // On the first pointer down, refresh the button rect registry so the
+                        // Touch Controller Compose modifier knows which screen areas belong to
+                        // Legacy buttons and should not be forwarded as gameplay touch events.
+                        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                                updateLegacyButtonTracker();
+                        }
                 }
                 return super.dispatchTouchEvent(event);
+        }
+
+        /**
+         * Collects the screen-local bounds of all currently visible Legacy control buttons
+         * and pushes them into [LegacyButtonTracker] so the Touch Controller Compose modifier
+         * can skip forwarding those pointer positions to the mod's proxy client.
+         */
+        private void updateLegacyButtonTracker() {
+                List<RectF> rects = new ArrayList<>();
+                for (ControlInterface button : getButtonChildren()) {
+                        View v = button.getControlView();
+                        if (v.getVisibility() == View.VISIBLE) {
+                                rects.add(new RectF(v.getX(), v.getY(),
+                                        v.getX() + v.getWidth(), v.getY() + v.getHeight()));
+                        }
+                }
+                LegacyButtonTracker.INSTANCE.updateButtonRects(rects);
         }
 
         @SuppressLint("ClickableViewAccessibility")

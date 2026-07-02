@@ -149,7 +149,13 @@ public class ControlButton extends TextView implements ControlInterface {
             case MotionEvent.ACTION_DOWN: // 0
             case MotionEvent.ACTION_POINTER_DOWN: // 5
                 if(!getProperties().isToggle){
-                    mPressedPointerId = event.getPointerId(event.getActionIndex());
+                    // Only record the first pointer that presses this button.
+                    // Overwriting mPressedPointerId with a subsequent pointer's ID would
+                    // cause the button to release when THAT pointer lifts, even though
+                    // the original finger is still physically on the button.
+                    if (mPressedPointerId == -1) {
+                        mPressedPointerId = event.getPointerId(event.getActionIndex());
+                    }
                     sendKeyPresses(true);
                 }
                 break;
