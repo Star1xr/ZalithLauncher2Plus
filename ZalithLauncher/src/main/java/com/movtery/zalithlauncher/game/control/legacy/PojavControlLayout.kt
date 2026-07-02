@@ -60,16 +60,16 @@ private class InGameGestureProcessor : TouchEventProcessor {
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (!disabled) {
-                    // Scale by sensitivity so fast swipes cancel the gesture the same way
-                    // InGameEventProcessor does (gesture uses scaled deltas for still-finger check).
-                    val sensitivity =
-                        (AllSettings.getMouseSpeed().value as Number).toFloat() / 100f
-                    val dx = (event.getX(0) - mLastX) * sensitivity
-                    val dy = (event.getY(0) - mLastY) * sensitivity
-                    mLastX = event.getX(0)
-                    mLastY = event.getY(0)
+                // Always update mLastX/Y so that toggling gestures on mid-touch doesn't
+                // produce a coordinate spike from stale values.
+                val sensitivity =
+                    (AllSettings.getMouseSpeed().value as Number).toFloat() / 100f
+                val dx = (event.getX(0) - mLastX) * sensitivity
+                val dy = (event.getY(0) - mLastY) * sensitivity
+                mLastX = event.getX(0)
+                mLastY = event.getY(0)
 
+                if (!disabled) {
                     // Inform gesture trackers of accumulated motion — no cursor delta sent here;
                     // camera movement is already done by ControlLayout.dispatchTouchEvent.
                     mLeftClick.setMotion(dx, dy)
@@ -93,6 +93,10 @@ private class InGameGestureProcessor : TouchEventProcessor {
     }
 
     override fun cancelPendingActions() {
+        // Mirror InGameEventProcessor: set mEventTransitioned=true BEFORE cancelling so
+        // that any stale MOVE events arriving after a mode switch cannot re-arm
+        // mRightClick via the !mEventTransitioned guard.
+        mEventTransitioned = true
         // isSwitching=true → suppresses RightClickGesture firing (mode is switching).
         mLeftClick.cancel(true)
         mRightClick.cancel(true)
