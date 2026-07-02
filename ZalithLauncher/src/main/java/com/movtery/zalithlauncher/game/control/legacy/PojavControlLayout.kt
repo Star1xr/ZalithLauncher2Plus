@@ -47,7 +47,7 @@ private class InGameGestureProcessor : TouchEventProcessor {
     private var mLastY = 0f
 
     override fun processTouchEvent(event: MotionEvent): Boolean {
-        val disabled = AllSettings.getDisableGestures().value
+        val disabled = AllSettings.getDisableGestures().getValue()
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 mLastX = event.getX(0)
@@ -63,7 +63,7 @@ private class InGameGestureProcessor : TouchEventProcessor {
                 // Always update mLastX/Y so that toggling gestures on mid-touch doesn't
                 // produce a coordinate spike from stale values.
                 val sensitivity =
-                    (AllSettings.getMouseSpeed().value as Number).toFloat() / 100f
+                    (AllSettings.getMouseSpeed().getValue() as Number).toFloat() / 100f
                 val dx = (event.getX(0) - mLastX) * sensitivity
                 val dy = (event.getY(0) - mLastY) * sensitivity
                 mLastX = event.getX(0)
