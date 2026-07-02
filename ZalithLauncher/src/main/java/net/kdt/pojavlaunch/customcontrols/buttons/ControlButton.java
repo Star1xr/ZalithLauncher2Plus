@@ -36,6 +36,8 @@ public class ControlButton extends TextView implements ControlInterface {
 
     protected boolean mIsToggled = false;
     protected boolean mIsPointerOutOfBounds = false;
+    /** Pointer ID that initially pressed this button; -1 when not pressed. */
+    private int mPressedPointerId = -1;
 
     public ControlButton(ControlLayout layout, ControlData properties) {
         super(layout.getContext());
@@ -147,22 +149,41 @@ public class ControlButton extends TextView implements ControlInterface {
             case MotionEvent.ACTION_DOWN: // 0
             case MotionEvent.ACTION_POINTER_DOWN: // 5
                 if(!getProperties().isToggle){
+                    mPressedPointerId = event.getPointerId(event.getActionIndex());
                     sendKeyPresses(true);
                 }
                 break;
 
             case MotionEvent.ACTION_UP: // 1
             case MotionEvent.ACTION_CANCEL: // 3
-            case MotionEvent.ACTION_POINTER_UP: // 6
                 if(getProperties().passThruEnabled){
                     View gameSurface = getControlLayoutParent().getGameSurface();
                     if(gameSurface != null) gameSurface.dispatchTouchEvent(event);
                 }
                 if(mIsPointerOutOfBounds) getControlLayoutParent().onTouch(this, event);
                 mIsPointerOutOfBounds = false;
-
+                mPressedPointerId = -1;
                 if(!triggerToggle()) {
                     sendKeyPresses(false);
+                }
+                break;
+
+            case MotionEvent.ACTION_POINTER_UP: // 6
+                // Only release the key if the pointer that pressed this button was lifted.
+                // Releasing on a different pointer's lift causes the button to de-activate
+                // while the user's finger is still physically on it (multi-touch regression).
+                int liftedId = event.getPointerId(event.getActionIndex());
+                if(mPressedPointerId == -1 || liftedId == mPressedPointerId) {
+                    if(getProperties().passThruEnabled){
+                        View gameSurface = getControlLayoutParent().getGameSurface();
+                        if(gameSurface != null) gameSurface.dispatchTouchEvent(event);
+                    }
+                    if(mIsPointerOutOfBounds) getControlLayoutParent().onTouch(this, event);
+                    mIsPointerOutOfBounds = false;
+                    mPressedPointerId = -1;
+                    if(!triggerToggle()) {
+                        sendKeyPresses(false);
+                    }
                 }
                 break;
 

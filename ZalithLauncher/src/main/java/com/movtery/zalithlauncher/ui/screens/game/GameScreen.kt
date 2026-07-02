@@ -631,8 +631,15 @@ fun GameScreen(
             if (isLegacyMode && legacyFile != null) {
                 // Legacy (Zalith 1) mode: native View-based ControlLayout.
                 // Touch routing handled natively — see PojavControlLayout.kt.
+                // When the Touch Controller proxy is enabled, intercept all touch events
+                // at the Compose level (PointerEventPass.Initial) and forward them to the
+                // proxy client so the mod receives pointer positions — matching ZL2 behaviour.
                 PojavControlLayout(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().then(
+                        if (isTouchProxyEnabled)
+                            Modifier.touchControllerTouchModifier(screenSize = screenSize)
+                        else Modifier
+                    ),
                     legacyFile = legacyFile,
                     isGrabbing = isGrabbing,
                     onMenuButtonClicked = { viewModel.switchMenu() }
