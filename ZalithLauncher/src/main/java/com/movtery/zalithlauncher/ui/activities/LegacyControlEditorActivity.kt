@@ -923,8 +923,8 @@ package com.movtery.zalithlauncher.ui.activities
 
   fun startLegacyEditorActivity(context: Context, file: File) {
       context.startActivity(
-          Intent(context, LegacyControlEditorActivity::class.java).apply {
-              putExtra(BUNDLE_LEGACY_CONTROL, file.absolutePath)
+          Intent(context, net.kdt.pojavlaunch.CustomControlsActivity::class.java).apply {
+              putExtra(net.kdt.pojavlaunch.CustomControlsActivity.BUNDLE_CONTROL_PATH, file.absolutePath)
           }
       )
   }
