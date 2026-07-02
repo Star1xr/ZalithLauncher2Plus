@@ -1,5 +1,7 @@
 package com.movtery.zalithlauncher.game.control.legacy
 
+import android.os.Handler
+import android.os.Looper
 import android.view.MotionEvent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -7,29 +9,108 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import com.movtery.zalithlauncher.setting.AllSettings
 import net.kdt.pojavlaunch.Tools
 import net.kdt.pojavlaunch.customcontrols.ControlButtonMenuListener
 import net.kdt.pojavlaunch.customcontrols.ControlLayout
 import net.kdt.pojavlaunch.customcontrols.mouse.InGUIEventProcessor
+import net.kdt.pojavlaunch.customcontrols.mouse.LeftClickGesture
+import net.kdt.pojavlaunch.customcontrols.mouse.RightClickGesture
 import net.kdt.pojavlaunch.customcontrols.mouse.TouchEventProcessor
 import org.lwjgl.glfw.CallbackBridge
 import java.io.File
+
+/**
+ * Gesture-only touch processor for grab (in-game) mode.
+ *
+ * Camera rotation is handled separately in [ControlLayout.dispatchTouchEvent], so this
+ * processor MUST NOT send any cursor position or delta — doing so would cause double
+ * camera movement.
+ *
+ * Responsibilities:
+ *  - [LeftClickGesture]  : hold finger still → GLFW_MOUSE_BUTTON_LEFT  (break block)
+ *  - [RightClickGesture] : quick tap         → GLFW_MOUSE_BUTTON_RIGHT (use / interact)
+ *
+ * Motion deltas fed to each gesture are sensitivity-scaled screen-pixel deltas, matching
+ * [InGameEventProcessor]'s scale so the "finger still" threshold (9 dp) behaves identically
+ * to ZL2 mode.
+ */
+private class InGameGestureProcessor : TouchEventProcessor {
+    private val mHandler = Handler(Looper.getMainLooper())
+    private val mLeftClick = LeftClickGesture(mHandler)
+    private val mRightClick = RightClickGesture(mHandler)
+
+    /** Prevents RightClickGesture firing on stale events immediately after grab activates. */
+    private var mEventTransitioned = true
+
+    private var mLastX = 0f
+    private var mLastY = 0f
+
+    override fun processTouchEvent(event: MotionEvent): Boolean {
+        val disabled = AllSettings.getDisableGestures().value
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                mLastX = event.getX(0)
+                mLastY = event.getY(0)
+                if (!disabled) {
+                    mEventTransitioned = false
+                    mLeftClick.inputEvent()
+                    if (!mEventTransitioned) mRightClick.inputEvent()
+                }
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                if (!disabled) {
+                    // Scale by sensitivity so fast swipes cancel the gesture the same way
+                    // InGameEventProcessor does (gesture uses scaled deltas for still-finger check).
+                    val sensitivity =
+                        (AllSettings.getMouseSpeed().value as Number).toFloat() / 100f
+                    val dx = (event.getX(0) - mLastX) * sensitivity
+                    val dy = (event.getY(0) - mLastY) * sensitivity
+                    mLastX = event.getX(0)
+                    mLastY = event.getY(0)
+
+                    // Inform gesture trackers of accumulated motion — no cursor delta sent here;
+                    // camera movement is already done by ControlLayout.dispatchTouchEvent.
+                    mLeftClick.setMotion(dx, dy)
+                    mRightClick.setMotion(dx, dy)
+
+                    mLeftClick.inputEvent()
+                    if (!mEventTransitioned) mRightClick.inputEvent()
+                }
+            }
+
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_CANCEL -> {
+                // isSwitching=false → RightClickGesture.onGestureCancelled fires the click if
+                // the tap was quick and the finger was still (short tap = right click / interact).
+                mEventTransitioned = true
+                mLeftClick.cancel(false)
+                mRightClick.cancel(false)
+            }
+        }
+        return true
+    }
+
+    override fun cancelPendingActions() {
+        // isSwitching=true → suppresses RightClickGesture firing (mode is switching).
+        mLeftClick.cancel(true)
+        mRightClick.cancel(true)
+    }
+}
 
 /**
  * Composable that renders PojavLauncher's native [ControlLayout] (View-based)
  * for the Legacy (Zalith 1) control mode.
  *
  * Touch routing:
- *  - Camera (grabbed / in-game): handled directly in [ControlLayout.dispatchTouchEvent].
- *    dispatchTouchEvent is always called by the Android View system for every touch event,
- *    regardless of whether child views consume it. This is reliable — unlike a Compose
- *    pointerInteropFilter, which stops receiving ACTION_MOVE events when it returns false
- *    on ACTION_DOWN (Compose interprets that as "gesture not claimed").
- *    [ControlLayout.isPointOverAnyChild] is used to distinguish empty-screen camera
- *    touches from touches that land on a visible button or joystick.
- *  - Cursor (not grabbed / menu): handled by [InGUIEventProcessor] inside
- *    [ControlLayout.onTouchEvent], reached for non-button touches when no child
- *    View consumes the event.
+ *  - Camera (grabbed / in-game): [ControlLayout.dispatchTouchEvent] — always called by
+ *    the Android View system, regardless of whether child views consume the event.
+ *    [ControlLayout.isPointOverAnyChild] guards against camera-tracking button touches.
+ *  - Tap / long press (grabbed / in-game): [InGameGestureProcessor] via
+ *    [ControlLayout.onTouchEvent], reached for empty-screen touches no child consumed.
+ *    Fires GLFW_MOUSE_BUTTON_LEFT (hold still) and GLFW_MOUSE_BUTTON_RIGHT (quick tap).
+ *  - Cursor (not grabbed / menu): [InGUIEventProcessor] via [ControlLayout.onTouchEvent].
  */
 @Composable
 fun PojavControlLayout(
@@ -40,41 +121,32 @@ fun PojavControlLayout(
 ) {
     val currentOnMenu by rememberUpdatedState(onMenuButtonClicked)
 
-    // key() forces AndroidView to be destroyed and recreated when legacyFile changes
-    // (e.g. user swaps layout via the in-game menu). Without this, AndroidView.factory
-    // only runs once per composition lifetime, so switching layouts would have no effect.
     key(legacyFile.absolutePath) {
         AndroidView(
             factory = { context ->
-                // CRITICAL: initialize Tools.currentDisplayMetrics before any dp/px conversion
-                // in the ZL1 control system (density=0 makes all button sizes 0px).
                 Tools.currentDisplayMetrics.setTo(context.resources.displayMetrics)
-                // Seed physicalWidth/Height BEFORE loadLayout so button dynamic-expression
-                // positions evaluate correctly on the very first render pass.
                 CallbackBridge.physicalWidth = context.resources.displayMetrics.widthPixels
                 CallbackBridge.physicalHeight = context.resources.displayMetrics.heightPixels
                 ControlLayout(context).also { layout ->
                     layout.setMenuListener(ControlButtonMenuListener { currentOnMenu() })
-                    runCatching {
-                        layout.loadLayout(legacyFile.absolutePath)
-                    }
+                    runCatching { layout.loadLayout(legacyFile.absolutePath) }
                     layout.setControlVisible(true)
 
-                    // Camera rotation is handled in ControlLayout.dispatchTouchEvent (grab mode).
-                    // This processor only needs InGUIEventProcessor for menu (non-grab) mode.
                     val inGUIProc = InGUIEventProcessor()
+                    val inGameGestureProc = InGameGestureProcessor()
                     layout.setGameTouchProcessor(object : TouchEventProcessor {
-                        override fun processTouchEvent(event: MotionEvent): Boolean {
-                            if (CallbackBridge.isGrabbing()) return true
-                            return inGUIProc.processTouchEvent(event)
+                        override fun processTouchEvent(event: MotionEvent): Boolean =
+                            if (CallbackBridge.isGrabbing()) inGameGestureProc.processTouchEvent(event)
+                            else inGUIProc.processTouchEvent(event)
+
+                        override fun cancelPendingActions() {
+                            inGameGestureProc.cancelPendingActions()
+                            inGUIProc.cancelPendingActions()
                         }
-                        override fun cancelPendingActions() = inGUIProc.cancelPendingActions()
                     })
                 }
             },
             update = { layout ->
-                // Capturing isGrabbing triggers re-invocation on grab-state change,
-                // ensuring setControlVisible re-evaluates displayInGame / displayInMenu flags.
                 @Suppress("UNUSED_EXPRESSION")
                 isGrabbing
                 layout.setControlVisible(true)
