@@ -1,338 +1,648 @@
 <?xml version="1.0" encoding="utf-8"?>
-  <com.kdt.DefocusableScrollView
-      xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto"
-      android:layout_width="280dp"
-      android:layout_height="match_parent"
-      android:background="?attr/colorSurface"
-      android:elevation="10dp">
+<!--
+  Legacy Control Editor — Property Panel
+  Redesigned for Zeryth Launcher: Material 3, dark-surface-compatible.
 
-      <androidx.constraintlayout.widget.ConstraintLayout
-          android:id="@+id/edit_layout"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:padding="12dp">
+  CONSTRAINT: Every bindable view ID must be preserved exactly as-is.
+  EditControlPopup.java casts each view to a specific type at runtime:
+    - checkboxToggle / checkboxPassThrough / checkboxSwipeable /
+      checkboxForwardLock / checkboxAbsoluteFingerTracking → android.widget.Switch
+    - visibility_game_checkbox / visibility_menu_checkbox   → android.widget.CheckBox
+    - editName_editText / editSize_editTextX / editSize_editTextY → EditText
+    - editMapping_spinner_1..4 / editOrientation_spinner   → Spinner
+    - editStrokeWidth_seekbar / editCornerRadius_seekbar /
+      editButtonOpacity_seekbar                            → SeekBar
+    - editBackgroundColor_textView / editStrokeColor_textView → TextView (Button extends TextView)
+    - All other *_textView IDs                             → TextView (decorative)
 
-          <!-- Name row -->
-          <TextView
-              android:id="@+id/editName_textView"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Name"
-              app:layout_constraintTop_toTopOf="parent"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+  DO NOT change widget types or IDs.  Only presentation is modified here.
+-->
+<com.kdt.DefocusableScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="280dp"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:elevation="10dp">
 
-          <EditText
-              android:id="@+id/editName_editText"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:inputType="text"
-              app:layout_constraintTop_toBottomOf="@id/editName_textView"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/edit_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="24dp">
 
-          <!-- Size row -->
-          <TextView
-              android:id="@+id/editSize_textView"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Size"
-              android:layout_marginTop="8dp"
-              app:layout_constraintTop_toBottomOf="@id/editName_editText"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <!-- ── Panel title ──────────────────────────────────────────── -->
 
-          <TextView
-              android:id="@+id/editSize_x_textView"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="W:"
-              app:layout_constraintTop_toBottomOf="@id/editSize_textView"
-              app:layout_constraintStart_toStartOf="parent" />
+        <TextView
+            android:id="@+id/edit_panel_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="@string/legacy_control_editor_properties_title"
+            style="@style/TextAppearance.Material3.TitleSmall"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingBottom="12dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <EditText
-              android:id="@+id/editSize_editTextX"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:inputType="numberDecimal"
-              app:layout_constraintTop_toBottomOf="@id/editSize_textView"
-              app:layout_constraintStart_toEndOf="@id/editSize_x_textView"
-              app:layout_constraintEnd_toStartOf="@id/editSize_editTextY" />
+        <View
+            android:id="@+id/divider_title"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            app:layout_constraintTop_toBottomOf="@id/edit_panel_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <EditText
-              android:id="@+id/editSize_editTextY"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:inputType="numberDecimal"
-              app:layout_constraintTop_toBottomOf="@id/editSize_textView"
-              app:layout_constraintStart_toEndOf="@id/editSize_editTextX"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <!-- ── Identity section ─────────────────────────────────────── -->
 
-          <!-- Visibility checkboxes -->
-          <TextView
-              android:id="@+id/visibility_textview"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Visibility"
-              android:layout_marginTop="8dp"
-              app:layout_constraintTop_toBottomOf="@id/editSize_editTextX"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:id="@+id/editName_textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_button_name"
+            style="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="?attr/colorPrimary"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="14dp"
+            app:layout_constraintTop_toBottomOf="@id/divider_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <CheckBox
-              android:id="@+id/visibility_game_checkbox"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="In-game"
-              app:layout_constraintTop_toBottomOf="@id/visibility_textview"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toStartOf="@id/visibility_menu_checkbox" />
+        <EditText
+            android:id="@+id/editName_editText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:singleLine="true"
+            android:hint="@string/legacy_control_editor_button_name"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/editName_textView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <CheckBox
-              android:id="@+id/visibility_menu_checkbox"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="In-menu"
-              app:layout_constraintTop_toBottomOf="@id/visibility_textview"
-              app:layout_constraintStart_toEndOf="@id/visibility_game_checkbox"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <!-- Size row -->
 
-          <!-- Toggle / Passthrough / Swipeable -->
-          <CheckBox
-              android:id="@+id/checkboxToggle"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Toggle"
-              android:layout_marginTop="4dp"
-              app:layout_constraintTop_toBottomOf="@id/visibility_game_checkbox"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:id="@+id/editSize_textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_size"
+            style="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="?attr/colorPrimary"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="14dp"
+            app:layout_constraintTop_toBottomOf="@id/editName_editText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <CheckBox
-              android:id="@+id/checkboxPassThrough"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Pass-through"
-              app:layout_constraintTop_toBottomOf="@id/checkboxToggle"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:id="@+id/editSize_x_textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_width_label"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginTop="6dp"
+            app:layout_constraintTop_toBottomOf="@id/editSize_textView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBaseline_toBaselineOf="@id/editSize_editTextX" />
 
-          <CheckBox
-              android:id="@+id/checkboxSwipeable"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Swipeable"
-              app:layout_constraintTop_toBottomOf="@id/checkboxPassThrough"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <EditText
+            android:id="@+id/editSize_editTextX"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:singleLine="true"
+            android:hint="@string/legacy_control_editor_width_label"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintTop_toBottomOf="@id/editSize_textView"
+            app:layout_constraintStart_toEndOf="@id/editSize_x_textView"
+            app:layout_constraintEnd_toStartOf="@id/editSize_editTextY" />
 
-          <CheckBox
-              android:id="@+id/checkboxForwardLock"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Forward lock"
-              app:layout_constraintTop_toBottomOf="@id/checkboxSwipeable"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <EditText
+            android:id="@+id/editSize_editTextY"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:singleLine="true"
+            android:hint="@string/legacy_control_editor_height_label"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/editSize_textView"
+            app:layout_constraintStart_toEndOf="@id/editSize_editTextX"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <CheckBox
-              android:id="@+id/checkboxAbsoluteFingerTracking"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Absolute tracking"
-              app:layout_constraintTop_toBottomOf="@id/checkboxForwardLock"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <!-- ── Visibility section ────────────────────────────────────── -->
 
-          <!-- Mapping section -->
-          <TextView
-              android:id="@+id/editMapping_textView"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Mapping"
-              android:layout_marginTop="8dp"
-              app:layout_constraintTop_toBottomOf="@id/checkboxAbsoluteFingerTracking"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <View
+            android:id="@+id/divider_visibility"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginTop="14dp"
+            app:layout_constraintTop_toBottomOf="@id/editSize_editTextX"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <TextView
-              android:id="@+id/mapping_1_textview"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Key 1"
-              app:layout_constraintTop_toBottomOf="@id/editMapping_textView"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:id="@+id/visibility_textview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_visibility"
+            style="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="?attr/colorPrimary"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/divider_visibility"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <Spinner
-              android:id="@+id/editMapping_spinner_1"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              app:layout_constraintTop_toBottomOf="@id/mapping_1_textview"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <CheckBox
+            android:id="@+id/visibility_game_checkbox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_display_game"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingStart="6dp"
+            android:layout_marginTop="6dp"
+            app:layout_constraintTop_toBottomOf="@id/visibility_textview"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/visibility_menu_checkbox" />
 
-          <TextView
-              android:id="@+id/mapping_2_textview"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Key 2"
-              app:layout_constraintTop_toBottomOf="@id/editMapping_spinner_1"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <CheckBox
+            android:id="@+id/visibility_menu_checkbox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_display_menu"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingStart="6dp"
+            android:layout_marginTop="6dp"
+            app:layout_constraintTop_toBottomOf="@id/visibility_textview"
+            app:layout_constraintStart_toEndOf="@id/visibility_game_checkbox"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <Spinner
-              android:id="@+id/editMapping_spinner_2"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              app:layout_constraintTop_toBottomOf="@id/mapping_2_textview"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <!-- ── Behavior section ──────────────────────────────────────── -->
+        <!--
+          These five views are declared as android.widget.Switch in Java.
+          They MUST remain <Switch> in XML (not CheckBox, not MaterialSwitch).
+          The Switch widget includes its own text label; setting setVisibility(GONE)
+          hides both the track and the label simultaneously.
+        -->
 
-          <TextView
-              android:id="@+id/mapping_3_textview"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Key 3"
-              app:layout_constraintTop_toBottomOf="@id/editMapping_spinner_2"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <View
+            android:id="@+id/divider_behavior"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginTop="14dp"
+            app:layout_constraintTop_toBottomOf="@id/visibility_game_checkbox"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <Spinner
-              android:id="@+id/editMapping_spinner_3"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              app:layout_constraintTop_toBottomOf="@id/mapping_3_textview"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:id="@+id/behavior_section_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_section_behavior"
+            style="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="?attr/colorPrimary"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/divider_behavior"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <TextView
-              android:id="@+id/mapping_4_textview"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Key 4"
-              app:layout_constraintTop_toBottomOf="@id/editMapping_spinner_3"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <Switch
+            android:id="@+id/checkboxToggle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_toggle"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingHorizontal="2dp"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="6dp"
+            app:layout_constraintTop_toBottomOf="@id/behavior_section_label"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <Spinner
-              android:id="@+id/editMapping_spinner_4"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              app:layout_constraintTop_toBottomOf="@id/mapping_4_textview"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <Switch
+            android:id="@+id/checkboxPassThrough"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_passthrough"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingHorizontal="2dp"
+            android:paddingVertical="8dp"
+            app:layout_constraintTop_toBottomOf="@id/checkboxToggle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <!-- Orientation -->
-          <TextView
-              android:id="@+id/editOrientation_textView"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Orientation"
-              android:layout_marginTop="8dp"
-              app:layout_constraintTop_toBottomOf="@id/editMapping_spinner_4"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <Switch
+            android:id="@+id/checkboxSwipeable"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_swipeable"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingHorizontal="2dp"
+            android:paddingVertical="8dp"
+            app:layout_constraintTop_toBottomOf="@id/checkboxPassThrough"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <Spinner
-              android:id="@+id/editOrientation_spinner"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              app:layout_constraintTop_toBottomOf="@id/editOrientation_textView"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <Switch
+            android:id="@+id/checkboxForwardLock"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_forward_lock"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingHorizontal="2dp"
+            android:paddingVertical="8dp"
+            app:layout_constraintTop_toBottomOf="@id/checkboxSwipeable"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <!-- Corner radius -->
-          <TextView
-              android:id="@+id/editCornerRadius_textView"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Corner radius"
-              android:layout_marginTop="8dp"
-              app:layout_constraintTop_toBottomOf="@id/editOrientation_spinner"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toStartOf="@id/editCornerRadius_textView_percent" />
+        <Switch
+            android:id="@+id/checkboxAbsoluteFingerTracking"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_absolute_mode"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:paddingHorizontal="2dp"
+            android:paddingVertical="8dp"
+            app:layout_constraintTop_toBottomOf="@id/checkboxForwardLock"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <TextView
-              android:id="@+id/editCornerRadius_textView_percent"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="0%"
-              android:layout_marginTop="8dp"
-              app:layout_constraintTop_toBottomOf="@id/editOrientation_spinner"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <!-- ── Key Mapping section ───────────────────────────────────── -->
 
-          <SeekBar
-              android:id="@+id/editCornerRadius_seekbar"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:max="100"
-              app:layout_constraintTop_toBottomOf="@id/editCornerRadius_textView"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <View
+            android:id="@+id/divider_mapping"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginTop="14dp"
+            app:layout_constraintTop_toBottomOf="@id/checkboxAbsoluteFingerTracking"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <!-- Stroke width -->
-          <TextView
-              android:id="@+id/editStrokeWidth_textView_percent"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="0%"
-              android:layout_marginTop="8dp"
-              app:layout_constraintTop_toBottomOf="@id/editCornerRadius_seekbar"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:id="@+id/editMapping_textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_mapping"
+            style="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="?attr/colorPrimary"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/divider_mapping"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <SeekBar
-              android:id="@+id/editStrokeWidth_seekbar"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:max="100"
-              app:layout_constraintTop_toBottomOf="@id/editStrokeWidth_textView_percent"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <!-- Key 1: label (clickable → keyboard dialog) + keycode spinner -->
 
-          <!-- Opacity -->
-          <TextView
-              android:id="@+id/editButtonOpacity_textView_percent"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="100%"
-              android:layout_marginTop="8dp"
-              app:layout_constraintTop_toBottomOf="@id/editStrokeWidth_seekbar"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:id="@+id/mapping_1_textview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_key_1"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:background="?attr/selectableItemBackground"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="6dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/editMapping_textView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <SeekBar
-              android:id="@+id/editButtonOpacity_seekbar"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:max="100"
-              app:layout_constraintTop_toBottomOf="@id/editButtonOpacity_textView_percent"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <Spinner
+            android:id="@+id/editMapping_spinner_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            app:layout_constraintTop_toBottomOf="@id/mapping_1_textview"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-          <!-- Color selectors -->
-          <TextView
-              android:id="@+id/editBackgroundColor_textView"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Background color"
-              android:padding="8dp"
-              android:layout_marginTop="8dp"
-              app:layout_constraintTop_toBottomOf="@id/editButtonOpacity_seekbar"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <!-- Key 2 -->
 
-          <TextView
-              android:id="@+id/editStrokeColor_textView"
-              android:layout_width="0dp"
-              android:layout_height="wrap_content"
-              android:text="Stroke color"
-              android:padding="8dp"
-              android:layout_marginTop="4dp"
-              app:layout_constraintTop_toBottomOf="@id/editBackgroundColor_textView"
-              app:layout_constraintStart_toStartOf="parent"
-              app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:id="@+id/mapping_2_textview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_key_2"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:background="?attr/selectableItemBackground"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="6dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/editMapping_spinner_1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-      </androidx.constraintlayout.widget.ConstraintLayout>
+        <Spinner
+            android:id="@+id/editMapping_spinner_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            app:layout_constraintTop_toBottomOf="@id/mapping_2_textview"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-  </com.kdt.DefocusableScrollView>
+        <!-- Key 3 -->
+
+        <TextView
+            android:id="@+id/mapping_3_textview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_key_3"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:background="?attr/selectableItemBackground"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="6dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/editMapping_spinner_2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Spinner
+            android:id="@+id/editMapping_spinner_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            app:layout_constraintTop_toBottomOf="@id/mapping_3_textview"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Key 4 -->
+
+        <TextView
+            android:id="@+id/mapping_4_textview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_key_4"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:background="?attr/selectableItemBackground"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="6dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/editMapping_spinner_3"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Spinner
+            android:id="@+id/editMapping_spinner_4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            app:layout_constraintTop_toBottomOf="@id/mapping_4_textview"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- ── Orientation section (drawers only) ───────────────────── -->
+
+        <View
+            android:id="@+id/divider_orientation"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginTop="14dp"
+            app:layout_constraintTop_toBottomOf="@id/editMapping_spinner_4"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/editOrientation_textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_orientation"
+            style="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="?attr/colorPrimary"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/divider_orientation"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Spinner
+            android:id="@+id/editOrientation_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/editOrientation_textView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- ── Appearance section ────────────────────────────────────── -->
+
+        <View
+            android:id="@+id/divider_appearance"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginTop="14dp"
+            app:layout_constraintTop_toBottomOf="@id/editOrientation_spinner"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/appearance_section_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_section_appearance"
+            style="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="?attr/colorPrimary"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/divider_appearance"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Corner Radius -->
+
+        <TextView
+            android:id="@+id/editCornerRadius_textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_corner_radius_label"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/appearance_section_label"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/editCornerRadius_textView_percent" />
+
+        <TextView
+            android:id="@+id/editCornerRadius_textView_percent"
+            android:layout_width="44dp"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            style="@style/TextAppearance.Material3.LabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="end"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/appearance_section_label"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <SeekBar
+            android:id="@+id/editCornerRadius_seekbar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/editCornerRadius_textView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Stroke Width -->
+
+        <TextView
+            android:id="@+id/editStrokeWidth_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_stroke_width"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/editCornerRadius_seekbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/editStrokeWidth_textView_percent" />
+
+        <TextView
+            android:id="@+id/editStrokeWidth_textView_percent"
+            android:layout_width="44dp"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            style="@style/TextAppearance.Material3.LabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="end"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/editCornerRadius_seekbar"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <SeekBar
+            android:id="@+id/editStrokeWidth_seekbar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/editStrokeWidth_label"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Button Opacity -->
+
+        <TextView
+            android:id="@+id/editButtonOpacity_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_opacity"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/editStrokeWidth_seekbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/editButtonOpacity_textView_percent" />
+
+        <TextView
+            android:id="@+id/editButtonOpacity_textView_percent"
+            android:layout_width="44dp"
+            android:layout_height="wrap_content"
+            android:text="100%"
+            style="@style/TextAppearance.Material3.LabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="end"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/editStrokeWidth_seekbar"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <SeekBar
+            android:id="@+id/editButtonOpacity_seekbar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/editButtonOpacity_label"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- ── Colors section ────────────────────────────────────────── -->
+
+        <View
+            android:id="@+id/divider_colors"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginTop="14dp"
+            app:layout_constraintTop_toBottomOf="@id/editButtonOpacity_seekbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/colors_section_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_section_colors"
+            style="@style/TextAppearance.Material3.LabelSmall"
+            android:textColor="?attr/colorPrimary"
+            android:paddingHorizontal="2dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/divider_colors"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!--
+          Color picker buttons.
+          Declared as TextView in Java (mSelectBackgroundColor, mSelectStrokeColor).
+          MaterialButton extends Button extends TextView — safe to use.
+        -->
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/editBackgroundColor_textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_bg_color"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingVertical="12dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/colors_section_label"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/editStrokeColor_textView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/legacy_control_editor_stroke_color"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingVertical="12dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/editBackgroundColor_textView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.kdt.DefocusableScrollView>

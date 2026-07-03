@@ -61,5 +61,29 @@
       <string name="controls_orientation_right">Right</string>
       <string name="controls_orientation_free">Free</string>
       <string name="controls_add_control_drawer">Add Drawer</string>
+
+      <!-- Property editor panel — section titles and field labels -->
+      <string name="legacy_control_editor_properties_title">Control Properties</string>
+      <string name="legacy_control_editor_button_name">Name</string>
+      <string name="legacy_control_editor_size">Size</string>
+      <string name="legacy_control_editor_width_label">W</string>
+      <string name="legacy_control_editor_height_label">H</string>
+      <string name="legacy_control_editor_visibility">Visibility</string>
+      <string name="legacy_control_editor_section_behavior">Behavior</string>
+      <string name="legacy_control_editor_passthrough">Pass-through</string>
+      <string name="legacy_control_editor_swipeable">Swipeable</string>
+      <string name="legacy_control_editor_mapping">Key Mapping</string>
+      <string name="legacy_control_editor_key_1">Key 1</string>
+      <string name="legacy_control_editor_key_2">Key 2</string>
+      <string name="legacy_control_editor_key_3">Key 3</string>
+      <string name="legacy_control_editor_key_4">Key 4</string>
+      <string name="legacy_control_editor_orientation">Drawer Orientation</string>
+      <string name="legacy_control_editor_section_appearance">Appearance</string>
+      <string name="legacy_control_editor_corner_radius_label">Corner Radius</string>
+      <string name="legacy_control_editor_stroke_width">Stroke Width</string>
+      <string name="legacy_control_editor_opacity">Opacity</string>
+      <string name="legacy_control_editor_section_colors">Colors</string>
+      <string name="legacy_control_editor_bg_color">Background Color</string>
+      <string name="legacy_control_editor_stroke_color">Stroke Color</string>
   </resources>
   
