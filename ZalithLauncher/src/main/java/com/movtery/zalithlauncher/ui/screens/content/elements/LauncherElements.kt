@@ -368,8 +368,8 @@ fun Modifier.backgroundGlass(
 ): Modifier {
     if (AllSettings.backgroundBlurType.state == BackgroundBlur.Background) return this
     if (!enabled) return this
-    val state = LocalBackgroundViewModel.current?.hazeState ?: return this
-    return this.glass(blur, color, state)
+    val background = LocalBackgroundViewModel.current?.takeIf { it.isValid } ?: return this
+    return this.glass(blur, color, background.hazeState)
 }
 
 /**

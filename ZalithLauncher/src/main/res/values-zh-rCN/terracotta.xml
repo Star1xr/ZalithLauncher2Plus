@@ -22,6 +22,8 @@
     <string name="terracotta_confirm_software">陶瓦联机是第三方开源自由软件，您在使用过程中所遇到的问题请通过相关渠道进行反馈。</string>
     <string name="terracotta_confirm_p2p">陶瓦联机使用 P2P 技术，联机成功后房间内用户之间将直接连接，不会使用第三方服务器对您的流量进行转发。最终联机体验和参与联机者的网络情况有较大关系。</string>
     <string name="terracotta_confirm_law">在多人联机全过程中，您必须严格遵守您所在国家与地区的全部法律法规。</string>
+    <string name="terracotta_custom_note_list">自定义 EasyTier 服务器节点</string>
+    <string name="terracotta_custom_note_list_hint">留空时仍使用默认节点</string>
     <string name="terracotta_menu">联机菜单</string>
     <string name="terracotta_notification_title">Terracotta | 陶瓦联机 正在运行</string>
     <string name="terracotta_notification_desc" formatted="false">身份：%s，状态：%s</string>

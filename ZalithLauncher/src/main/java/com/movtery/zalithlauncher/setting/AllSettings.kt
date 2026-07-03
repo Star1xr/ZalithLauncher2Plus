@@ -569,6 +569,16 @@ object AllSettings : SettingsRegistry() {
     val enableTerracotta = boolSetting("enableTerracotta", false)
 
     /**
+     * 是否使用自定义 EasyTier 服务器节点
+     */
+    val enableTerracottaNodes = boolSetting("enableTerracottaNodes", false)
+
+    /**
+     * 陶瓦联机：自定义 EasyTier 服务器节点
+     */
+    val terracottaNodes = stringSetting("terracottaNodes", "")
+
+    /**
      * 陶瓦联机公告版本号
      */
     val terracottaNoticeVer = intSetting("terracottaNoticeVer", -1)

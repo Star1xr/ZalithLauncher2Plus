@@ -22,6 +22,8 @@
     <string name="terracotta_confirm_software">Terracotta is a third-party open source free software. Please provide feedback on any issues you encounter through the relevant channels during use.</string>
     <string name="terracotta_confirm_p2p">Terracotta uses P2P technology. After a successful connection, users in the room will connect directly to each other, and no third-party server will relay your traffic. The final multiplayer experience largely depends on the network conditions of the participants.</string>
     <string name="terracotta_confirm_law">During the entire multiplayer process, you must strictly comply with all laws and regulations of your country and region.</string>
+    <string name="terracotta_custom_note_list">自定义 EasyTier 服务器节点</string>
+    <string name="terracotta_custom_note_list_hint">留空时仍使用默认节点</string>
     <string name="terracotta_menu">Multiplayer Menu</string>
     <string name="terracotta_notification_title">Terracotta | Multiplayer Running</string>
     <string name="terracotta_notification_desc" formatted="false">Identity: %s, State: %s</string>

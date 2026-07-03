@@ -24,11 +24,9 @@ import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformSearchFilter
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthSingleProject
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.isPublic
 import com.movtery.zalithlauncher.utils.network.httpGetJson
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.Parameters
-import io.ktor.server.plugins.NotFoundException
 import java.io.File
 
 class ModrinthSearcher(
@@ -56,7 +54,8 @@ class ModrinthSearcher(
         val project = httpGetJson<ModrinthSingleProject>(
             url = "$api/project/$projectID"
         )
-        if (!project.isPublic()) throw NotFoundException("The project {$projectID} is not in a publicly available state.")
+        // 默认不做处理，不可访问的话，Modrinth 那边自己就会返回 404
+//        if (!project.isPublic()) throw NotFoundException("The project {$projectID} is not in a publicly available state.")
         return project
     }
 

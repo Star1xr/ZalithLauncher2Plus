@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -61,6 +62,7 @@ import com.movtery.zalithlauncher.ui.components.AnimatedRow
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.NotificationCheck
+import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.influencedByBackgroundColor
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
@@ -235,6 +237,35 @@ private fun MainMenu(
                                 operation = MultiplayerOperation.WarningNotification
                             }
                         }
+                    }
+                }
+            )
+
+            // 自定义服务器节点
+            SwitchSettingsCard(
+                modifier = Modifier.fillMaxWidth(),
+                position = CardPosition.Middle,
+                unit = AllSettings.enableTerracottaNodes,
+                title = stringResource(R.string.terracotta_custom_note_list),
+                verticalAlignment = Alignment.CenterVertically,
+                enabled = AllSettings.enableTerracotta.state,
+                columnLayout = {
+                    AnimatedVisibility(
+                        visible = AllSettings.enableTerracotta.state && AllSettings.enableTerracottaNodes.state,
+                    ) {
+                        OwnOutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = AllSettings.terracottaNodes.state,
+                            onValueChange = { value ->
+                                AllSettings.terracottaNodes.save(value)
+                            },
+                            label = {
+                                Text(text = stringResource(R.string.terracotta_custom_note_list_hint))
+                            },
+                            textStyle = MaterialTheme.typography.labelMedium,
+                            singleLine = true,
+                            shape = MaterialTheme.shapes.large,
+                        )
                     }
                 }
             )
