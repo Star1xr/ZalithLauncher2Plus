@@ -57,7 +57,6 @@ import com.movtery.zalithlauncher.game.control.legacy.LegacyControlData
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlInfo
 import com.movtery.zalithlauncher.game.control.legacy.LegacyControlManager
 import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.ui.activities.startLegacyEditorActivity
 import com.movtery.zalithlauncher.ui.components.AnimatedRow
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
@@ -201,8 +200,7 @@ fun LegacyControlManageContent(
                 isLoading = isRefreshing,
                 data = selectedLayout,
                 onShareLayout = { data -> shareFile(context, data.file) },
-                onEditInfo = { data -> operation = LegacyOperation.EditInfo(data) },
-                onOpenEditor = { data -> startLegacyEditorActivity(context, data.file) }
+                onEditInfo = { data -> operation = LegacyOperation.EditInfo(data) }
             )
         }
     }
@@ -380,8 +378,7 @@ private fun LegacyLayoutInfo(
     isLoading: Boolean,
     data: LegacyControlData?,
     onShareLayout: (LegacyControlData) -> Unit,
-    onEditInfo: (LegacyControlData) -> Unit,
-    onOpenEditor: (LegacyControlData) -> Unit
+    onEditInfo: (LegacyControlData) -> Unit
 ) {
     BackgroundCard(
         modifier = modifier.fillMaxHeight(),
@@ -486,16 +483,6 @@ private fun LegacyLayoutInfo(
                     onClick = { onEditInfo(data) }
                 ) {
                     MarqueeText(text = stringResource(R.string.legacy_control_manage_edit_info))
-                }
-                ScalingActionButton(
-                    modifier = Modifier.weight(1f, fill = false),
-                    onClick = { onOpenEditor(data) }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_edit_outlined),
-                        contentDescription = null
-                    )
-                    MarqueeText(text = stringResource(R.string.legacy_control_manage_open_editor))
                 }
             }
         }

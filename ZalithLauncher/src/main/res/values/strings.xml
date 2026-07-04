@@ -1397,7 +1397,6 @@
     <string name="legacy_control_manage_create_new">Create New</string>
     <string name="legacy_control_manage_active_in_game">Active (used in-game)</string>
     <string name="legacy_control_manage_convert_to_zalith2">Convert to Zalith 2</string>
-    <string name="legacy_control_manage_open_editor">Open Editor</string>
     <!-- Default Control System Selector -->
     <string name="settings_control_default_system_title">Default Control System</string>
     <string name="settings_control_default_system_summary">Choose which control system launches Minecraft by default</string>
