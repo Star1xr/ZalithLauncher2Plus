@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.download.assets.platform
 
 import android.util.Log
+import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.CurseForgeSearcher
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.MCIM_CURSEFORGE_API
@@ -104,13 +105,20 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
 }
 
 /**
- * 镜像源只能在中国地区使用
+ * 镜像源在中国地区使用，或未配置 CurseForge API 密钥时作为回退使用。
+ *
+ * When [BuildKeys.CURSEFORGE_API] is blank (no API key configured), the MCIM mirror is
+ * always included regardless of region so that requests which would otherwise receive a
+ * 403 Forbidden from the official API can fall back to the mirror automatically.
  */
 fun mirroredCurseForgeSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<CurseForgeSearcher> {
     val source = AllSettings.assetSearchSource.getValue()
-    val mirrorSource = mirrorCurseForgeSearcher.takeIf { enabledMirror }
+    // Include the mirror whenever the user is in China OR when no API key is configured,
+    // so the official searcher's 403 response is transparently handled by the fallback.
+    val hasApiKey = BuildKeys.CURSEFORGE_API.isNotBlank()
+    val mirrorSource = mirrorCurseForgeSearcher.takeIf { enabledMirror || !hasApiKey }
     return when (source) {
         MirrorSourceType.OFFICIAL_FIRST ->
             listOfNotNull(curseForgeSearcher, mirrorSource)
