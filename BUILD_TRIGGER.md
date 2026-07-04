@@ -1,3 +1,3 @@
 # Build Trigger
 
-Grid layout: Microsoft|Offline in row 1, Ely.by|spacer in row 2.
+Symmetrical 2x2: Microsoft|AddAuth row1, Offline|Ely.by row2.
