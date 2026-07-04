@@ -251,31 +251,30 @@ fun RendererSettingsScreen(
                                     }
                                 )
                             } else {
-                                // Empty state: no renderer plugin apps installed
+                                // Empty state: no renderer plugin apps installed.
+                                // Tapping the card (or the icon) opens the download flow.
                                 SettingsCard(
                                     modifier = Modifier.fillMaxWidth(),
                                     position = CardPosition.Top,
                                     title = stringResource(R.string.settings_renderer_tab_external_empty_title),
                                     summary = stringResource(R.string.settings_renderer_tab_external_empty),
-                                    trailingIcon = {
-                                        IconButton(
-                                            onClick = {
-                                                eventViewModel.sendDLPlugin(
-                                                    githubLink = URL_GITHUB_RENDERER_PLUGINS,
-                                                    cloudDrives = listOf(
-                                                        EventViewModel.Event.DownloadPlugins.CloudDrive(
-                                                            language = "zh",
-                                                            link = URL_CLOUD_RENDERER_PLUGINS
-                                                        )
-                                                    )
+                                    onClick = {
+                                        eventViewModel.sendDLPlugin(
+                                            githubLink = URL_GITHUB_RENDERER_PLUGINS,
+                                            cloudDrives = listOf(
+                                                EventViewModel.Event.DownloadPlugins.CloudDrive(
+                                                    language = "zh",
+                                                    link = URL_CLOUD_RENDERER_PLUGINS
                                                 )
-                                            }
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.ic_download_2_filled),
-                                                contentDescription = stringResource(R.string.generic_download)
                                             )
-                                        }
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_download_2_filled),
+                                            contentDescription = stringResource(R.string.generic_download),
+                                            modifier = Modifier.padding(end = 12.dp)
+                                        )
                                     }
                                 )
                             }
