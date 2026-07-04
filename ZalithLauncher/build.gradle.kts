@@ -170,7 +170,7 @@ androidComponents {
 
 
 val mobileGluesLibs by tasks.registering {
-    val abis = setOf("arm64-v8a", "armeabi-v7a")
+    val abis = setOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
     doLast {
         val jniLibsDir = file("src/main/jniLibs")
         val allExist = abis.all { file("$jniLibsDir/$it/libMobileGlues.so").exists() }
@@ -195,10 +195,20 @@ val mobileGluesLibs by tasks.registering {
             }
         }
 
+        // The upstream release APK packages the native library with an
+        // all-lowercase filename (lib/<abi>/libmobileglues.so), while the
+        // launcher's runtime (LIB_MESA_NAME / DLOPEN) looks for the
+        // mixed-case "libMobileGlues.so". Android's storage is
+        // case-sensitive, so a naive case-sensitive zip entry lookup never
+        // matches and the library silently never gets bundled, causing a
+        // "library libMobileGlues.so not found" crash at launch. Resolve
+        // the entry case-insensitively and always write the extracted file
+        // out using the exact case the runtime expects.
         ZipFile(apkFile).use { zip ->
             abis.forEach { abi ->
-                val entryName = "lib/$abi/libMobileGlues.so"
-                val entry = zip.getEntry(entryName)
+                val expectedSuffix = "lib/$abi/libmobileglues.so"
+                val entry = zip.entries().asSequence()
+                    .firstOrNull { it.name.equals(expectedSuffix, ignoreCase = true) }
                 if (entry != null) {
                     val outDir = file("$jniLibsDir/$abi")
                     outDir.mkdirs()
@@ -207,9 +217,9 @@ val mobileGluesLibs by tasks.registering {
                             input.copyTo(output)
                         }
                     }
-                    logger.lifecycle("Extracted $entryName")
+                    logger.lifecycle("Extracted ${entry.name} -> $abi/libMobileGlues.so")
                 } else {
-                    logger.warn("$entryName not found in APK")
+                    logger.warn("lib/$abi/libmobileglues.so not found in MobileGlues release APK")
                 }
             }
         }
