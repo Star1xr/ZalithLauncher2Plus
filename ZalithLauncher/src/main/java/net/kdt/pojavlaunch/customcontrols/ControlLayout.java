@@ -43,6 +43,8 @@ import net.kdt.pojavlaunch.customcontrols.handleview.ActionRow;
 import net.kdt.pojavlaunch.customcontrols.handleview.ControlHandleView;
 import net.kdt.pojavlaunch.customcontrols.handleview.EditControlPopup;
 
+import android.util.SparseArray;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -437,6 +439,26 @@ public class ControlLayout extends FrameLayout {
         private int mCameraPointerId = -1;
         private float mCameraLastX, mCameraLastY;
 
+        // Multi-touch fix fields.
+        //
+        // Android's ViewGroup.dispatchTouchEvent hard-codes intercepted=true for every
+        // non-ACTION_DOWN event when no child view has claimed the initial ACTION_DOWN
+        // (i.e. mFirstTouchTarget==null inside ViewGroup). This means that when the
+        // player's first finger lands on the empty gameplay area (no button child there),
+        // all subsequent ACTION_POINTER_DOWN events are intercepted by ControlLayout
+        // itself and NEVER reach the button children — the buttons appear dead.
+        //
+        // Fix: when we detect that the very first finger of a gesture landed on the game
+        // area, we manually dispatch ACTION_POINTER_DOWN / ACTION_MOVE / ACTION_POINTER_UP
+        // to any button child that lies under the new pointer, and we track those targets
+        // so the matching UP events are delivered correctly.
+        //
+        // When the first finger lands on a button child (the working scenario), this code
+        // is dormant: mGameAreaFirstTouch stays false and mManualTouchTargets is never
+        // populated, so super.dispatchTouchEvent handles everything as before.
+        private boolean mGameAreaFirstTouch = false;
+        private final SparseArray<View> mManualTouchTargets = new SparseArray<>();
+
         /**
          * In game (non-editor) mode, intercepts every touch event to track camera rotation
          * for the pointer that lands on an empty area of the screen (not over any button/joystick).
@@ -462,8 +484,94 @@ public class ControlLayout extends FrameLayout {
                         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
                                 updateLegacyButtonTracker();
                         }
+
+                        // Multi-touch fix: manually dispatch pointer events to button children
+                        // when the first touch landed on the gameplay area (see field comments).
+                        dispatchManualPointerEvent(event);
                 }
                 return super.dispatchTouchEvent(event);
+        }
+
+        /**
+         * Handles the multi-touch scenario where the user's first finger lands on the
+         * gameplay area (not on any button), causing Android's ViewGroup to set
+         * {@code intercepted = true} for all subsequent pointer events and never dispatch
+         * them to button children.
+         *
+         * <p>This method must be called <em>before</em> {@code super.dispatchTouchEvent()} so
+         * that buttons receive events even when ViewGroup would otherwise intercept them.
+         *
+         * <p>When {@code mGameAreaFirstTouch} is false (first touch was on a button), this
+         * method is entirely dormant — {@code mManualTouchTargets} stays empty and
+         * {@code super.dispatchTouchEvent()} handles everything normally.
+         */
+        private void dispatchManualPointerEvent(MotionEvent event) {
+                switch (event.getActionMasked()) {
+                        case MotionEvent.ACTION_DOWN: {
+                                // Start of a new gesture sequence. Record whether the first finger
+                                // landed on an empty game area or on a button child.
+                                mManualTouchTargets.clear();
+                                float x0 = event.getX(0), y0 = event.getY(0);
+                                mGameAreaFirstTouch = !isPointOverAnyChild(x0, y0);
+                                break;
+                        }
+
+                        case MotionEvent.ACTION_POINTER_DOWN: {
+                                if (!mGameAreaFirstTouch) break; // super handles it normally
+                                // Find the button child (if any) under the new pointer and dispatch.
+                                int idx = event.getActionIndex();
+                                int pid = event.getPointerId(idx);
+                                float x = event.getX(idx), y = event.getY(idx);
+                                for (int i = getChildCount() - 1; i >= 0; i--) {
+                                        View child = getChildAt(i);
+                                        if (child.getVisibility() != View.VISIBLE
+                                                        || !(child instanceof ControlInterface)) continue;
+                                        float cx = child.getX(), cy = child.getY();
+                                        if (x >= cx && x <= cx + child.getWidth()
+                                                        && y >= cy && y <= cy + child.getHeight()) {
+                                                child.dispatchTouchEvent(event);
+                                                mManualTouchTargets.put(pid, child);
+                                                break;
+                                        }
+                                }
+                                break;
+                        }
+
+                        case MotionEvent.ACTION_MOVE: {
+                                // Forward moves to tracked buttons so swipeable / passThru buttons
+                                // still behave correctly even when super intercepts the event.
+                                int n = mManualTouchTargets.size();
+                                for (int i = 0; i < n; i++) {
+                                        View target = mManualTouchTargets.valueAt(i);
+                                        if (target != null) target.dispatchTouchEvent(event);
+                                }
+                                break;
+                        }
+
+                        case MotionEvent.ACTION_POINTER_UP: {
+                                // Deliver the UP only to the button that received the matching DOWN.
+                                int pid = event.getPointerId(event.getActionIndex());
+                                View target = mManualTouchTargets.get(pid);
+                                if (target != null) {
+                                        target.dispatchTouchEvent(event);
+                                        mManualTouchTargets.remove(pid);
+                                }
+                                break;
+                        }
+
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_CANCEL: {
+                                // Final lift or cancel — release all manually tracked buttons.
+                                int n = mManualTouchTargets.size();
+                                for (int i = 0; i < n; i++) {
+                                        View target = mManualTouchTargets.valueAt(i);
+                                        if (target != null) target.dispatchTouchEvent(event);
+                                }
+                                mManualTouchTargets.clear();
+                                mGameAreaFirstTouch = false;
+                                break;
+                        }
+                }
         }
 
         /**
