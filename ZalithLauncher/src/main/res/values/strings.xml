@@ -428,6 +428,8 @@
     <string name="game_menu_option_force_close_text">Forcing the currently running game to close may cause save data corruption or prevent settings from being saved. Avoid this action unless necessary.</string>
     <string name="game_menu_option_switch_log">Log Output</string>
     <string name="game_menu_option_input_method">Switch Input Method</string>
+    <string name="game_menu_option_mouse_cursor_on">Show Mouse Cursor</string>
+    <string name="game_menu_option_mouse_cursor_off">Hide Mouse Cursor</string>
     <string name="game_menu_option_switch_fps">FPS Display</string>
     <string name="game_menu_option_switch_memory">Memory Display</string>
     <string name="game_menu_option_fps_settings">FPS Settings</string>

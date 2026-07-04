@@ -167,6 +167,14 @@ private class GameViewModel(
     var gameMenuState by mutableStateOf(MenuState.NONE)
     /** 游戏菜单-控制设置区域Tab选择的索引 */
     var controlMenuTabIndex by mutableIntStateOf(0)
+    /** Legacy模式：虚拟鼠标光标切换请求计数器，悬浮菜单与布局内专用按钮共用同一计数器以保持同步 */
+    var mouseCursorToggleRequest by mutableIntStateOf(0)
+    /** Legacy模式：虚拟鼠标光标当前是否显示 */
+    var legacyMouseCursorEnabled by mutableStateOf(false)
+    /** 切换Legacy模式下的虚拟鼠标光标显示状态 */
+    fun toggleMouseCursor() {
+        mouseCursorToggleRequest++
+    }
     /** 强制关闭弹窗操作状态 */
     var forceCloseState by mutableStateOf<ForceCloseOperation>(ForceCloseOperation.None)
     /** 发送键值操作状态 */
@@ -642,7 +650,12 @@ fun GameScreen(
                     ),
                     legacyFile = legacyFile,
                     isGrabbing = isGrabbing,
-                    onMenuButtonClicked = { viewModel.switchMenu() }
+                    mouseCursorToggleRequest = viewModel.mouseCursorToggleRequest,
+                    onMenuButtonClicked = { viewModel.switchMenu() },
+                    onKeyboardButtonClicked = {
+                        eventViewModel.sendEvent(EventViewModel.Event.Game.SwitchIme(null))
+                    },
+                    onMouseCursorStateChanged = { viewModel.legacyMouseCursorEnabled = it }
                 )
             } else if (!isLegacyMode) {
                 // Zalith 2 mode: use LayerController's ControlBoxLayout.
@@ -766,6 +779,9 @@ fun GameScreen(
             onInputMethod = {
                 eventViewModel.sendEvent(EventViewModel.Event.Game.SwitchIme(null))
             },
+            isLegacyMode = isLegacyMode,
+            mouseCursorEnabled = viewModel.legacyMouseCursorEnabled,
+            onToggleMouseCursor = { viewModel.toggleMouseCursor() },
             onSendKeycode = { viewModel.sendKeycodeState = SendKeycodeState.ShowDialog },
             onReplacementControl = { viewModel.replacementControlState = ReplacementControlState.Show },
             onManageJoystick = {

@@ -18,7 +18,6 @@ import com.movtery.zalithlauncher.R;
 import com.movtery.zalithlauncher.setting.AllSettings;
 
 import net.kdt.pojavlaunch.LwjglGlfwKeycode;
-import net.kdt.pojavlaunch.MainActivity;
 import net.kdt.pojavlaunch.customcontrols.ControlData;
 import net.kdt.pojavlaunch.customcontrols.ControlLayout;
 import net.kdt.pojavlaunch.customcontrols.handleview.EditControlPopup;
@@ -229,7 +228,7 @@ public class ControlButton extends TextView implements ControlInterface {
     private void sendSpecialKey(int keycode, boolean isDown){
         switch (keycode) {
             case ControlData.SPECIALBTN_KEYBOARD:
-                if(isDown) MainActivity.switchKeyboardState();
+                if(isDown) getControlLayoutParent().notifyKeyboardToggle();
                 break;
 
             case ControlData.SPECIALBTN_TOGGLECTRL:
@@ -237,7 +236,7 @@ public class ControlButton extends TextView implements ControlInterface {
                 break;
 
             case ControlData.SPECIALBTN_VIRTUALMOUSE:
-                if(isDown) MainActivity.toggleMouse(getContext());
+                if(isDown) getControlLayoutParent().notifyMouseCursorToggle();
                 break;
 
             case ControlData.SPECIALBTN_MOUSEPRI:

@@ -66,6 +66,7 @@ public class ControlLayout extends FrameLayout {
         private EditControlPopup mControlPopup = null;
         private ControlHandleView mHandleView;
         private ControlButtonMenuListener mMenuListener;
+        private LegacySpecialButtonListener mSpecialButtonListener;
         public ActionRow mActionRow = null;
         public String mLayoutFileName;
 
@@ -767,6 +768,18 @@ public class ControlLayout extends FrameLayout {
 
         public void notifyAppMenu() {
                 if(mMenuListener != null) mMenuListener.onClickedMenu();
+        }
+
+        public void setSpecialButtonListener(LegacySpecialButtonListener specialButtonListener) {
+                this.mSpecialButtonListener = specialButtonListener;
+        }
+
+        public void notifyKeyboardToggle() {
+                if(mSpecialButtonListener != null) mSpecialButtonListener.onKeyboardToggle();
+        }
+
+        public void notifyMouseCursorToggle() {
+                if(mSpecialButtonListener != null) mSpecialButtonListener.onMouseCursorToggle();
         }
 
         /** Cached getter for perf purposes */
