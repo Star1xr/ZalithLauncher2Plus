@@ -22,7 +22,6 @@ import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +37,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -49,7 +47,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -785,72 +782,6 @@ private fun AccountsLayout(
         accountCapes = accountCapes,
         actions = actions
     )
-
-    BackgroundCard(
-        modifier = modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-        shape = MaterialTheme.shapes.extraLarge
-    ) {
-        if (accounts.isNotEmpty()) {
-            val scrollState = rememberLazyListState()
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .scrollbar(
-                        state = scrollState.scrollIndicatorState,
-                        orientation = Orientation.Vertical,
-                    )
-                    .clip(MaterialTheme.shapes.extraLarge),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                state = scrollState,
-            ) {
-                items(accounts, key = { it.uniqueUUID }) { account ->
-                    AccountItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        currentAccount = currentAccount,
-                        account = account,
-                        enabled = !isOffline, //非正版状态下不允许选择任何状态
-                        onSelected = { AccountsManager.setCurrentAccount(it) },
-                        openChangeSkinDialog = {
-                            if (!account.isAuthServerAccount()) {
-                                actions.onIntent(
-                                    AccountManageIntent.UpdateAccountSkinOp(
-                                        AccountSkinOperation.ChangeSkin(account)
-                                    )
-                                )
-                            }
-                        },
-                        onRefreshClick = {
-                            actions.onIntent(
-                                AccountManageIntent.RefreshAccount(
-                                    account
-                                )
-                            )
-                        },
-                        onCopyUUID = {
-                            copyText(COPY_LABEL_ACCOUNT_UUID, account.profileId, context, false)
-                            Toast.makeText(
-                                context,
-                                context.getString(
-                                    R.string.account_local_uuid_copied,
-                                    account.username
-                                ),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        onDeleteClick = {
-                            actions.onIntent(
-                                AccountManageIntent.UpdateAccountOp(
-                                    AccountOperation.Delete(account)
-                                )
-                            )
-                        }
-                    )
-                }
-            }
-        }
-    }
 
     Column(
         modifier = modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
