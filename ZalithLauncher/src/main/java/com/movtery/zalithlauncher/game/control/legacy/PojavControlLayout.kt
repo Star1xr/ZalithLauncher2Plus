@@ -136,11 +136,18 @@ private class LegacyControlContainer(context: Context) : FrameLayout(context) {
     }
 
     /** Manually flips the virtual mouse cursor on/off — used by both the dedicated
-     *  in-layout special button and the floating quick-menu action, so they always
-     *  stay in sync (both operate on the same underlying [touchpad] state). */
+     *  in-layout special button and the floating quick-menu action.
+     *
+     *  After flipping the cursor, [AllSettings.mouseControlMode] is saved to match
+     *  the new state: SLIDE (swipe) when the cursor is shown, CLICK (tap) when it
+     *  is hidden.  This makes [AllSettings.mouseControlMode] the single source of
+     *  truth observed by both the in-layout button and the floating quick-menu's
+     *  mouse-mode selector, so they can never drift out of sync. */
     fun toggleMouseCursor() {
-        touchpad.switchState()
-        onCursorStateChanged?.invoke(touchpad.displayState)
+        val newState = touchpad.switchState()
+        val newMode = if (newState) MouseControlMode.SLIDE else MouseControlMode.CLICK
+        AllSettings.mouseControlMode.save(newMode)
+        onCursorStateChanged?.invoke(newState)
     }
 
     /** Applies the Tap/Swipe mouse control mode as the touchpad's default display state. */
