@@ -18,15 +18,26 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.settings
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,20 +45,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.plugin.driver.Driver
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
+import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
@@ -56,7 +71,6 @@ import com.movtery.zalithlauncher.path.URL_CLOUD_RENDERER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_DRIVER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_RENDERER_PLUGINS
 import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.utils.fsr.FSRUtils
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
@@ -74,6 +88,7 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSett
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.navigateOnce
 import com.movtery.zalithlauncher.utils.device.checkVulkanSupport
+import com.movtery.zalithlauncher.utils.fsr.FSRUtils
 import com.movtery.zalithlauncher.utils.isAdrenoGPU
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.sendDLPlugin
@@ -92,6 +107,21 @@ fun RendererSettingsScreen(
         val context = LocalContext.current
         var showMobileGluesSettings by remember { mutableStateOf(false) }
         var driverToDelete by remember { mutableStateOf<Driver?>(null) }
+
+        // Tab state: 0 = Built-in Renderers, 1 = App Renderers (external plugins)
+        var selectedRendererTab by remember { mutableIntStateOf(0) }
+
+        // Split all compatible renderers into built-in vs external plugin categories
+        val allCompatibleRenderers = Renderers.getCompatibleRenderers(context).second
+        val externalIdentifiers = RendererPluginManager.getRendererList()
+            .map { it.uniqueIdentifier }
+            .toSet()
+        val builtInRenderers = remember(allCompatibleRenderers, externalIdentifiers) {
+            allCompatibleRenderers.filter { it.getUniqueIdentifier() !in externalIdentifiers }
+        }
+        val externalRenderers = remember(allCompatibleRenderers, externalIdentifiers) {
+            allCompatibleRenderers.filter { it.getUniqueIdentifier() in externalIdentifiers }
+        }
 
         if (showMobileGluesSettings) {
             MobileGluesSettingsDialog(onDismissRequest = { showMobileGluesSettings = false })
@@ -121,55 +151,139 @@ fun RendererSettingsScreen(
                 .padding(all = 12.dp),
             isVisible = isVisible
         ) { scope ->
+
+            // Renderer category tab selector
+            AnimatedItem(scope) { yOffset ->
+                RendererTabRow(
+                    selectedTab = selectedRendererTab,
+                    onTabSelected = { selectedRendererTab = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                )
+            }
+
             AnimatedItem(scope) { yOffset ->
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
                 ) {
-                    ListSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Top,
-                        unit = AllSettings.renderer,
-                        items = Renderers.getCompatibleRenderers(context).second,
-                        title = stringResource(R.string.settings_renderer_global_renderer_title),
-                        summary = stringResource(R.string.settings_renderer_global_renderer_summary),
-                        getItemText = { it.getRendererName() },
-                        getItemId = { it.getUniqueIdentifier() },
-                        getItemSummary = {
-                            RendererSummaryLayout(it)
-                        },
-                        getItemTrailing = { renderer ->
-                            if (renderer.getRendererName() == "MobileGlues") {
-                                IconButton(onClick = { showMobileGluesSettings = true }) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_settings_filled),
-                                        contentDescription = stringResource(R.string.generic_setting)
-                                    )
-                                }
-                            }
-                        },
-                        trailingIcon = {
-                            IconButton(
-                                onClick = {
-                                    eventViewModel.sendDLPlugin(
-                                        githubLink = URL_GITHUB_RENDERER_PLUGINS,
-                                        cloudDrives = listOf(
-                                            EventViewModel.Event.DownloadPlugins.CloudDrive(
-                                                language = "zh",
-                                                link = URL_CLOUD_RENDERER_PLUGINS
+                    // Renderer selection — filtered by the active tab
+                    when (selectedRendererTab) {
+                        0 -> {
+                            // Built-in renderers tab
+                            ListSettingsCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                position = CardPosition.Top,
+                                unit = AllSettings.renderer,
+                                items = builtInRenderers,
+                                title = stringResource(R.string.settings_renderer_global_renderer_title),
+                                summary = stringResource(R.string.settings_renderer_global_renderer_summary),
+                                getItemText = { it.getRendererName() },
+                                getItemId = { it.getUniqueIdentifier() },
+                                getItemSummary = {
+                                    RendererSummaryLayout(it)
+                                },
+                                getItemTrailing = { renderer ->
+                                    if (renderer.getRendererName() == "MobileGlues") {
+                                        IconButton(onClick = { showMobileGluesSettings = true }) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.ic_settings_filled),
+                                                contentDescription = stringResource(R.string.generic_setting)
                                             )
+                                        }
+                                    }
+                                },
+                                trailingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            eventViewModel.sendDLPlugin(
+                                                githubLink = URL_GITHUB_RENDERER_PLUGINS,
+                                                cloudDrives = listOf(
+                                                    EventViewModel.Event.DownloadPlugins.CloudDrive(
+                                                        language = "zh",
+                                                        link = URL_CLOUD_RENDERER_PLUGINS
+                                                    )
+                                                )
+                                            )
+                                        }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_download_2_filled),
+                                            contentDescription = stringResource(R.string.generic_download)
                                         )
-                                    )
+                                    }
                                 }
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_download_2_filled),
-                                    contentDescription = stringResource(R.string.generic_download)
+                            )
+                        }
+                        else -> {
+                            // App Renderers (external plugin) tab
+                            if (externalRenderers.isNotEmpty()) {
+                                ListSettingsCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    position = CardPosition.Top,
+                                    unit = AllSettings.renderer,
+                                    items = externalRenderers,
+                                    title = stringResource(R.string.settings_renderer_global_renderer_title),
+                                    summary = stringResource(R.string.settings_renderer_global_renderer_summary),
+                                    getItemText = { it.getRendererName() },
+                                    getItemId = { it.getUniqueIdentifier() },
+                                    getItemSummary = {
+                                        RendererSummaryLayout(it)
+                                    },
+                                    trailingIcon = {
+                                        IconButton(
+                                            onClick = {
+                                                eventViewModel.sendDLPlugin(
+                                                    githubLink = URL_GITHUB_RENDERER_PLUGINS,
+                                                    cloudDrives = listOf(
+                                                        EventViewModel.Event.DownloadPlugins.CloudDrive(
+                                                            language = "zh",
+                                                            link = URL_CLOUD_RENDERER_PLUGINS
+                                                        )
+                                                    )
+                                                )
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.ic_download_2_filled),
+                                                contentDescription = stringResource(R.string.generic_download)
+                                            )
+                                        }
+                                    }
+                                )
+                            } else {
+                                // Empty state: no renderer plugin apps installed
+                                SettingsCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    position = CardPosition.Top,
+                                    title = stringResource(R.string.settings_renderer_tab_external_empty_title),
+                                    summary = stringResource(R.string.settings_renderer_tab_external_empty),
+                                    trailingIcon = {
+                                        IconButton(
+                                            onClick = {
+                                                eventViewModel.sendDLPlugin(
+                                                    githubLink = URL_GITHUB_RENDERER_PLUGINS,
+                                                    cloudDrives = listOf(
+                                                        EventViewModel.Event.DownloadPlugins.CloudDrive(
+                                                            language = "zh",
+                                                            link = URL_CLOUD_RENDERER_PLUGINS
+                                                        )
+                                                    )
+                                                )
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.ic_download_2_filled),
+                                                contentDescription = stringResource(R.string.generic_download)
+                                            )
+                                        }
+                                    }
                                 )
                             }
                         }
-                    )
+                    }
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
@@ -417,6 +531,86 @@ fun RendererSettingsScreen(
                 }
             }
 
+        }
+    }
+}
+
+/**
+ * Pill-style tab row for switching between renderer categories.
+ * Matches the design of the Zalith 2 / Legacy tab selector in Control Management.
+ *
+ * @param selectedTab 0 = Built-in Renderers, 1 = App Renderers
+ * @param onTabSelected callback when the user picks a tab
+ */
+@Composable
+private fun RendererTabRow(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val tabs = listOf(
+        Pair(stringResource(R.string.settings_renderer_tab_builtin), R.drawable.ic_build_outlined),
+        Pair(stringResource(R.string.settings_renderer_tab_external), R.drawable.ic_extension_outlined)
+    )
+    BoxWithConstraints(
+        modifier = modifier
+            .height(52.dp)
+            .clip(MaterialTheme.shapes.extraLarge)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(4.dp)
+    ) {
+        val tabWidth = maxWidth / tabs.size
+        val indicatorOffset by animateDpAsState(
+            targetValue = tabWidth * selectedTab,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            label = "renderer_tab_indicator"
+        )
+        // Animated selection indicator
+        Box(
+            modifier = Modifier
+                .offset(x = indicatorOffset)
+                .width(tabWidth)
+                .fillMaxHeight()
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(MaterialTheme.colorScheme.primaryContainer)
+        )
+        // Tab labels
+        Row(modifier = Modifier.fillMaxSize()) {
+            tabs.forEachIndexed { index, tabEntry ->
+                val (label, iconRes) = tabEntry
+                val isSelected = selectedTab == index
+                val contentColor = if (isSelected)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clickable { onTabSelected(index) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(iconRes),
+                            contentDescription = null,
+                            tint = contentColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = contentColor
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -1283,6 +1283,10 @@
     <string name="disclaimer_original_repo">Original Repo</string>
     <string name="launcher_fork_subtitle">A fork of Zalith Launcher 2</string>
     <string name="settings_renderer_external_driver">External Driver</string>
+    <string name="settings_renderer_tab_builtin">Built-in</string>
+    <string name="settings_renderer_tab_external">App Renderers</string>
+    <string name="settings_renderer_tab_external_empty_title">No App Renderers Installed</string>
+    <string name="settings_renderer_tab_external_empty">No renderer plugin apps are installed. Tap the download button to find compatible FCL or ZalithLauncher renderer plugins.</string>
     <string name="settings_renderer_download_turnip">Download Turnip Driver</string>
     <string name="settings_renderer_download_turnip_summary">Select a Turnip driver version and download it from GitHub</string>
     <string name="settings_renderer_turnip_downloading">Downloading Turnip Driver...</string>
