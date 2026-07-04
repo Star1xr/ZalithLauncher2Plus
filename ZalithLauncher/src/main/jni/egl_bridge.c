@@ -121,7 +121,7 @@ void load_vulkan() {
 int pojavInitOpenGL() {
     const char *renderer = getenv("POJAV_RENDERER");
 
-    if (!strncmp("opengles", renderer, 8))
+    if (!strncmp("opengles", renderer, 8) || !strcmp(renderer, "mobileglues"))
     {
         pojav_environ->config_renderer = RENDERER_GL4ES;
         set_gl_bridge_tbl();
@@ -197,7 +197,7 @@ EXTERNAL_API void pojavSetWindowHint(int hint, int value) {
             break;
         case GLFW_OPENGL_API: {
             const char *renderer = getenv("POJAV_RENDERER");
-            if (!strncmp("opengles", renderer, 8)) {
+            if (!strncmp("opengles", renderer, 8) || !strcmp(renderer, "mobileglues")) {
                 pojav_environ->config_renderer = RENDERER_GL4ES;
             } else if (!strcmp(renderer, "vulkan_zink")) {
                 pojav_environ->config_renderer = RENDERER_VK_ZINK;
