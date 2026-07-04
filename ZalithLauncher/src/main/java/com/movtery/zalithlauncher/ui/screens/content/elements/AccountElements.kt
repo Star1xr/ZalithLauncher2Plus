@@ -172,54 +172,54 @@ import kotlin.math.roundToInt
 
 private const val TAG = "AccountElements"
 
-/** 账号登录菜单操作状态 */
+/** è´¦å·ç»å½èåæä½ç¶æ */
 sealed interface LoginMenuOperation {
     data object None : LoginMenuOperation
 
-    /** 呼出登陆账号菜单，将所有登录方式放到一个对话框中展示 */
+    /** å¼åºç»éè´¦å·èåï¼å°ææç»å½æ¹å¼æ¾å°ä¸ä¸ªå¯¹è¯æ¡ä¸­å±ç¤º */
     data object Login : LoginMenuOperation
 }
 
 /**
- * 微软登录的操作状态
+ * å¾®è½¯ç»å½çæä½ç¶æ
  */
 sealed interface MicrosoftLoginOperation {
     data object None : MicrosoftLoginOperation
 
-    /** 微软账号相关提示Dialog流程 */
+    /** å¾®è½¯è´¦å·ç¸å³æç¤ºDialogæµç¨ */
     data object Tip : MicrosoftLoginOperation
 }
 
 /**
- * 离线登陆的操作状态
+ * ç¦»çº¿ç»éçæä½ç¶æ
  */
 sealed interface LocalLoginOperation {
     data object None : LocalLoginOperation
 
-    /** 编辑用户名流程 */
+    /** ç¼è¾ç¨æ·åæµç¨ */
     data object Edit : LocalLoginOperation
 
-    /** 创建账号流程 */
+    /** åå»ºè´¦å·æµç¨ */
     data class Create(val userName: String, val userUUID: String?) : LocalLoginOperation
 
-    /** 警告非法用户名流程 */
+    /** è­¦åéæ³ç¨æ·åæµç¨ */
     data class Alert(val userName: String, val userUUID: String?) : LocalLoginOperation
 }
 
 /**
- * 添加认证服务器时的状态
+ * æ·»å è®¤è¯æå¡å¨æ¶çç¶æ
  */
 sealed interface ServerOperation {
     data object None : ServerOperation
-    /** 添加认证服务器对话框 */
+    /** æ·»å è®¤è¯æå¡å¨å¯¹è¯æ¡ */
     data object AddNew : ServerOperation
-    /** 删除认证服务器对话框 */
+    /** å é¤è®¤è¯æå¡å¨å¯¹è¯æ¡ */
     data class Delete(val server: AuthServer) : ServerOperation
     data class OnThrowable(val throwable: Throwable) : ServerOperation
 }
 
 /**
- * 账号操作的状态
+ * è´¦å·æä½çç¶æ
  */
 sealed interface AccountOperation {
     data object None : AccountOperation
@@ -228,28 +228,28 @@ sealed interface AccountOperation {
 }
 
 /**
- * 更换账号皮肤的状态
+ * æ´æ¢è´¦å·ç®è¤çç¶æ
  */
 sealed interface AccountSkinOperation {
     data object None : AccountSkinOperation
 
-    /** 修改皮肤主对话框 */
+    /** ä¿®æ¹ç®è¤ä¸»å¯¹è¯æ¡ */
     data class ChangeSkin(val account: Account) : AccountSkinOperation
 }
 
 /**
- * 认证服务器登陆时的状态
+ * è®¤è¯æå¡å¨ç»éæ¶çç¶æ
  */
 sealed interface OtherLoginOperation {
     data object None : OtherLoginOperation
 
-    /** 账号登陆（输入账号密码Dialog）流程 */
+    /** è´¦å·ç»éï¼è¾å¥è´¦å·å¯ç Dialogï¼æµç¨ */
     data class OnLogin(val server: AuthServer) : OtherLoginOperation
 
-    /** 登陆失败流程 */
+    /** ç»éå¤±è´¥æµç¨ */
     data class OnFailed(val th: Throwable) : OtherLoginOperation
 
-    /** 账号存在多角色的情况，多角色处理流程 */
+    /** è´¦å·å­å¨å¤è§è²çæåµï¼å¤è§è²å¤çæµç¨ */
     data class SelectRole(
         val profiles: List<AuthResult.AvailableProfiles>,
         val selected: (AuthResult.AvailableProfiles) -> Unit
@@ -469,7 +469,7 @@ fun AccountItem(
                 )
             }
             Row {
-                //更换皮肤/披风
+                //æ´æ¢ç®è¤/æ«é£
                 Row {
                     IconButton(
                         onClick = { openChangeSkinDialog() },
@@ -483,7 +483,7 @@ fun AccountItem(
                     }
                 }
 
-                //刷新
+                //å·æ°
                 IconButton(
                     onClick = onRefreshClick,
                     enabled = account.accountType != AccountType.LOCAL.tag
@@ -495,7 +495,7 @@ fun AccountItem(
                     )
                 }
 
-                //复制 UUID
+                //å¤å¶ UUID
                 IconButton(
                     onClick = onCopyUUID
                 ) {
@@ -506,7 +506,7 @@ fun AccountItem(
                     )
                 }
 
-                //删除
+                //å é¤
                 IconButton(
                     onClick = onDeleteClick
                 ) {
@@ -526,6 +526,7 @@ fun LoginMenuDialog(
     onDismissRequest: () -> Unit,
     onMicrosoftLogin: () -> Unit,
     onLocalLogin: () -> Unit,
+    onElyByLogin: () -> Unit,
     authServers: List<AuthServer>,
     onAuthServerLogin: (server: AuthServer) -> Unit,
     onAddAuthServer: () -> Unit,
@@ -568,7 +569,7 @@ fun LoginMenuDialog(
                                 .padding(start = 12.dp, end = 6.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            //微软登录
+                            //å¾®è½¯ç»å½
                             LoginItem(
                                 modifier = Modifier.fillMaxWidth(),
                                 title = stringResource(R.string.account_type_microsoft),
@@ -577,12 +578,21 @@ fun LoginMenuDialog(
                                     onDismissRequest()
                                 }
                             )
-                            //离线登录
+                            //ç¦»çº¿ç»å½
                             LoginItem(
                                 modifier = Modifier.fillMaxWidth(),
                                 title = stringResource(R.string.account_type_local),
                                 onClick = {
                                     onLocalLogin()
+                                    onDismissRequest()
+                                }
+                            )
+                            //Ely.by Login
+                            LoginItem(
+                                modifier = Modifier.fillMaxWidth(),
+                                title = "Ely.by",
+                                onClick = {
+                                    onElyByLogin()
                                     onDismissRequest()
                                 }
                             )
@@ -599,7 +609,7 @@ fun LoginMenuDialog(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             item {
-                                //添加认证服务器
+                                //æ·»å è®¤è¯æå¡å¨
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
                                     title = stringResource(R.string.account_add_new_server_button),
@@ -659,6 +669,7 @@ private fun PreviewLoginMenuDialog() {
             onDismissRequest = {},
             onMicrosoftLogin = {},
             onLocalLogin = {},
+            onElyByLogin = {},
             authServers = emptyList(),
             onAuthServerLogin = {},
             onAddAuthServer = {},
@@ -786,19 +797,19 @@ fun LocalLoginDialog(
     onConfirm: (isUserNameInvalid: Boolean, userName: String, userUUID: String?) -> Unit,
     openLink: (url: String) -> Unit
 ) {
-    /** 用户输入的用户名 */
+    /** ç¨æ·è¾å¥çç¨æ·å */
     var userName by rememberSaveable { mutableStateOf("") }
 
-    /** 用户名是否无效 */
+    /** ç¨æ·åæ¯å¦æ æ */
     var isUserNameInvalid by rememberSaveable { mutableStateOf(false) }
 
-    /** 用户编辑了UUID */
+    /** ç¨æ·ç¼è¾äºUUID */
     var userEditedUUID by rememberSaveable { mutableStateOf(false) }
 
-    /** 用户输入的UUID */
+    /** ç¨æ·è¾å¥çUUID */
     var userUUID by rememberSaveable { mutableStateOf("") }
 
-    /** 根据用户名生成的待定UUID */
+    /** æ ¹æ®ç¨æ·åçæçå¾å®UUID */
     val pendingUUID = remember(userName) {
         runCatching {
             getUUIDFromUserName(userName).toString()
@@ -809,7 +820,7 @@ fun LocalLoginDialog(
         }
     }
 
-    /** 用户UUID是否无效 */
+    /** ç¨æ·UUIDæ¯å¦æ æ */
     val isUserUUIDInvalid: Boolean = remember(userUUID) {
         if (userUUID.isEmpty()) false
         else {
@@ -905,7 +916,7 @@ fun LocalLoginDialog(
                                 text = stringResource(R.string.account_supporting_microsoft_tip_link_purchase)
                             )
 
-                            //打开高级设置
+                            //æå¼é«çº§è®¾ç½®
                             BaseIconTextButton(
                                 onClick = {
                                     editUUID = !editUUID
@@ -928,7 +939,7 @@ fun LocalLoginDialog(
                             )
                         }
 
-                        //编辑自定义 UUID
+                        //ç¼è¾èªå®ä¹ UUID
                         AnimatedVisibility(
                             visible = editUUID
                         ) {
@@ -960,7 +971,7 @@ fun LocalLoginDialog(
                                     shape = MaterialTheme.shapes.large
                                 )
 
-                                //关于 UUID 的提示
+                                //å³äº UUID çæç¤º
                                 Surface(
                                     modifier = Modifier.fillMaxWidth(),
                                     color = MaterialTheme.colorScheme.secondaryContainer,
@@ -1015,7 +1026,7 @@ fun LocalLoginDialog(
                                             onConfirm(isUserNameInvalid, userName, uuidString)
                                         }
                                     } else {
-                                        //如果未填写UUID，则默认使用待定UUID
+                                        //å¦ææªå¡«åUUIDï¼åé»è®¤ä½¿ç¨å¾å®UUID
                                         onConfirm(
                                             isUserNameInvalid,
                                             userName,
@@ -1043,7 +1054,7 @@ fun OtherServerLoginDialog(
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
 
-    val confirmAction = { //确认操作
+    val confirmAction = { //ç¡®è®¤æä½
         if (email.isNotEmpty() && password.isNotEmpty()) {
             onConfirm(email, password)
         }
@@ -1109,7 +1120,7 @@ fun OtherServerLoginDialog(
                             ),
                             keyboardActions = KeyboardActions(
                                 onNext = {
-                                    //自动跳到密码输入框，无缝衔接
+                                    //èªå¨è·³å°å¯ç è¾å¥æ¡ï¼æ ç¼è¡æ¥
                                     passwordFocus.requestFocus()
                                 }
                             ),
@@ -1118,7 +1129,7 @@ fun OtherServerLoginDialog(
                         )
 
                         Spacer(modifier = Modifier.size(8.dp))
-                        /** 是否显示密码 */
+                        /** æ¯å¦æ¾ç¤ºå¯ç  */
                         var showPassword by rememberSaveable { mutableStateOf(false) }
 
                         SingleLineTextCheck(
@@ -1169,7 +1180,7 @@ fun OtherServerLoginDialog(
                             ),
                             keyboardActions = KeyboardActions(
                                 onDone = {
-                                    //用户按下返回，甚至可以在这里直接进行登陆
+                                    //ç¨æ·æä¸è¿åï¼çè³å¯ä»¥å¨è¿éç´æ¥è¿è¡ç»é
                                     focusManager.clearFocus(true)
                                     confirmAction()
                                 }
@@ -1219,8 +1230,8 @@ fun OtherServerLoginDialog(
 }
 
 /**
- * 更改皮肤流程需要让 uri 与皮肤模型深度绑定
- * 重置或者确认更改时，能更方便的处理数据
+ * æ´æ¹ç®è¤æµç¨éè¦è®© uri ä¸ç®è¤æ¨¡åæ·±åº¦ç»å®
+ * éç½®æèç¡®è®¤æ´æ¹æ¶ï¼è½æ´æ¹ä¾¿çå¤çæ°æ®
  */
 sealed interface ChangeSkin {
     data object None : ChangeSkin
@@ -1231,13 +1242,13 @@ sealed interface ChangeSkin {
     ) : ChangeSkin
 
     /**
-     * 重置离线皮肤
+     * éç½®ç¦»çº¿ç®è¤
      */
     data object ResetSkin : ChangeSkin
 }
 
 /**
- * 更改披风流程
+ * æ´æ¹æ«é£æµç¨
  */
 sealed interface ChangeCape {
     data object None : ChangeCape
@@ -1311,7 +1322,7 @@ fun ChangeSkinDialog(
         }
 
     /**
-     * 初始化账号设置的皮肤
+     * åå§åè´¦å·è®¾ç½®çç®è¤
      */
     fun loadSkin() {
         val capeFile = account.getCapeFile()
@@ -1339,7 +1350,7 @@ fun ChangeSkinDialog(
     }
 
     /**
-     * 重置皮肤预览
+     * éç½®ç®è¤é¢è§
      */
     fun resetSkin() {
         playerSkin.resetSkin()
@@ -1474,7 +1485,7 @@ fun ChangeSkinDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             if (!pageFinished) {
-                                //加载皮肤预览中
+                                //å è½½ç®è¤é¢è§ä¸­
                                 LoadingIndicator()
                             }
 
@@ -1501,7 +1512,7 @@ fun ChangeSkinDialog(
                                 .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            //更换皮肤：选择皮肤图片文件
+                            //æ´æ¢ç®è¤ï¼éæ©ç®è¤å¾çæä»¶
                             when (skinState) {
                                 ChangeSkin.None, ChangeSkin.ResetSkin -> {
                                     InfoLayoutTextItem(
@@ -1537,12 +1548,12 @@ fun ChangeSkinDialog(
                                             text = stringResource(R.string.account_change_skin_arm_style),
                                             style = MaterialTheme.typography.bodyMedium
                                         )
-                                        //选择样式
+                                        //éæ©æ ·å¼
                                         Column(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalArrangement = Arrangement.spacedBy(12.dp)
                                         ) {
-                                            //粗臂
+                                            //ç²è
                                             RadioCard(
                                                 selected = skinState.skinModel == SkinModelType.STEVE,
                                                 text = stringResource(R.string.account_change_skin_arm_wide),
@@ -1554,7 +1565,7 @@ fun ChangeSkinDialog(
                                                     )
                                                 }
                                             )
-                                            //细臂
+                                            //ç»è
                                             RadioCard(
                                                 selected = skinState.skinModel == SkinModelType.ALEX,
                                                 text = stringResource(R.string.account_change_skin_arm_slim),
@@ -1571,7 +1582,7 @@ fun ChangeSkinDialog(
                                 }
                             }
 
-                            //仅微软账号支持更改披风
+                            //ä»å¾®è½¯è´¦å·æ¯ææ´æ¹æ«é£
                             if (account.isMicrosoftAccount()) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1601,7 +1612,7 @@ fun ChangeSkinDialog(
                                 )
                             }
 
-                            //自定义披风上传
+                            //èªå®ä¹æ«é£ä¸ä¼ 
                             InfoLayoutTextItem(
                                 modifier = Modifier.fillMaxWidth(),
                                 title = stringResource(R.string.account_change_cape_upload),
@@ -1625,7 +1636,7 @@ fun ChangeSkinDialog(
                                 enabled = !isImportingCape
                             )
 
-                            //离线账号重置披风
+                            //ç¦»çº¿è´¦å·éç½®æ«é£
                             if (account.getCapeFile().exists() && capeState != ChangeCape.ResetCape) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1643,7 +1654,7 @@ fun ChangeSkinDialog(
                                 )
                             }
 
-                            //离线账号重置皮肤
+                            //ç¦»çº¿è´¦å·éç½®ç®è¤
                             if (account.isLocalAccount() && account.hasSkinFile && skinState != ChangeSkin.ResetSkin) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1715,7 +1726,7 @@ fun ChangeSkinDialog(
     }
 
     if (showCapeSelector) {
-        //若当前未更改披风，则使用使用中的披风
+        //è¥å½åæªæ´æ¹æ«é£ï¼åä½¿ç¨ä½¿ç¨ä¸­çæ«é£
         val cape = if (capeState is ChangeCape.SelectedCape) {
             capeState.cape
         } else {
@@ -1729,7 +1740,7 @@ fun ChangeSkinDialog(
             },
             selectedCape = cape,
             onSelected = { cape, _ ->
-                //检查是否已经为正在使用的披风
+                //æ£æ¥æ¯å¦å·²ç»ä¸ºæ­£å¨ä½¿ç¨çæ«é£
                 val state = if (cape != currentUsingCape) {
                     ChangeCape.SelectedCape(cape)
                 } else {

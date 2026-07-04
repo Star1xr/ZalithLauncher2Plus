@@ -56,6 +56,7 @@ const val URL_PROJECT_RELEASES_LATEST: String = "https://api.github.com/repos/jo
 const val URL_COMMUNITY: String = "https://github.com/johnrenonasuncion-Ramil/Zeryth-Launcher/graphs/contributors"
 const val URL_WEBLATE: String = "https://hosted.weblate.org/projects/zalithlauncher2"
 const val URL_SUPPORT: String = "https://ifdian.net/a/MovTery"
+const val URL_ELY_BY_AUTH: String = "https://account.ely.by/api/authlib-injector/"
 const val URL_EASYTIER: String = "https://easytier.cn/"
 
 const val URL_GITHUB_RENDERER_PLUGINS = "https://github.com/ShirosakiMio/FCLRendererPlugin/releases/tag/Renderer"
@@ -86,8 +87,8 @@ val GLOBAL_CLIENT = HttpClient(CIO) {
     }
 }.apply {
     requestPipeline.intercept(HttpRequestPipeline.State) {
-        // 检查 host 是否为 CurseForge
-        // 自动添加 CurseForge 的 api 密钥
+        // æ£æ¥ host æ¯å¦ä¸º CurseForge
+        // èªå¨æ·»å  CurseForge ç api å¯é¥
         val host = context.url.host
         if (host == HOST_CURSEFORGE_API || host == HOST_CURSEFORGE_EDGE) {
             val apiKey = BuildKeys.CURSEFORGE_API
@@ -132,7 +133,7 @@ fun createRequestBuilder(url: String, body: RequestBody?): Request.Builder {
 fun createOkHttpClient(): OkHttpClient = createOkHttpClientBuilder().build()
 
 /**
- * 创建一个OkHttpClient，可自定义一些内容
+ * åå»ºä¸ä¸ªOkHttpClientï¼å¯èªå®ä¹ä¸äºåå®¹
  */
 fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkHttpClient.Builder {
     return OkHttpClient.Builder()
@@ -142,13 +143,13 @@ fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkH
 }
 
 /**
- * 创建用于文件下载的 OkHttpClient。
- * 与普通 API 调用不同，文件下载需要更长的超时配置，且不设 callTimeout
- * （因为文件大小差异很大，不能用一个固定值限制整体下载时间）。
+ * åå»ºç¨äºæä»¶ä¸è½½ç OkHttpClientã
+ * ä¸æ®é API è°ç¨ä¸åï¼æä»¶ä¸è½½éè¦æ´é¿çè¶æ¶éç½®ï¼ä¸ä¸è®¾ callTimeout
+ * ï¼å ä¸ºæä»¶å¤§å°å·®å¼å¾å¤§ï¼ä¸è½ç¨ä¸ä¸ªåºå®å¼éå¶æ´ä½ä¸è½½æ¶é´ï¼ã
  *
- * 使用 OkHttp 替代 HttpURLConnection 的主要原因是：
- * OkHttp 使用自实现的 AsyncTimeout 机制，比依赖操作系统 socket 超时的
- * HttpURLConnection 在 Android 上更加可靠，能有效避免"卡 0b/s"问题。
+ * ä½¿ç¨ OkHttp æ¿ä»£ HttpURLConnection çä¸»è¦åå æ¯ï¼
+ * OkHttp ä½¿ç¨èªå®ç°ç AsyncTimeout æºå¶ï¼æ¯ä¾èµæä½ç³»ç» socket è¶æ¶ç
+ * HttpURLConnection å¨ Android ä¸æ´å å¯é ï¼è½ææé¿å"å¡ 0b/s"é®é¢ã
  */
 val DOWNLOAD_OKHTTP_CLIENT: OkHttpClient by lazy {
     OkHttpClient.Builder()
@@ -158,6 +159,6 @@ val DOWNLOAD_OKHTTP_CLIENT: OkHttpClient by lazy {
         .retryOnConnectionFailure(true)
         .addInterceptor(CURSEFORGE_INTERCEPTOR)
         .build()
-        // 注意：不设置 callTimeout，因为文件大小差异极大
-        // 协程层的 withTimeout 提供整体兜底保护
+        // æ³¨æï¼ä¸è®¾ç½® callTimeoutï¼å ä¸ºæä»¶å¤§å°å·®å¼æå¤§
+        // åç¨å±ç withTimeout æä¾æ´ä½ååºä¿æ¤
 }
