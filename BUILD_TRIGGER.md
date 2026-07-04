@@ -1,3 +1,3 @@
 # Build Trigger
 
-Layout: Offline + Ely.by login buttons placed side-by-side in a Row.
+Grid layout: Microsoft|Offline in row 1, Ely.by|spacer in row 2.
