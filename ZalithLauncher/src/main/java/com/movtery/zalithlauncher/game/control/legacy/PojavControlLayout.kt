@@ -239,6 +239,13 @@ fun PojavControlLayout(
                     container.lastToggleRequest = mouseCursorToggleRequest
                     container.toggleMouseCursor()
                 }
+                // Always resync the reported cursor state on every recomposition, as a
+                // safety net: the dedicated in-layout button toggles the touchpad directly
+                // from a native Android callback (outside this update lambda), and while
+                // LegacyControlContainer.onCursorStateChanged already reports that change
+                // immediately, this guarantees the floating quick-menu switch can never
+                // drift out of sync with the touchpad's actual display state.
+                currentOnCursorStateChanged(container.touchpad.displayState)
             },
             modifier = modifier
         )
