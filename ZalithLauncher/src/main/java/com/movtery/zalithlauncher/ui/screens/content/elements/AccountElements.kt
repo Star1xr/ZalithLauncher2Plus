@@ -172,54 +172,54 @@ import kotlin.math.roundToInt
 
 private const val TAG = "AccountElements"
 
-/** Ã¨Â´Â¦Ã¥ÂÂ·Ã§ÂÂ»Ã¥Â½ÂÃ¨ÂÂÃ¥ÂÂÃ¦ÂÂÃ¤Â½ÂÃ§ÂÂ¶Ã¦ÂÂ */
+/** ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ§ÃÂÃÂ»ÃÂ¥ÃÂ½ÃÂÃÂ¨ÃÂÃÂÃÂ¥ÃÂÃÂÃÂ¦ÃÂÃÂÃÂ¤ÃÂ½ÃÂÃÂ§ÃÂÃÂ¶ÃÂ¦ÃÂÃÂ */
 sealed interface LoginMenuOperation {
     data object None : LoginMenuOperation
 
-    /** Ã¥ÂÂ¼Ã¥ÂÂºÃ§ÂÂ»Ã©ÂÂÃ¨Â´Â¦Ã¥ÂÂ·Ã¨ÂÂÃ¥ÂÂÃ¯Â¼ÂÃ¥Â°ÂÃ¦ÂÂÃ¦ÂÂÃ§ÂÂ»Ã¥Â½ÂÃ¦ÂÂ¹Ã¥Â¼ÂÃ¦ÂÂ¾Ã¥ÂÂ°Ã¤Â¸ÂÃ¤Â¸ÂªÃ¥Â¯Â¹Ã¨Â¯ÂÃ¦Â¡ÂÃ¤Â¸Â­Ã¥Â±ÂÃ§Â¤Âº */
+    /** ÃÂ¥ÃÂÃÂ¼ÃÂ¥ÃÂÃÂºÃÂ§ÃÂÃÂ»ÃÂ©ÃÂÃÂÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ¨ÃÂÃÂÃÂ¥ÃÂÃÂÃÂ¯ÃÂ¼ÃÂÃÂ¥ÃÂ°ÃÂÃÂ¦ÃÂÃÂÃÂ¦ÃÂÃÂÃÂ§ÃÂÃÂ»ÃÂ¥ÃÂ½ÃÂÃÂ¦ÃÂÃÂ¹ÃÂ¥ÃÂ¼ÃÂÃÂ¦ÃÂÃÂ¾ÃÂ¥ÃÂÃÂ°ÃÂ¤ÃÂ¸ÃÂÃÂ¤ÃÂ¸ÃÂªÃÂ¥ÃÂ¯ÃÂ¹ÃÂ¨ÃÂ¯ÃÂÃÂ¦ÃÂ¡ÃÂÃÂ¤ÃÂ¸ÃÂ­ÃÂ¥ÃÂ±ÃÂÃÂ§ÃÂ¤ÃÂº */
     data object Login : LoginMenuOperation
 }
 
 /**
- * Ã¥Â¾Â®Ã¨Â½Â¯Ã§ÂÂ»Ã¥Â½ÂÃ§ÂÂÃ¦ÂÂÃ¤Â½ÂÃ§ÂÂ¶Ã¦ÂÂ
+ * ÃÂ¥ÃÂ¾ÃÂ®ÃÂ¨ÃÂ½ÃÂ¯ÃÂ§ÃÂÃÂ»ÃÂ¥ÃÂ½ÃÂÃÂ§ÃÂÃÂÃÂ¦ÃÂÃÂÃÂ¤ÃÂ½ÃÂÃÂ§ÃÂÃÂ¶ÃÂ¦ÃÂÃÂ
  */
 sealed interface MicrosoftLoginOperation {
     data object None : MicrosoftLoginOperation
 
-    /** Ã¥Â¾Â®Ã¨Â½Â¯Ã¨Â´Â¦Ã¥ÂÂ·Ã§ÂÂ¸Ã¥ÂÂ³Ã¦ÂÂÃ§Â¤ÂºDialogÃ¦ÂµÂÃ§Â¨Â */
+    /** ÃÂ¥ÃÂ¾ÃÂ®ÃÂ¨ÃÂ½ÃÂ¯ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ§ÃÂÃÂ¸ÃÂ¥ÃÂÃÂ³ÃÂ¦ÃÂÃÂÃÂ§ÃÂ¤ÃÂºDialogÃÂ¦ÃÂµÃÂÃÂ§ÃÂ¨ÃÂ */
     data object Tip : MicrosoftLoginOperation
 }
 
 /**
- * Ã§Â¦Â»Ã§ÂºÂ¿Ã§ÂÂ»Ã©ÂÂÃ§ÂÂÃ¦ÂÂÃ¤Â½ÂÃ§ÂÂ¶Ã¦ÂÂ
+ * ÃÂ§ÃÂ¦ÃÂ»ÃÂ§ÃÂºÃÂ¿ÃÂ§ÃÂÃÂ»ÃÂ©ÃÂÃÂÃÂ§ÃÂÃÂÃÂ¦ÃÂÃÂÃÂ¤ÃÂ½ÃÂÃÂ§ÃÂÃÂ¶ÃÂ¦ÃÂÃÂ
  */
 sealed interface LocalLoginOperation {
     data object None : LocalLoginOperation
 
-    /** Ã§Â¼ÂÃ¨Â¾ÂÃ§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂÃ¦ÂµÂÃ§Â¨Â */
+    /** ÃÂ§ÃÂ¼ÃÂÃÂ¨ÃÂ¾ÃÂÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·ÃÂ¥ÃÂÃÂÃÂ¦ÃÂµÃÂÃÂ§ÃÂ¨ÃÂ */
     data object Edit : LocalLoginOperation
 
-    /** Ã¥ÂÂÃ¥Â»ÂºÃ¨Â´Â¦Ã¥ÂÂ·Ã¦ÂµÂÃ§Â¨Â */
+    /** ÃÂ¥ÃÂÃÂÃÂ¥ÃÂ»ÃÂºÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ¦ÃÂµÃÂÃÂ§ÃÂ¨ÃÂ */
     data class Create(val userName: String, val userUUID: String?) : LocalLoginOperation
 
-    /** Ã¨Â­Â¦Ã¥ÂÂÃ©ÂÂÃ¦Â³ÂÃ§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂÃ¦ÂµÂÃ§Â¨Â */
+    /** ÃÂ¨ÃÂ­ÃÂ¦ÃÂ¥ÃÂÃÂÃÂ©ÃÂÃÂÃÂ¦ÃÂ³ÃÂÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·ÃÂ¥ÃÂÃÂÃÂ¦ÃÂµÃÂÃÂ§ÃÂ¨ÃÂ */
     data class Alert(val userName: String, val userUUID: String?) : LocalLoginOperation
 }
 
 /**
- * Ã¦Â·Â»Ã¥ÂÂ Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨Ã¦ÂÂ¶Ã§ÂÂÃ§ÂÂ¶Ã¦ÂÂ
+ * ÃÂ¦ÃÂ·ÃÂ»ÃÂ¥ÃÂÃÂ ÃÂ¨ÃÂ®ÃÂ¤ÃÂ¨ÃÂ¯ÃÂÃÂ¦ÃÂÃÂÃÂ¥ÃÂÃÂ¡ÃÂ¥ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ¶ÃÂ§ÃÂÃÂÃÂ§ÃÂÃÂ¶ÃÂ¦ÃÂÃÂ
  */
 sealed interface ServerOperation {
     data object None : ServerOperation
-    /** Ã¦Â·Â»Ã¥ÂÂ Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨Ã¥Â¯Â¹Ã¨Â¯ÂÃ¦Â¡Â */
+    /** ÃÂ¦ÃÂ·ÃÂ»ÃÂ¥ÃÂÃÂ ÃÂ¨ÃÂ®ÃÂ¤ÃÂ¨ÃÂ¯ÃÂÃÂ¦ÃÂÃÂÃÂ¥ÃÂÃÂ¡ÃÂ¥ÃÂÃÂ¨ÃÂ¥ÃÂ¯ÃÂ¹ÃÂ¨ÃÂ¯ÃÂÃÂ¦ÃÂ¡ÃÂ */
     data object AddNew : ServerOperation
-    /** Ã¥ÂÂ Ã©ÂÂ¤Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨Ã¥Â¯Â¹Ã¨Â¯ÂÃ¦Â¡Â */
+    /** ÃÂ¥ÃÂÃÂ ÃÂ©ÃÂÃÂ¤ÃÂ¨ÃÂ®ÃÂ¤ÃÂ¨ÃÂ¯ÃÂÃÂ¦ÃÂÃÂÃÂ¥ÃÂÃÂ¡ÃÂ¥ÃÂÃÂ¨ÃÂ¥ÃÂ¯ÃÂ¹ÃÂ¨ÃÂ¯ÃÂÃÂ¦ÃÂ¡ÃÂ */
     data class Delete(val server: AuthServer) : ServerOperation
     data class OnThrowable(val throwable: Throwable) : ServerOperation
 }
 
 /**
- * Ã¨Â´Â¦Ã¥ÂÂ·Ã¦ÂÂÃ¤Â½ÂÃ§ÂÂÃ§ÂÂ¶Ã¦ÂÂ
+ * ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ¦ÃÂÃÂÃÂ¤ÃÂ½ÃÂÃÂ§ÃÂÃÂÃÂ§ÃÂÃÂ¶ÃÂ¦ÃÂÃÂ
  */
 sealed interface AccountOperation {
     data object None : AccountOperation
@@ -228,28 +228,28 @@ sealed interface AccountOperation {
 }
 
 /**
- * Ã¦ÂÂ´Ã¦ÂÂ¢Ã¨Â´Â¦Ã¥ÂÂ·Ã§ÂÂ®Ã¨ÂÂ¤Ã§ÂÂÃ§ÂÂ¶Ã¦ÂÂ
+ * ÃÂ¦ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¢ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤ÃÂ§ÃÂÃÂÃÂ§ÃÂÃÂ¶ÃÂ¦ÃÂÃÂ
  */
 sealed interface AccountSkinOperation {
     data object None : AccountSkinOperation
 
-    /** Ã¤Â¿Â®Ã¦ÂÂ¹Ã§ÂÂ®Ã¨ÂÂ¤Ã¤Â¸Â»Ã¥Â¯Â¹Ã¨Â¯ÂÃ¦Â¡Â */
+    /** ÃÂ¤ÃÂ¿ÃÂ®ÃÂ¦ÃÂÃÂ¹ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤ÃÂ¤ÃÂ¸ÃÂ»ÃÂ¥ÃÂ¯ÃÂ¹ÃÂ¨ÃÂ¯ÃÂÃÂ¦ÃÂ¡ÃÂ */
     data class ChangeSkin(val account: Account) : AccountSkinOperation
 }
 
 /**
- * Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨Ã§ÂÂ»Ã©ÂÂÃ¦ÂÂ¶Ã§ÂÂÃ§ÂÂ¶Ã¦ÂÂ
+ * ÃÂ¨ÃÂ®ÃÂ¤ÃÂ¨ÃÂ¯ÃÂÃÂ¦ÃÂÃÂÃÂ¥ÃÂÃÂ¡ÃÂ¥ÃÂÃÂ¨ÃÂ§ÃÂÃÂ»ÃÂ©ÃÂÃÂÃÂ¦ÃÂÃÂ¶ÃÂ§ÃÂÃÂÃÂ§ÃÂÃÂ¶ÃÂ¦ÃÂÃÂ
  */
 sealed interface OtherLoginOperation {
     data object None : OtherLoginOperation
 
-    /** Ã¨Â´Â¦Ã¥ÂÂ·Ã§ÂÂ»Ã©ÂÂÃ¯Â¼ÂÃ¨Â¾ÂÃ¥ÂÂ¥Ã¨Â´Â¦Ã¥ÂÂ·Ã¥Â¯ÂÃ§Â ÂDialogÃ¯Â¼ÂÃ¦ÂµÂÃ§Â¨Â */
+    /** ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ§ÃÂÃÂ»ÃÂ©ÃÂÃÂÃÂ¯ÃÂ¼ÃÂÃÂ¨ÃÂ¾ÃÂÃÂ¥ÃÂÃÂ¥ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ¥ÃÂ¯ÃÂÃÂ§ÃÂ ÃÂDialogÃÂ¯ÃÂ¼ÃÂÃÂ¦ÃÂµÃÂÃÂ§ÃÂ¨ÃÂ */
     data class OnLogin(val server: AuthServer) : OtherLoginOperation
 
-    /** Ã§ÂÂ»Ã©ÂÂÃ¥Â¤Â±Ã¨Â´Â¥Ã¦ÂµÂÃ§Â¨Â */
+    /** ÃÂ§ÃÂÃÂ»ÃÂ©ÃÂÃÂÃÂ¥ÃÂ¤ÃÂ±ÃÂ¨ÃÂ´ÃÂ¥ÃÂ¦ÃÂµÃÂÃÂ§ÃÂ¨ÃÂ */
     data class OnFailed(val th: Throwable) : OtherLoginOperation
 
-    /** Ã¨Â´Â¦Ã¥ÂÂ·Ã¥Â­ÂÃ¥ÂÂ¨Ã¥Â¤ÂÃ¨Â§ÂÃ¨ÂÂ²Ã§ÂÂÃ¦ÂÂÃ¥ÂÂµÃ¯Â¼ÂÃ¥Â¤ÂÃ¨Â§ÂÃ¨ÂÂ²Ã¥Â¤ÂÃ§ÂÂÃ¦ÂµÂÃ§Â¨Â */
+    /** ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ¥ÃÂ­ÃÂÃÂ¥ÃÂÃÂ¨ÃÂ¥ÃÂ¤ÃÂÃÂ¨ÃÂ§ÃÂÃÂ¨ÃÂÃÂ²ÃÂ§ÃÂÃÂÃÂ¦ÃÂÃÂÃÂ¥ÃÂÃÂµÃÂ¯ÃÂ¼ÃÂÃÂ¥ÃÂ¤ÃÂÃÂ¨ÃÂ§ÃÂÃÂ¨ÃÂÃÂ²ÃÂ¥ÃÂ¤ÃÂÃÂ§ÃÂÃÂÃÂ¦ÃÂµÃÂÃÂ§ÃÂ¨ÃÂ */
     data class SelectRole(
         val profiles: List<AuthResult.AvailableProfiles>,
         val selected: (AuthResult.AvailableProfiles) -> Unit
@@ -469,7 +469,7 @@ fun AccountItem(
                 )
             }
             Row {
-                //Ã¦ÂÂ´Ã¦ÂÂ¢Ã§ÂÂ®Ã¨ÂÂ¤/Ã¦ÂÂ«Ã©Â£Â
+                //ÃÂ¦ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¢ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤/ÃÂ¦ÃÂÃÂ«ÃÂ©ÃÂ£ÃÂ
                 Row {
                     IconButton(
                         onClick = { openChangeSkinDialog() },
@@ -483,7 +483,7 @@ fun AccountItem(
                     }
                 }
 
-                //Ã¥ÂÂ·Ã¦ÂÂ°
+                //ÃÂ¥ÃÂÃÂ·ÃÂ¦ÃÂÃÂ°
                 IconButton(
                     onClick = onRefreshClick,
                     enabled = account.accountType != AccountType.LOCAL.tag
@@ -495,7 +495,7 @@ fun AccountItem(
                     )
                 }
 
-                //Ã¥Â¤ÂÃ¥ÂÂ¶ UUID
+                //ÃÂ¥ÃÂ¤ÃÂÃÂ¥ÃÂÃÂ¶ UUID
                 IconButton(
                     onClick = onCopyUUID
                 ) {
@@ -506,7 +506,7 @@ fun AccountItem(
                     )
                 }
 
-                //Ã¥ÂÂ Ã©ÂÂ¤
+                //ÃÂ¥ÃÂÃÂ ÃÂ©ÃÂÃÂ¤
                 IconButton(
                     onClick = onDeleteClick
                 ) {
@@ -569,7 +569,7 @@ fun LoginMenuDialog(
                                 .padding(start = 12.dp, end = 6.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            //Ã¥Â¾Â®Ã¨Â½Â¯Ã§ÂÂ»Ã¥Â½Â
+                            //ÃÂ¥ÃÂ¾ÃÂ®ÃÂ¨ÃÂ½ÃÂ¯ÃÂ§ÃÂÃÂ»ÃÂ¥ÃÂ½ÃÂ
                             LoginItem(
                                 modifier = Modifier.fillMaxWidth(),
                                 title = stringResource(R.string.account_type_microsoft),
@@ -578,7 +578,7 @@ fun LoginMenuDialog(
                                     onDismissRequest()
                                 }
                             )
-                            //Ã§Â¦Â»Ã§ÂºÂ¿Ã§ÂÂ»Ã¥Â½Â
+                            //ÃÂ§ÃÂ¦ÃÂ»ÃÂ§ÃÂºÃÂ¿ÃÂ§ÃÂÃÂ»ÃÂ¥ÃÂ½ÃÂ
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -615,7 +615,7 @@ fun LoginMenuDialog(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             item {
-                                //Ã¦Â·Â»Ã¥ÂÂ Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨
+                                //ÃÂ¦ÃÂ·ÃÂ»ÃÂ¥ÃÂÃÂ ÃÂ¨ÃÂ®ÃÂ¤ÃÂ¨ÃÂ¯ÃÂÃÂ¦ÃÂÃÂÃÂ¥ÃÂÃÂ¡ÃÂ¥ÃÂÃÂ¨
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
                                     title = stringResource(R.string.account_add_new_server_button),
@@ -803,19 +803,19 @@ fun LocalLoginDialog(
     onConfirm: (isUserNameInvalid: Boolean, userName: String, userUUID: String?) -> Unit,
     openLink: (url: String) -> Unit
 ) {
-    /** Ã§ÂÂ¨Ã¦ÂÂ·Ã¨Â¾ÂÃ¥ÂÂ¥Ã§ÂÂÃ§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂ */
+    /** ÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·ÃÂ¨ÃÂ¾ÃÂÃÂ¥ÃÂÃÂ¥ÃÂ§ÃÂÃÂÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·ÃÂ¥ÃÂÃÂ */
     var userName by rememberSaveable { mutableStateOf("") }
 
-    /** Ã§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂÃ¦ÂÂ¯Ã¥ÂÂ¦Ã¦ÂÂ Ã¦ÂÂ */
+    /** ÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·ÃÂ¥ÃÂÃÂÃÂ¦ÃÂÃÂ¯ÃÂ¥ÃÂÃÂ¦ÃÂ¦ÃÂÃÂ ÃÂ¦ÃÂÃÂ */
     var isUserNameInvalid by rememberSaveable { mutableStateOf(false) }
 
-    /** Ã§ÂÂ¨Ã¦ÂÂ·Ã§Â¼ÂÃ¨Â¾ÂÃ¤ÂºÂUUID */
+    /** ÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·ÃÂ§ÃÂ¼ÃÂÃÂ¨ÃÂ¾ÃÂÃÂ¤ÃÂºÃÂUUID */
     var userEditedUUID by rememberSaveable { mutableStateOf(false) }
 
-    /** Ã§ÂÂ¨Ã¦ÂÂ·Ã¨Â¾ÂÃ¥ÂÂ¥Ã§ÂÂUUID */
+    /** ÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·ÃÂ¨ÃÂ¾ÃÂÃÂ¥ÃÂÃÂ¥ÃÂ§ÃÂÃÂUUID */
     var userUUID by rememberSaveable { mutableStateOf("") }
 
-    /** Ã¦Â Â¹Ã¦ÂÂ®Ã§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂÃ§ÂÂÃ¦ÂÂÃ§ÂÂÃ¥Â¾ÂÃ¥Â®ÂUUID */
+    /** ÃÂ¦ÃÂ ÃÂ¹ÃÂ¦ÃÂÃÂ®ÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·ÃÂ¥ÃÂÃÂÃÂ§ÃÂÃÂÃÂ¦ÃÂÃÂÃÂ§ÃÂÃÂÃÂ¥ÃÂ¾ÃÂÃÂ¥ÃÂ®ÃÂUUID */
     val pendingUUID = remember(userName) {
         runCatching {
             getUUIDFromUserName(userName).toString()
@@ -826,7 +826,7 @@ fun LocalLoginDialog(
         }
     }
 
-    /** Ã§ÂÂ¨Ã¦ÂÂ·UUIDÃ¦ÂÂ¯Ã¥ÂÂ¦Ã¦ÂÂ Ã¦ÂÂ */
+    /** ÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·UUIDÃÂ¦ÃÂÃÂ¯ÃÂ¥ÃÂÃÂ¦ÃÂ¦ÃÂÃÂ ÃÂ¦ÃÂÃÂ */
     val isUserUUIDInvalid: Boolean = remember(userUUID) {
         if (userUUID.isEmpty()) false
         else {
@@ -922,7 +922,7 @@ fun LocalLoginDialog(
                                 text = stringResource(R.string.account_supporting_microsoft_tip_link_purchase)
                             )
 
-                            //Ã¦ÂÂÃ¥Â¼ÂÃ©Â«ÂÃ§ÂºÂ§Ã¨Â®Â¾Ã§Â½Â®
+                            //ÃÂ¦ÃÂÃÂÃÂ¥ÃÂ¼ÃÂÃÂ©ÃÂ«ÃÂÃÂ§ÃÂºÃÂ§ÃÂ¨ÃÂ®ÃÂ¾ÃÂ§ÃÂ½ÃÂ®
                             BaseIconTextButton(
                                 onClick = {
                                     editUUID = !editUUID
@@ -945,7 +945,7 @@ fun LocalLoginDialog(
                             )
                         }
 
-                        //Ã§Â¼ÂÃ¨Â¾ÂÃ¨ÂÂªÃ¥Â®ÂÃ¤Â¹Â UUID
+                        //ÃÂ§ÃÂ¼ÃÂÃÂ¨ÃÂ¾ÃÂÃÂ¨ÃÂÃÂªÃÂ¥ÃÂ®ÃÂÃÂ¤ÃÂ¹ÃÂ UUID
                         AnimatedVisibility(
                             visible = editUUID
                         ) {
@@ -977,7 +977,7 @@ fun LocalLoginDialog(
                                     shape = MaterialTheme.shapes.large
                                 )
 
-                                //Ã¥ÂÂ³Ã¤ÂºÂ UUID Ã§ÂÂÃ¦ÂÂÃ§Â¤Âº
+                                //ÃÂ¥ÃÂÃÂ³ÃÂ¤ÃÂºÃÂ UUID ÃÂ§ÃÂÃÂÃÂ¦ÃÂÃÂÃÂ§ÃÂ¤ÃÂº
                                 Surface(
                                     modifier = Modifier.fillMaxWidth(),
                                     color = MaterialTheme.colorScheme.secondaryContainer,
@@ -1032,7 +1032,7 @@ fun LocalLoginDialog(
                                             onConfirm(isUserNameInvalid, userName, uuidString)
                                         }
                                     } else {
-                                        //Ã¥Â¦ÂÃ¦ÂÂÃ¦ÂÂªÃ¥Â¡Â«Ã¥ÂÂUUIDÃ¯Â¼ÂÃ¥ÂÂÃ©Â»ÂÃ¨Â®Â¤Ã¤Â½Â¿Ã§ÂÂ¨Ã¥Â¾ÂÃ¥Â®ÂUUID
+                                        //ÃÂ¥ÃÂ¦ÃÂÃÂ¦ÃÂÃÂÃÂ¦ÃÂÃÂªÃÂ¥ÃÂ¡ÃÂ«ÃÂ¥ÃÂÃÂUUIDÃÂ¯ÃÂ¼ÃÂÃÂ¥ÃÂÃÂÃÂ©ÃÂ»ÃÂÃÂ¨ÃÂ®ÃÂ¤ÃÂ¤ÃÂ½ÃÂ¿ÃÂ§ÃÂÃÂ¨ÃÂ¥ÃÂ¾ÃÂÃÂ¥ÃÂ®ÃÂUUID
                                         onConfirm(
                                             isUserNameInvalid,
                                             userName,
@@ -1060,7 +1060,7 @@ fun OtherServerLoginDialog(
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
 
-    val confirmAction = { //Ã§Â¡Â®Ã¨Â®Â¤Ã¦ÂÂÃ¤Â½Â
+    val confirmAction = { //ÃÂ§ÃÂ¡ÃÂ®ÃÂ¨ÃÂ®ÃÂ¤ÃÂ¦ÃÂÃÂÃÂ¤ÃÂ½ÃÂ
         if (email.isNotEmpty() && password.isNotEmpty()) {
             onConfirm(email, password)
         }
@@ -1126,7 +1126,7 @@ fun OtherServerLoginDialog(
                             ),
                             keyboardActions = KeyboardActions(
                                 onNext = {
-                                    //Ã¨ÂÂªÃ¥ÂÂ¨Ã¨Â·Â³Ã¥ÂÂ°Ã¥Â¯ÂÃ§Â ÂÃ¨Â¾ÂÃ¥ÂÂ¥Ã¦Â¡ÂÃ¯Â¼ÂÃ¦ÂÂ Ã§Â¼ÂÃ¨Â¡ÂÃ¦ÂÂ¥
+                                    //ÃÂ¨ÃÂÃÂªÃÂ¥ÃÂÃÂ¨ÃÂ¨ÃÂ·ÃÂ³ÃÂ¥ÃÂÃÂ°ÃÂ¥ÃÂ¯ÃÂÃÂ§ÃÂ ÃÂÃÂ¨ÃÂ¾ÃÂÃÂ¥ÃÂÃÂ¥ÃÂ¦ÃÂ¡ÃÂÃÂ¯ÃÂ¼ÃÂÃÂ¦ÃÂÃÂ ÃÂ§ÃÂ¼ÃÂÃÂ¨ÃÂ¡ÃÂÃÂ¦ÃÂÃÂ¥
                                     passwordFocus.requestFocus()
                                 }
                             ),
@@ -1135,7 +1135,7 @@ fun OtherServerLoginDialog(
                         )
 
                         Spacer(modifier = Modifier.size(8.dp))
-                        /** Ã¦ÂÂ¯Ã¥ÂÂ¦Ã¦ÂÂ¾Ã§Â¤ÂºÃ¥Â¯ÂÃ§Â Â */
+                        /** ÃÂ¦ÃÂÃÂ¯ÃÂ¥ÃÂÃÂ¦ÃÂ¦ÃÂÃÂ¾ÃÂ§ÃÂ¤ÃÂºÃÂ¥ÃÂ¯ÃÂÃÂ§ÃÂ ÃÂ */
                         var showPassword by rememberSaveable { mutableStateOf(false) }
 
                         SingleLineTextCheck(
@@ -1186,7 +1186,7 @@ fun OtherServerLoginDialog(
                             ),
                             keyboardActions = KeyboardActions(
                                 onDone = {
-                                    //Ã§ÂÂ¨Ã¦ÂÂ·Ã¦ÂÂÃ¤Â¸ÂÃ¨Â¿ÂÃ¥ÂÂÃ¯Â¼ÂÃ§ÂÂÃ¨ÂÂ³Ã¥ÂÂ¯Ã¤Â»Â¥Ã¥ÂÂ¨Ã¨Â¿ÂÃ©ÂÂÃ§ÂÂ´Ã¦ÂÂ¥Ã¨Â¿ÂÃ¨Â¡ÂÃ§ÂÂ»Ã©ÂÂ
+                                    //ÃÂ§ÃÂÃÂ¨ÃÂ¦ÃÂÃÂ·ÃÂ¦ÃÂÃÂÃÂ¤ÃÂ¸ÃÂÃÂ¨ÃÂ¿ÃÂÃÂ¥ÃÂÃÂÃÂ¯ÃÂ¼ÃÂÃÂ§ÃÂÃÂÃÂ¨ÃÂÃÂ³ÃÂ¥ÃÂÃÂ¯ÃÂ¤ÃÂ»ÃÂ¥ÃÂ¥ÃÂÃÂ¨ÃÂ¨ÃÂ¿ÃÂÃÂ©ÃÂÃÂÃÂ§ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¥ÃÂ¨ÃÂ¿ÃÂÃÂ¨ÃÂ¡ÃÂÃÂ§ÃÂÃÂ»ÃÂ©ÃÂÃÂ
                                     focusManager.clearFocus(true)
                                     confirmAction()
                                 }
@@ -1236,8 +1236,8 @@ fun OtherServerLoginDialog(
 }
 
 /**
- * Ã¦ÂÂ´Ã¦ÂÂ¹Ã§ÂÂ®Ã¨ÂÂ¤Ã¦ÂµÂÃ§Â¨ÂÃ©ÂÂÃ¨Â¦ÂÃ¨Â®Â© uri Ã¤Â¸ÂÃ§ÂÂ®Ã¨ÂÂ¤Ã¦Â¨Â¡Ã¥ÂÂÃ¦Â·Â±Ã¥ÂºÂ¦Ã§Â»ÂÃ¥Â®Â
- * Ã©ÂÂÃ§Â½Â®Ã¦ÂÂÃ¨ÂÂÃ§Â¡Â®Ã¨Â®Â¤Ã¦ÂÂ´Ã¦ÂÂ¹Ã¦ÂÂ¶Ã¯Â¼ÂÃ¨ÂÂ½Ã¦ÂÂ´Ã¦ÂÂ¹Ã¤Â¾Â¿Ã§ÂÂÃ¥Â¤ÂÃ§ÂÂÃ¦ÂÂ°Ã¦ÂÂ®
+ * ÃÂ¦ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¹ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤ÃÂ¦ÃÂµÃÂÃÂ§ÃÂ¨ÃÂÃÂ©ÃÂÃÂÃÂ¨ÃÂ¦ÃÂÃÂ¨ÃÂ®ÃÂ© uri ÃÂ¤ÃÂ¸ÃÂÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤ÃÂ¦ÃÂ¨ÃÂ¡ÃÂ¥ÃÂÃÂÃÂ¦ÃÂ·ÃÂ±ÃÂ¥ÃÂºÃÂ¦ÃÂ§ÃÂ»ÃÂÃÂ¥ÃÂ®ÃÂ
+ * ÃÂ©ÃÂÃÂÃÂ§ÃÂ½ÃÂ®ÃÂ¦ÃÂÃÂÃÂ¨ÃÂÃÂÃÂ§ÃÂ¡ÃÂ®ÃÂ¨ÃÂ®ÃÂ¤ÃÂ¦ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¹ÃÂ¦ÃÂÃÂ¶ÃÂ¯ÃÂ¼ÃÂÃÂ¨ÃÂÃÂ½ÃÂ¦ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¹ÃÂ¤ÃÂ¾ÃÂ¿ÃÂ§ÃÂÃÂÃÂ¥ÃÂ¤ÃÂÃÂ§ÃÂÃÂÃÂ¦ÃÂÃÂ°ÃÂ¦ÃÂÃÂ®
  */
 sealed interface ChangeSkin {
     data object None : ChangeSkin
@@ -1248,13 +1248,13 @@ sealed interface ChangeSkin {
     ) : ChangeSkin
 
     /**
-     * Ã©ÂÂÃ§Â½Â®Ã§Â¦Â»Ã§ÂºÂ¿Ã§ÂÂ®Ã¨ÂÂ¤
+     * ÃÂ©ÃÂÃÂÃÂ§ÃÂ½ÃÂ®ÃÂ§ÃÂ¦ÃÂ»ÃÂ§ÃÂºÃÂ¿ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤
      */
     data object ResetSkin : ChangeSkin
 }
 
 /**
- * Ã¦ÂÂ´Ã¦ÂÂ¹Ã¦ÂÂ«Ã©Â£ÂÃ¦ÂµÂÃ§Â¨Â
+ * ÃÂ¦ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¹ÃÂ¦ÃÂÃÂ«ÃÂ©ÃÂ£ÃÂÃÂ¦ÃÂµÃÂÃÂ§ÃÂ¨ÃÂ
  */
 sealed interface ChangeCape {
     data object None : ChangeCape
@@ -1328,7 +1328,7 @@ fun ChangeSkinDialog(
         }
 
     /**
-     * Ã¥ÂÂÃ¥Â§ÂÃ¥ÂÂÃ¨Â´Â¦Ã¥ÂÂ·Ã¨Â®Â¾Ã§Â½Â®Ã§ÂÂÃ§ÂÂ®Ã¨ÂÂ¤
+     * ÃÂ¥ÃÂÃÂÃÂ¥ÃÂ§ÃÂÃÂ¥ÃÂÃÂÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ¨ÃÂ®ÃÂ¾ÃÂ§ÃÂ½ÃÂ®ÃÂ§ÃÂÃÂÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤
      */
     fun loadSkin() {
         val capeFile = account.getCapeFile()
@@ -1356,7 +1356,7 @@ fun ChangeSkinDialog(
     }
 
     /**
-     * Ã©ÂÂÃ§Â½Â®Ã§ÂÂ®Ã¨ÂÂ¤Ã©Â¢ÂÃ¨Â§Â
+     * ÃÂ©ÃÂÃÂÃÂ§ÃÂ½ÃÂ®ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤ÃÂ©ÃÂ¢ÃÂÃÂ¨ÃÂ§ÃÂ
      */
     fun resetSkin() {
         playerSkin.resetSkin()
@@ -1491,7 +1491,7 @@ fun ChangeSkinDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             if (!pageFinished) {
-                                //Ã¥ÂÂ Ã¨Â½Â½Ã§ÂÂ®Ã¨ÂÂ¤Ã©Â¢ÂÃ¨Â§ÂÃ¤Â¸Â­
+                                //ÃÂ¥ÃÂÃÂ ÃÂ¨ÃÂ½ÃÂ½ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤ÃÂ©ÃÂ¢ÃÂÃÂ¨ÃÂ§ÃÂÃÂ¤ÃÂ¸ÃÂ­
                                 LoadingIndicator()
                             }
 
@@ -1518,7 +1518,7 @@ fun ChangeSkinDialog(
                                 .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            //Ã¦ÂÂ´Ã¦ÂÂ¢Ã§ÂÂ®Ã¨ÂÂ¤Ã¯Â¼ÂÃ©ÂÂÃ¦ÂÂ©Ã§ÂÂ®Ã¨ÂÂ¤Ã¥ÂÂ¾Ã§ÂÂÃ¦ÂÂÃ¤Â»Â¶
+                            //ÃÂ¦ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¢ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤ÃÂ¯ÃÂ¼ÃÂÃÂ©ÃÂÃÂÃÂ¦ÃÂÃÂ©ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤ÃÂ¥ÃÂÃÂ¾ÃÂ§ÃÂÃÂÃÂ¦ÃÂÃÂÃÂ¤ÃÂ»ÃÂ¶
                             when (skinState) {
                                 ChangeSkin.None, ChangeSkin.ResetSkin -> {
                                     InfoLayoutTextItem(
@@ -1554,12 +1554,12 @@ fun ChangeSkinDialog(
                                             text = stringResource(R.string.account_change_skin_arm_style),
                                             style = MaterialTheme.typography.bodyMedium
                                         )
-                                        //Ã©ÂÂÃ¦ÂÂ©Ã¦Â Â·Ã¥Â¼Â
+                                        //ÃÂ©ÃÂÃÂÃÂ¦ÃÂÃÂ©ÃÂ¦ÃÂ ÃÂ·ÃÂ¥ÃÂ¼ÃÂ
                                         Column(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalArrangement = Arrangement.spacedBy(12.dp)
                                         ) {
-                                            //Ã§Â²ÂÃ¨ÂÂ
+                                            //ÃÂ§ÃÂ²ÃÂÃÂ¨ÃÂÃÂ
                                             RadioCard(
                                                 selected = skinState.skinModel == SkinModelType.STEVE,
                                                 text = stringResource(R.string.account_change_skin_arm_wide),
@@ -1571,7 +1571,7 @@ fun ChangeSkinDialog(
                                                     )
                                                 }
                                             )
-                                            //Ã§Â»ÂÃ¨ÂÂ
+                                            //ÃÂ§ÃÂ»ÃÂÃÂ¨ÃÂÃÂ
                                             RadioCard(
                                                 selected = skinState.skinModel == SkinModelType.ALEX,
                                                 text = stringResource(R.string.account_change_skin_arm_slim),
@@ -1588,7 +1588,7 @@ fun ChangeSkinDialog(
                                 }
                             }
 
-                            //Ã¤Â»ÂÃ¥Â¾Â®Ã¨Â½Â¯Ã¨Â´Â¦Ã¥ÂÂ·Ã¦ÂÂ¯Ã¦ÂÂÃ¦ÂÂ´Ã¦ÂÂ¹Ã¦ÂÂ«Ã©Â£Â
+                            //ÃÂ¤ÃÂ»ÃÂÃÂ¥ÃÂ¾ÃÂ®ÃÂ¨ÃÂ½ÃÂ¯ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ¦ÃÂÃÂ¯ÃÂ¦ÃÂÃÂÃÂ¦ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¹ÃÂ¦ÃÂÃÂ«ÃÂ©ÃÂ£ÃÂ
                             if (account.isMicrosoftAccount()) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1618,7 +1618,7 @@ fun ChangeSkinDialog(
                                 )
                             }
 
-                            //Ã¨ÂÂªÃ¥Â®ÂÃ¤Â¹ÂÃ¦ÂÂ«Ã©Â£ÂÃ¤Â¸ÂÃ¤Â¼Â 
+                            //ÃÂ¨ÃÂÃÂªÃÂ¥ÃÂ®ÃÂÃÂ¤ÃÂ¹ÃÂÃÂ¦ÃÂÃÂ«ÃÂ©ÃÂ£ÃÂÃÂ¤ÃÂ¸ÃÂÃÂ¤ÃÂ¼ÃÂ 
                             InfoLayoutTextItem(
                                 modifier = Modifier.fillMaxWidth(),
                                 title = stringResource(R.string.account_change_cape_upload),
@@ -1642,7 +1642,7 @@ fun ChangeSkinDialog(
                                 enabled = !isImportingCape
                             )
 
-                            //Ã§Â¦Â»Ã§ÂºÂ¿Ã¨Â´Â¦Ã¥ÂÂ·Ã©ÂÂÃ§Â½Â®Ã¦ÂÂ«Ã©Â£Â
+                            //ÃÂ§ÃÂ¦ÃÂ»ÃÂ§ÃÂºÃÂ¿ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ©ÃÂÃÂÃÂ§ÃÂ½ÃÂ®ÃÂ¦ÃÂÃÂ«ÃÂ©ÃÂ£ÃÂ
                             if (account.getCapeFile().exists() && capeState != ChangeCape.ResetCape) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1660,7 +1660,7 @@ fun ChangeSkinDialog(
                                 )
                             }
 
-                            //Ã§Â¦Â»Ã§ÂºÂ¿Ã¨Â´Â¦Ã¥ÂÂ·Ã©ÂÂÃ§Â½Â®Ã§ÂÂ®Ã¨ÂÂ¤
+                            //ÃÂ§ÃÂ¦ÃÂ»ÃÂ§ÃÂºÃÂ¿ÃÂ¨ÃÂ´ÃÂ¦ÃÂ¥ÃÂÃÂ·ÃÂ©ÃÂÃÂÃÂ§ÃÂ½ÃÂ®ÃÂ§ÃÂÃÂ®ÃÂ¨ÃÂÃÂ¤
                             if (account.isLocalAccount() && account.hasSkinFile && skinState != ChangeSkin.ResetSkin) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1732,7 +1732,7 @@ fun ChangeSkinDialog(
     }
 
     if (showCapeSelector) {
-        //Ã¨ÂÂ¥Ã¥Â½ÂÃ¥ÂÂÃ¦ÂÂªÃ¦ÂÂ´Ã¦ÂÂ¹Ã¦ÂÂ«Ã©Â£ÂÃ¯Â¼ÂÃ¥ÂÂÃ¤Â½Â¿Ã§ÂÂ¨Ã¤Â½Â¿Ã§ÂÂ¨Ã¤Â¸Â­Ã§ÂÂÃ¦ÂÂ«Ã©Â£Â
+        //ÃÂ¨ÃÂÃÂ¥ÃÂ¥ÃÂ½ÃÂÃÂ¥ÃÂÃÂÃÂ¦ÃÂÃÂªÃÂ¦ÃÂÃÂ´ÃÂ¦ÃÂÃÂ¹ÃÂ¦ÃÂÃÂ«ÃÂ©ÃÂ£ÃÂÃÂ¯ÃÂ¼ÃÂÃÂ¥ÃÂÃÂÃÂ¤ÃÂ½ÃÂ¿ÃÂ§ÃÂÃÂ¨ÃÂ¤ÃÂ½ÃÂ¿ÃÂ§ÃÂÃÂ¨ÃÂ¤ÃÂ¸ÃÂ­ÃÂ§ÃÂÃÂÃÂ¦ÃÂÃÂ«ÃÂ©ÃÂ£ÃÂ
         val cape = if (capeState is ChangeCape.SelectedCape) {
             capeState.cape
         } else {
@@ -1746,7 +1746,7 @@ fun ChangeSkinDialog(
             },
             selectedCape = cape,
             onSelected = { cape, _ ->
-                //Ã¦Â£ÂÃ¦ÂÂ¥Ã¦ÂÂ¯Ã¥ÂÂ¦Ã¥Â·Â²Ã§Â»ÂÃ¤Â¸ÂºÃ¦Â­Â£Ã¥ÂÂ¨Ã¤Â½Â¿Ã§ÂÂ¨Ã§ÂÂÃ¦ÂÂ«Ã©Â£Â
+                //ÃÂ¦ÃÂ£ÃÂÃÂ¦ÃÂÃÂ¥ÃÂ¦ÃÂÃÂ¯ÃÂ¥ÃÂÃÂ¦ÃÂ¥ÃÂ·ÃÂ²ÃÂ§ÃÂ»ÃÂÃÂ¤ÃÂ¸ÃÂºÃÂ¦ÃÂ­ÃÂ£ÃÂ¥ÃÂÃÂ¨ÃÂ¤ÃÂ½ÃÂ¿ÃÂ§ÃÂÃÂ¨ÃÂ§ÃÂÃÂÃÂ¦ÃÂÃÂ«ÃÂ©ÃÂ£ÃÂ
                 val state = if (cape != currentUsingCape) {
                     ChangeCape.SelectedCape(cape)
                 } else {
