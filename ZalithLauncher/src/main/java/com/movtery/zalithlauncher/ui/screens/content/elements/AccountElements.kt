@@ -172,54 +172,54 @@ import kotlin.math.roundToInt
 
 private const val TAG = "AccountElements"
 
-/** è´¦å·ç»å½èåæä½ç¶æ */
+/** Ã¨Â´Â¦Ã¥ÂÂ·Ã§ÂÂ»Ã¥Â½ÂÃ¨ÂÂÃ¥ÂÂÃ¦ÂÂÃ¤Â½ÂÃ§ÂÂ¶Ã¦ÂÂ */
 sealed interface LoginMenuOperation {
     data object None : LoginMenuOperation
 
-    /** å¼åºç»éè´¦å·èåï¼å°ææç»å½æ¹å¼æ¾å°ä¸ä¸ªå¯¹è¯æ¡ä¸­å±ç¤º */
+    /** Ã¥ÂÂ¼Ã¥ÂÂºÃ§ÂÂ»Ã©ÂÂÃ¨Â´Â¦Ã¥ÂÂ·Ã¨ÂÂÃ¥ÂÂÃ¯Â¼ÂÃ¥Â°ÂÃ¦ÂÂÃ¦ÂÂÃ§ÂÂ»Ã¥Â½ÂÃ¦ÂÂ¹Ã¥Â¼ÂÃ¦ÂÂ¾Ã¥ÂÂ°Ã¤Â¸ÂÃ¤Â¸ÂªÃ¥Â¯Â¹Ã¨Â¯ÂÃ¦Â¡ÂÃ¤Â¸Â­Ã¥Â±ÂÃ§Â¤Âº */
     data object Login : LoginMenuOperation
 }
 
 /**
- * å¾®è½¯ç»å½çæä½ç¶æ
+ * Ã¥Â¾Â®Ã¨Â½Â¯Ã§ÂÂ»Ã¥Â½ÂÃ§ÂÂÃ¦ÂÂÃ¤Â½ÂÃ§ÂÂ¶Ã¦ÂÂ
  */
 sealed interface MicrosoftLoginOperation {
     data object None : MicrosoftLoginOperation
 
-    /** å¾®è½¯è´¦å·ç¸å³æç¤ºDialogæµç¨ */
+    /** Ã¥Â¾Â®Ã¨Â½Â¯Ã¨Â´Â¦Ã¥ÂÂ·Ã§ÂÂ¸Ã¥ÂÂ³Ã¦ÂÂÃ§Â¤ÂºDialogÃ¦ÂµÂÃ§Â¨Â */
     data object Tip : MicrosoftLoginOperation
 }
 
 /**
- * ç¦»çº¿ç»éçæä½ç¶æ
+ * Ã§Â¦Â»Ã§ÂºÂ¿Ã§ÂÂ»Ã©ÂÂÃ§ÂÂÃ¦ÂÂÃ¤Â½ÂÃ§ÂÂ¶Ã¦ÂÂ
  */
 sealed interface LocalLoginOperation {
     data object None : LocalLoginOperation
 
-    /** ç¼è¾ç¨æ·åæµç¨ */
+    /** Ã§Â¼ÂÃ¨Â¾ÂÃ§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂÃ¦ÂµÂÃ§Â¨Â */
     data object Edit : LocalLoginOperation
 
-    /** åå»ºè´¦å·æµç¨ */
+    /** Ã¥ÂÂÃ¥Â»ÂºÃ¨Â´Â¦Ã¥ÂÂ·Ã¦ÂµÂÃ§Â¨Â */
     data class Create(val userName: String, val userUUID: String?) : LocalLoginOperation
 
-    /** è­¦åéæ³ç¨æ·åæµç¨ */
+    /** Ã¨Â­Â¦Ã¥ÂÂÃ©ÂÂÃ¦Â³ÂÃ§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂÃ¦ÂµÂÃ§Â¨Â */
     data class Alert(val userName: String, val userUUID: String?) : LocalLoginOperation
 }
 
 /**
- * æ·»å è®¤è¯æå¡å¨æ¶çç¶æ
+ * Ã¦Â·Â»Ã¥ÂÂ Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨Ã¦ÂÂ¶Ã§ÂÂÃ§ÂÂ¶Ã¦ÂÂ
  */
 sealed interface ServerOperation {
     data object None : ServerOperation
-    /** æ·»å è®¤è¯æå¡å¨å¯¹è¯æ¡ */
+    /** Ã¦Â·Â»Ã¥ÂÂ Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨Ã¥Â¯Â¹Ã¨Â¯ÂÃ¦Â¡Â */
     data object AddNew : ServerOperation
-    /** å é¤è®¤è¯æå¡å¨å¯¹è¯æ¡ */
+    /** Ã¥ÂÂ Ã©ÂÂ¤Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨Ã¥Â¯Â¹Ã¨Â¯ÂÃ¦Â¡Â */
     data class Delete(val server: AuthServer) : ServerOperation
     data class OnThrowable(val throwable: Throwable) : ServerOperation
 }
 
 /**
- * è´¦å·æä½çç¶æ
+ * Ã¨Â´Â¦Ã¥ÂÂ·Ã¦ÂÂÃ¤Â½ÂÃ§ÂÂÃ§ÂÂ¶Ã¦ÂÂ
  */
 sealed interface AccountOperation {
     data object None : AccountOperation
@@ -228,28 +228,28 @@ sealed interface AccountOperation {
 }
 
 /**
- * æ´æ¢è´¦å·ç®è¤çç¶æ
+ * Ã¦ÂÂ´Ã¦ÂÂ¢Ã¨Â´Â¦Ã¥ÂÂ·Ã§ÂÂ®Ã¨ÂÂ¤Ã§ÂÂÃ§ÂÂ¶Ã¦ÂÂ
  */
 sealed interface AccountSkinOperation {
     data object None : AccountSkinOperation
 
-    /** ä¿®æ¹ç®è¤ä¸»å¯¹è¯æ¡ */
+    /** Ã¤Â¿Â®Ã¦ÂÂ¹Ã§ÂÂ®Ã¨ÂÂ¤Ã¤Â¸Â»Ã¥Â¯Â¹Ã¨Â¯ÂÃ¦Â¡Â */
     data class ChangeSkin(val account: Account) : AccountSkinOperation
 }
 
 /**
- * è®¤è¯æå¡å¨ç»éæ¶çç¶æ
+ * Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨Ã§ÂÂ»Ã©ÂÂÃ¦ÂÂ¶Ã§ÂÂÃ§ÂÂ¶Ã¦ÂÂ
  */
 sealed interface OtherLoginOperation {
     data object None : OtherLoginOperation
 
-    /** è´¦å·ç»éï¼è¾å¥è´¦å·å¯ç Dialogï¼æµç¨ */
+    /** Ã¨Â´Â¦Ã¥ÂÂ·Ã§ÂÂ»Ã©ÂÂÃ¯Â¼ÂÃ¨Â¾ÂÃ¥ÂÂ¥Ã¨Â´Â¦Ã¥ÂÂ·Ã¥Â¯ÂÃ§Â ÂDialogÃ¯Â¼ÂÃ¦ÂµÂÃ§Â¨Â */
     data class OnLogin(val server: AuthServer) : OtherLoginOperation
 
-    /** ç»éå¤±è´¥æµç¨ */
+    /** Ã§ÂÂ»Ã©ÂÂÃ¥Â¤Â±Ã¨Â´Â¥Ã¦ÂµÂÃ§Â¨Â */
     data class OnFailed(val th: Throwable) : OtherLoginOperation
 
-    /** è´¦å·å­å¨å¤è§è²çæåµï¼å¤è§è²å¤çæµç¨ */
+    /** Ã¨Â´Â¦Ã¥ÂÂ·Ã¥Â­ÂÃ¥ÂÂ¨Ã¥Â¤ÂÃ¨Â§ÂÃ¨ÂÂ²Ã§ÂÂÃ¦ÂÂÃ¥ÂÂµÃ¯Â¼ÂÃ¥Â¤ÂÃ¨Â§ÂÃ¨ÂÂ²Ã¥Â¤ÂÃ§ÂÂÃ¦ÂµÂÃ§Â¨Â */
     data class SelectRole(
         val profiles: List<AuthResult.AvailableProfiles>,
         val selected: (AuthResult.AvailableProfiles) -> Unit
@@ -469,7 +469,7 @@ fun AccountItem(
                 )
             }
             Row {
-                //æ´æ¢ç®è¤/æ«é£
+                //Ã¦ÂÂ´Ã¦ÂÂ¢Ã§ÂÂ®Ã¨ÂÂ¤/Ã¦ÂÂ«Ã©Â£Â
                 Row {
                     IconButton(
                         onClick = { openChangeSkinDialog() },
@@ -483,7 +483,7 @@ fun AccountItem(
                     }
                 }
 
-                //å·æ°
+                //Ã¥ÂÂ·Ã¦ÂÂ°
                 IconButton(
                     onClick = onRefreshClick,
                     enabled = account.accountType != AccountType.LOCAL.tag
@@ -495,7 +495,7 @@ fun AccountItem(
                     )
                 }
 
-                //å¤å¶ UUID
+                //Ã¥Â¤ÂÃ¥ÂÂ¶ UUID
                 IconButton(
                     onClick = onCopyUUID
                 ) {
@@ -506,7 +506,7 @@ fun AccountItem(
                     )
                 }
 
-                //å é¤
+                //Ã¥ÂÂ Ã©ÂÂ¤
                 IconButton(
                     onClick = onDeleteClick
                 ) {
@@ -569,7 +569,7 @@ fun LoginMenuDialog(
                                 .padding(start = 12.dp, end = 6.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            //å¾®è½¯ç»å½
+                            //Ã¥Â¾Â®Ã¨Â½Â¯Ã§ÂÂ»Ã¥Â½Â
                             LoginItem(
                                 modifier = Modifier.fillMaxWidth(),
                                 title = stringResource(R.string.account_type_microsoft),
@@ -578,24 +578,30 @@ fun LoginMenuDialog(
                                     onDismissRequest()
                                 }
                             )
-                            //ç¦»çº¿ç»å½
-                            LoginItem(
+                            //Ã§Â¦Â»Ã§ÂºÂ¿Ã§ÂÂ»Ã¥Â½Â
+                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                title = stringResource(R.string.account_type_local),
-                                onClick = {
-                                    onLocalLogin()
-                                    onDismissRequest()
-                                }
-                            )
-                            //Ely.by Login
-                            LoginItem(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "Ely.by",
-                                onClick = {
-                                    onElyByLogin()
-                                    onDismissRequest()
-                                }
-                            )
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                //Offline Login
+                                LoginItem(
+                                    modifier = Modifier.weight(1f),
+                                    title = stringResource(R.string.account_type_local),
+                                    onClick = {
+                                        onLocalLogin()
+                                        onDismissRequest()
+                                    }
+                                )
+                                //Ely.by Login
+                                LoginItem(
+                                    modifier = Modifier.weight(1f),
+                                    title = "Ely.by",
+                                    onClick = {
+                                        onElyByLogin()
+                                        onDismissRequest()
+                                    }
+                                )
+                            }
                         }
 
                         LazyColumn(
@@ -609,7 +615,7 @@ fun LoginMenuDialog(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             item {
-                                //æ·»å è®¤è¯æå¡å¨
+                                //Ã¦Â·Â»Ã¥ÂÂ Ã¨Â®Â¤Ã¨Â¯ÂÃ¦ÂÂÃ¥ÂÂ¡Ã¥ÂÂ¨
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
                                     title = stringResource(R.string.account_add_new_server_button),
@@ -797,19 +803,19 @@ fun LocalLoginDialog(
     onConfirm: (isUserNameInvalid: Boolean, userName: String, userUUID: String?) -> Unit,
     openLink: (url: String) -> Unit
 ) {
-    /** ç¨æ·è¾å¥çç¨æ·å */
+    /** Ã§ÂÂ¨Ã¦ÂÂ·Ã¨Â¾ÂÃ¥ÂÂ¥Ã§ÂÂÃ§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂ */
     var userName by rememberSaveable { mutableStateOf("") }
 
-    /** ç¨æ·åæ¯å¦æ æ */
+    /** Ã§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂÃ¦ÂÂ¯Ã¥ÂÂ¦Ã¦ÂÂ Ã¦ÂÂ */
     var isUserNameInvalid by rememberSaveable { mutableStateOf(false) }
 
-    /** ç¨æ·ç¼è¾äºUUID */
+    /** Ã§ÂÂ¨Ã¦ÂÂ·Ã§Â¼ÂÃ¨Â¾ÂÃ¤ÂºÂUUID */
     var userEditedUUID by rememberSaveable { mutableStateOf(false) }
 
-    /** ç¨æ·è¾å¥çUUID */
+    /** Ã§ÂÂ¨Ã¦ÂÂ·Ã¨Â¾ÂÃ¥ÂÂ¥Ã§ÂÂUUID */
     var userUUID by rememberSaveable { mutableStateOf("") }
 
-    /** æ ¹æ®ç¨æ·åçæçå¾å®UUID */
+    /** Ã¦Â Â¹Ã¦ÂÂ®Ã§ÂÂ¨Ã¦ÂÂ·Ã¥ÂÂÃ§ÂÂÃ¦ÂÂÃ§ÂÂÃ¥Â¾ÂÃ¥Â®ÂUUID */
     val pendingUUID = remember(userName) {
         runCatching {
             getUUIDFromUserName(userName).toString()
@@ -820,7 +826,7 @@ fun LocalLoginDialog(
         }
     }
 
-    /** ç¨æ·UUIDæ¯å¦æ æ */
+    /** Ã§ÂÂ¨Ã¦ÂÂ·UUIDÃ¦ÂÂ¯Ã¥ÂÂ¦Ã¦ÂÂ Ã¦ÂÂ */
     val isUserUUIDInvalid: Boolean = remember(userUUID) {
         if (userUUID.isEmpty()) false
         else {
@@ -916,7 +922,7 @@ fun LocalLoginDialog(
                                 text = stringResource(R.string.account_supporting_microsoft_tip_link_purchase)
                             )
 
-                            //æå¼é«çº§è®¾ç½®
+                            //Ã¦ÂÂÃ¥Â¼ÂÃ©Â«ÂÃ§ÂºÂ§Ã¨Â®Â¾Ã§Â½Â®
                             BaseIconTextButton(
                                 onClick = {
                                     editUUID = !editUUID
@@ -939,7 +945,7 @@ fun LocalLoginDialog(
                             )
                         }
 
-                        //ç¼è¾èªå®ä¹ UUID
+                        //Ã§Â¼ÂÃ¨Â¾ÂÃ¨ÂÂªÃ¥Â®ÂÃ¤Â¹Â UUID
                         AnimatedVisibility(
                             visible = editUUID
                         ) {
@@ -971,7 +977,7 @@ fun LocalLoginDialog(
                                     shape = MaterialTheme.shapes.large
                                 )
 
-                                //å³äº UUID çæç¤º
+                                //Ã¥ÂÂ³Ã¤ÂºÂ UUID Ã§ÂÂÃ¦ÂÂÃ§Â¤Âº
                                 Surface(
                                     modifier = Modifier.fillMaxWidth(),
                                     color = MaterialTheme.colorScheme.secondaryContainer,
@@ -1026,7 +1032,7 @@ fun LocalLoginDialog(
                                             onConfirm(isUserNameInvalid, userName, uuidString)
                                         }
                                     } else {
-                                        //å¦ææªå¡«åUUIDï¼åé»è®¤ä½¿ç¨å¾å®UUID
+                                        //Ã¥Â¦ÂÃ¦ÂÂÃ¦ÂÂªÃ¥Â¡Â«Ã¥ÂÂUUIDÃ¯Â¼ÂÃ¥ÂÂÃ©Â»ÂÃ¨Â®Â¤Ã¤Â½Â¿Ã§ÂÂ¨Ã¥Â¾ÂÃ¥Â®ÂUUID
                                         onConfirm(
                                             isUserNameInvalid,
                                             userName,
@@ -1054,7 +1060,7 @@ fun OtherServerLoginDialog(
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
 
-    val confirmAction = { //ç¡®è®¤æä½
+    val confirmAction = { //Ã§Â¡Â®Ã¨Â®Â¤Ã¦ÂÂÃ¤Â½Â
         if (email.isNotEmpty() && password.isNotEmpty()) {
             onConfirm(email, password)
         }
@@ -1120,7 +1126,7 @@ fun OtherServerLoginDialog(
                             ),
                             keyboardActions = KeyboardActions(
                                 onNext = {
-                                    //èªå¨è·³å°å¯ç è¾å¥æ¡ï¼æ ç¼è¡æ¥
+                                    //Ã¨ÂÂªÃ¥ÂÂ¨Ã¨Â·Â³Ã¥ÂÂ°Ã¥Â¯ÂÃ§Â ÂÃ¨Â¾ÂÃ¥ÂÂ¥Ã¦Â¡ÂÃ¯Â¼ÂÃ¦ÂÂ Ã§Â¼ÂÃ¨Â¡ÂÃ¦ÂÂ¥
                                     passwordFocus.requestFocus()
                                 }
                             ),
@@ -1129,7 +1135,7 @@ fun OtherServerLoginDialog(
                         )
 
                         Spacer(modifier = Modifier.size(8.dp))
-                        /** æ¯å¦æ¾ç¤ºå¯ç  */
+                        /** Ã¦ÂÂ¯Ã¥ÂÂ¦Ã¦ÂÂ¾Ã§Â¤ÂºÃ¥Â¯ÂÃ§Â Â */
                         var showPassword by rememberSaveable { mutableStateOf(false) }
 
                         SingleLineTextCheck(
@@ -1180,7 +1186,7 @@ fun OtherServerLoginDialog(
                             ),
                             keyboardActions = KeyboardActions(
                                 onDone = {
-                                    //ç¨æ·æä¸è¿åï¼çè³å¯ä»¥å¨è¿éç´æ¥è¿è¡ç»é
+                                    //Ã§ÂÂ¨Ã¦ÂÂ·Ã¦ÂÂÃ¤Â¸ÂÃ¨Â¿ÂÃ¥ÂÂÃ¯Â¼ÂÃ§ÂÂÃ¨ÂÂ³Ã¥ÂÂ¯Ã¤Â»Â¥Ã¥ÂÂ¨Ã¨Â¿ÂÃ©ÂÂÃ§ÂÂ´Ã¦ÂÂ¥Ã¨Â¿ÂÃ¨Â¡ÂÃ§ÂÂ»Ã©ÂÂ
                                     focusManager.clearFocus(true)
                                     confirmAction()
                                 }
@@ -1230,8 +1236,8 @@ fun OtherServerLoginDialog(
 }
 
 /**
- * æ´æ¹ç®è¤æµç¨éè¦è®© uri ä¸ç®è¤æ¨¡åæ·±åº¦ç»å®
- * éç½®æèç¡®è®¤æ´æ¹æ¶ï¼è½æ´æ¹ä¾¿çå¤çæ°æ®
+ * Ã¦ÂÂ´Ã¦ÂÂ¹Ã§ÂÂ®Ã¨ÂÂ¤Ã¦ÂµÂÃ§Â¨ÂÃ©ÂÂÃ¨Â¦ÂÃ¨Â®Â© uri Ã¤Â¸ÂÃ§ÂÂ®Ã¨ÂÂ¤Ã¦Â¨Â¡Ã¥ÂÂÃ¦Â·Â±Ã¥ÂºÂ¦Ã§Â»ÂÃ¥Â®Â
+ * Ã©ÂÂÃ§Â½Â®Ã¦ÂÂÃ¨ÂÂÃ§Â¡Â®Ã¨Â®Â¤Ã¦ÂÂ´Ã¦ÂÂ¹Ã¦ÂÂ¶Ã¯Â¼ÂÃ¨ÂÂ½Ã¦ÂÂ´Ã¦ÂÂ¹Ã¤Â¾Â¿Ã§ÂÂÃ¥Â¤ÂÃ§ÂÂÃ¦ÂÂ°Ã¦ÂÂ®
  */
 sealed interface ChangeSkin {
     data object None : ChangeSkin
@@ -1242,13 +1248,13 @@ sealed interface ChangeSkin {
     ) : ChangeSkin
 
     /**
-     * éç½®ç¦»çº¿ç®è¤
+     * Ã©ÂÂÃ§Â½Â®Ã§Â¦Â»Ã§ÂºÂ¿Ã§ÂÂ®Ã¨ÂÂ¤
      */
     data object ResetSkin : ChangeSkin
 }
 
 /**
- * æ´æ¹æ«é£æµç¨
+ * Ã¦ÂÂ´Ã¦ÂÂ¹Ã¦ÂÂ«Ã©Â£ÂÃ¦ÂµÂÃ§Â¨Â
  */
 sealed interface ChangeCape {
     data object None : ChangeCape
@@ -1322,7 +1328,7 @@ fun ChangeSkinDialog(
         }
 
     /**
-     * åå§åè´¦å·è®¾ç½®çç®è¤
+     * Ã¥ÂÂÃ¥Â§ÂÃ¥ÂÂÃ¨Â´Â¦Ã¥ÂÂ·Ã¨Â®Â¾Ã§Â½Â®Ã§ÂÂÃ§ÂÂ®Ã¨ÂÂ¤
      */
     fun loadSkin() {
         val capeFile = account.getCapeFile()
@@ -1350,7 +1356,7 @@ fun ChangeSkinDialog(
     }
 
     /**
-     * éç½®ç®è¤é¢è§
+     * Ã©ÂÂÃ§Â½Â®Ã§ÂÂ®Ã¨ÂÂ¤Ã©Â¢ÂÃ¨Â§Â
      */
     fun resetSkin() {
         playerSkin.resetSkin()
@@ -1485,7 +1491,7 @@ fun ChangeSkinDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             if (!pageFinished) {
-                                //å è½½ç®è¤é¢è§ä¸­
+                                //Ã¥ÂÂ Ã¨Â½Â½Ã§ÂÂ®Ã¨ÂÂ¤Ã©Â¢ÂÃ¨Â§ÂÃ¤Â¸Â­
                                 LoadingIndicator()
                             }
 
@@ -1512,7 +1518,7 @@ fun ChangeSkinDialog(
                                 .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            //æ´æ¢ç®è¤ï¼éæ©ç®è¤å¾çæä»¶
+                            //Ã¦ÂÂ´Ã¦ÂÂ¢Ã§ÂÂ®Ã¨ÂÂ¤Ã¯Â¼ÂÃ©ÂÂÃ¦ÂÂ©Ã§ÂÂ®Ã¨ÂÂ¤Ã¥ÂÂ¾Ã§ÂÂÃ¦ÂÂÃ¤Â»Â¶
                             when (skinState) {
                                 ChangeSkin.None, ChangeSkin.ResetSkin -> {
                                     InfoLayoutTextItem(
@@ -1548,12 +1554,12 @@ fun ChangeSkinDialog(
                                             text = stringResource(R.string.account_change_skin_arm_style),
                                             style = MaterialTheme.typography.bodyMedium
                                         )
-                                        //éæ©æ ·å¼
+                                        //Ã©ÂÂÃ¦ÂÂ©Ã¦Â Â·Ã¥Â¼Â
                                         Column(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalArrangement = Arrangement.spacedBy(12.dp)
                                         ) {
-                                            //ç²è
+                                            //Ã§Â²ÂÃ¨ÂÂ
                                             RadioCard(
                                                 selected = skinState.skinModel == SkinModelType.STEVE,
                                                 text = stringResource(R.string.account_change_skin_arm_wide),
@@ -1565,7 +1571,7 @@ fun ChangeSkinDialog(
                                                     )
                                                 }
                                             )
-                                            //ç»è
+                                            //Ã§Â»ÂÃ¨ÂÂ
                                             RadioCard(
                                                 selected = skinState.skinModel == SkinModelType.ALEX,
                                                 text = stringResource(R.string.account_change_skin_arm_slim),
@@ -1582,7 +1588,7 @@ fun ChangeSkinDialog(
                                 }
                             }
 
-                            //ä»å¾®è½¯è´¦å·æ¯ææ´æ¹æ«é£
+                            //Ã¤Â»ÂÃ¥Â¾Â®Ã¨Â½Â¯Ã¨Â´Â¦Ã¥ÂÂ·Ã¦ÂÂ¯Ã¦ÂÂÃ¦ÂÂ´Ã¦ÂÂ¹Ã¦ÂÂ«Ã©Â£Â
                             if (account.isMicrosoftAccount()) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1612,7 +1618,7 @@ fun ChangeSkinDialog(
                                 )
                             }
 
-                            //èªå®ä¹æ«é£ä¸ä¼ 
+                            //Ã¨ÂÂªÃ¥Â®ÂÃ¤Â¹ÂÃ¦ÂÂ«Ã©Â£ÂÃ¤Â¸ÂÃ¤Â¼Â 
                             InfoLayoutTextItem(
                                 modifier = Modifier.fillMaxWidth(),
                                 title = stringResource(R.string.account_change_cape_upload),
@@ -1636,7 +1642,7 @@ fun ChangeSkinDialog(
                                 enabled = !isImportingCape
                             )
 
-                            //ç¦»çº¿è´¦å·éç½®æ«é£
+                            //Ã§Â¦Â»Ã§ÂºÂ¿Ã¨Â´Â¦Ã¥ÂÂ·Ã©ÂÂÃ§Â½Â®Ã¦ÂÂ«Ã©Â£Â
                             if (account.getCapeFile().exists() && capeState != ChangeCape.ResetCape) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1654,7 +1660,7 @@ fun ChangeSkinDialog(
                                 )
                             }
 
-                            //ç¦»çº¿è´¦å·éç½®ç®è¤
+                            //Ã§Â¦Â»Ã§ÂºÂ¿Ã¨Â´Â¦Ã¥ÂÂ·Ã©ÂÂÃ§Â½Â®Ã§ÂÂ®Ã¨ÂÂ¤
                             if (account.isLocalAccount() && account.hasSkinFile && skinState != ChangeSkin.ResetSkin) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1726,7 +1732,7 @@ fun ChangeSkinDialog(
     }
 
     if (showCapeSelector) {
-        //è¥å½åæªæ´æ¹æ«é£ï¼åä½¿ç¨ä½¿ç¨ä¸­çæ«é£
+        //Ã¨ÂÂ¥Ã¥Â½ÂÃ¥ÂÂÃ¦ÂÂªÃ¦ÂÂ´Ã¦ÂÂ¹Ã¦ÂÂ«Ã©Â£ÂÃ¯Â¼ÂÃ¥ÂÂÃ¤Â½Â¿Ã§ÂÂ¨Ã¤Â½Â¿Ã§ÂÂ¨Ã¤Â¸Â­Ã§ÂÂÃ¦ÂÂ«Ã©Â£Â
         val cape = if (capeState is ChangeCape.SelectedCape) {
             capeState.cape
         } else {
@@ -1740,7 +1746,7 @@ fun ChangeSkinDialog(
             },
             selectedCape = cape,
             onSelected = { cape, _ ->
-                //æ£æ¥æ¯å¦å·²ç»ä¸ºæ­£å¨ä½¿ç¨çæ«é£
+                //Ã¦Â£ÂÃ¦ÂÂ¥Ã¦ÂÂ¯Ã¥ÂÂ¦Ã¥Â·Â²Ã§Â»ÂÃ¤Â¸ÂºÃ¦Â­Â£Ã¥ÂÂ¨Ã¤Â½Â¿Ã§ÂÂ¨Ã§ÂÂÃ¦ÂÂ«Ã©Â£Â
                 val state = if (cape != currentUsingCape) {
                     ChangeCape.SelectedCape(cape)
                 } else {
