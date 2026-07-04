@@ -538,12 +538,41 @@ public class ControlLayout extends FrameLayout {
                         }
 
                         case MotionEvent.ACTION_MOVE: {
-                                // Forward moves to tracked buttons so swipeable / passThru buttons
-                                // still behave correctly even when super intercepts the event.
+                                // Forward MOVE events to tracked buttons so swipeable / passThru
+                                // buttons behave correctly even when ViewGroup intercepts the event.
+                                //
+                                // CRITICAL: we must NOT forward the raw multi-pointer event.
+                                // ControlButton.onTouchEvent(MOVE) uses event.getX() (pointer-index 0)
+                                // for its bounds check. In the "gameplay first" scenario, pointer 0 is
+                                // the camera finger (on the empty game area), whose ControlLayout-space
+                                // x/y are entirely outside the button's view bounds (getLeft()=0,
+                                // getRight()=buttonWidth). This causes a false "out of bounds" detection
+                                // which, for swipeable buttons, immediately calls sendKeyPresses(false)
+                                // — releasing the held key even though the player's finger never moved.
+                                //
+                                // Fix: for each tracked button synthesize a single-pointer ACTION_MOVE
+                                // with the *tracked pointer's* coordinates converted to the button's
+                                // local View space (subtract the button's getX()/getY() translation,
+                                // matching what ViewGroup.dispatchTransformedTouchEvent would do via
+                                // event.transform(child.getInverseMatrix())).  This keeps event.getX()
+                                // within [0, buttonWidth] while the finger is on the button, so the
+                                // bounds check passes and the key stays held.
                                 int n = mManualTouchTargets.size();
                                 for (int i = 0; i < n; i++) {
+                                        int pid     = mManualTouchTargets.keyAt(i);
                                         View target = mManualTouchTargets.valueAt(i);
-                                        if (target != null) target.dispatchTouchEvent(event);
+                                        if (target == null) continue;
+                                        int pointerIdx = event.findPointerIndex(pid);
+                                        if (pointerIdx < 0) continue;
+                                        // Transform from ControlLayout (parent) space to button-local space.
+                                        float localX = event.getX(pointerIdx) - target.getX();
+                                        float localY = event.getY(pointerIdx) - target.getY();
+                                        MotionEvent localEvent = MotionEvent.obtain(
+                                                event.getDownTime(), event.getEventTime(),
+                                                MotionEvent.ACTION_MOVE, localX, localY,
+                                                event.getMetaState());
+                                        target.dispatchTouchEvent(localEvent);
+                                        localEvent.recycle();
                                 }
                                 break;
                         }
