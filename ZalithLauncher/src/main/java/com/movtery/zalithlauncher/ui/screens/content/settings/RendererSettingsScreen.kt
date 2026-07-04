@@ -18,8 +18,13 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,6 +34,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -43,6 +49,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,11 +61,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.movtery.zalithlauncher.ui.components.SimpleListItem
+import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.rememberSettingsCardShape
+import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.plugin.driver.Driver
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
@@ -156,113 +168,32 @@ fun RendererSettingsScreen(
                         .fillMaxWidth()
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
                 ) {
-                    // Renderer selection — tab row is embedded inside the dropdown card.
-                    // The tab row content is declared once and passed as topContent to whichever
-                    // card variant is shown so it always appears at the top of the same surface.
-                    val rendererTabContent: @Composable () -> Unit = {
-                        RendererTabRow(
-                            selectedTab = selectedRendererTab,
-                            onTabSelected = { selectedRendererTab = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 12.dp)
-                        )
-                    }
-
-                    if (selectedRendererTab == 1 && externalRenderers.isEmpty()) {
-                        // Empty state: no App Renderer plugins installed.
-                        // Show the tab row at the top of a plain card, then an informational row.
-                        SettingsCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Top
-                        ) {
-                            rendererTabContent()
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = stringResource(R.string.settings_renderer_tab_external_empty_title),
-                                        style = MaterialTheme.typography.titleSmall
+                    // Renderer selection card — fully self-contained, custom-built (does NOT
+                    // reuse ListSettingsCard/topContent) so the collapse/expand + tab placement
+                    // is 100% explicit and verifiable in one place:
+                    // Header (always visible) -> [collapsed: nothing else]
+                    // -> [expanded: tab row, then the renderer list for the selected tab].
+                    GlobalRendererCard(
+                        selectedTab = selectedRendererTab,
+                        onTabSelected = { selectedRendererTab = it },
+                        builtInRenderers = builtInRenderers,
+                        externalRenderers = externalRenderers,
+                        onRendererSelected = { renderer ->
+                            AllSettings.renderer.save(renderer.getUniqueIdentifier())
+                        },
+                        onMobileGluesSettingsClick = { showMobileGluesSettings = true },
+                        onDownloadClick = {
+                            eventViewModel.sendDLPlugin(
+                                githubLink = URL_GITHUB_RENDERER_PLUGINS,
+                                cloudDrives = listOf(
+                                    EventViewModel.Event.DownloadPlugins.CloudDrive(
+                                        language = "zh",
+                                        link = URL_CLOUD_RENDERER_PLUGINS
                                     )
-                                    Text(
-                                        modifier = Modifier.alpha(0.7f),
-                                        text = stringResource(R.string.settings_renderer_tab_external_empty),
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-                                }
-                                IconButton(
-                                    onClick = {
-                                        eventViewModel.sendDLPlugin(
-                                            githubLink = URL_GITHUB_RENDERER_PLUGINS,
-                                            cloudDrives = listOf(
-                                                EventViewModel.Event.DownloadPlugins.CloudDrive(
-                                                    language = "zh",
-                                                    link = URL_CLOUD_RENDERER_PLUGINS
-                                                )
-                                            )
-                                        )
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_download_2_filled),
-                                        contentDescription = stringResource(R.string.generic_download)
-                                    )
-                                }
-                            }
+                                )
+                            )
                         }
-                    } else {
-                        // Non-empty case: built-in tab (always) or external tab with plugins.
-                        val rendererItems = if (selectedRendererTab == 0) builtInRenderers else externalRenderers
-                        ListSettingsCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Top,
-                            unit = AllSettings.renderer,
-                            items = rendererItems,
-                            title = stringResource(R.string.settings_renderer_global_renderer_title),
-                            summary = stringResource(R.string.settings_renderer_global_renderer_summary),
-                            getItemText = { it.getRendererName() },
-                            getItemId = { it.getUniqueIdentifier() },
-                            getItemSummary = {
-                                RendererSummaryLayout(it)
-                            },
-                            getItemTrailing = { renderer ->
-                                if (renderer.getRendererName() == "MobileGlues") {
-                                    IconButton(onClick = { showMobileGluesSettings = true }) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.ic_settings_filled),
-                                            contentDescription = stringResource(R.string.generic_setting)
-                                        )
-                                    }
-                                }
-                            },
-                            topContent = rendererTabContent,
-                            trailingIcon = {
-                                IconButton(
-                                    onClick = {
-                                        eventViewModel.sendDLPlugin(
-                                            githubLink = URL_GITHUB_RENDERER_PLUGINS,
-                                            cloudDrives = listOf(
-                                                EventViewModel.Event.DownloadPlugins.CloudDrive(
-                                                    language = "zh",
-                                                    link = URL_CLOUD_RENDERER_PLUGINS
-                                                )
-                                            )
-                                        )
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_download_2_filled),
-                                        contentDescription = stringResource(R.string.generic_download)
-                                    )
-                                }
-                            }
-                        )
-                    }
+                    )
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
@@ -586,6 +517,176 @@ private fun RendererTabRow(
                             text = label,
                             style = MaterialTheme.typography.labelLarge,
                             color = contentColor
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Self-contained "Global Renderer" card.
+ *
+ * This intentionally does NOT reuse the generic ListSettingsCard/topContent mechanism.
+ * It owns its own `expanded` state and lays out content in one explicit, linear block so
+ * there is no ambiguity about ordering or visibility:
+ *
+ *   Header row (title / summary / download / expand arrow)   <- ALWAYS visible
+ *   AnimatedVisibility(visible = expanded) {
+ *       RendererTabRow (Built-in / App Renderers pill tabs)  <- ONLY when expanded
+ *       Renderer list for the selected tab (or empty state)  <- ONLY when expanded
+ *   }
+ *
+ * Collapsing/expanding animates the tab row and the list together, as one unit, since
+ * they live inside the same AnimatedVisibility block.
+ */
+@Composable
+private fun GlobalRendererCard(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
+    builtInRenderers: List<RendererInterface>,
+    externalRenderers: List<RendererInterface>,
+    onRendererSelected: (RendererInterface) -> Unit,
+    onMobileGluesSettingsClick: () -> Unit,
+    onDownloadClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val currentRendererId = AllSettings.renderer.state
+
+    val shape = rememberSettingsCardShape(position = CardPosition.Top)
+
+    BackgroundCard(
+        modifier = modifier,
+        shape = shape
+    ) {
+        // Header — always visible, regardless of expanded state.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(all = 16.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_renderer_global_renderer_title),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Text(
+                    modifier = Modifier.alpha(0.7f),
+                    text = stringResource(R.string.settings_renderer_global_renderer_summary),
+                    style = MaterialTheme.typography.labelSmall
+                )
+                val selectedName = (builtInRenderers + externalRenderers)
+                    .firstOrNull { it.getUniqueIdentifier() == currentRendererId }
+                    ?.getRendererName()
+                if (selectedName != null) {
+                    Text(
+                        modifier = Modifier.alpha(0.7f),
+                        text = stringResource(R.string.settings_element_selected, selectedName),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
+            IconButton(onClick = onDownloadClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_download_2_filled),
+                    contentDescription = stringResource(R.string.generic_download)
+                )
+            }
+            val rotation by animateFloatAsState(
+                targetValue = if (expanded) -180f else 0f,
+                animationSpec = getAnimateTween()
+            )
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .size(34.dp)
+                    .rotate(rotation),
+                onClick = { expanded = !expanded }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_drop_down_rounded),
+                    contentDescription = stringResource(if (expanded) R.string.generic_expand else R.string.generic_collapse)
+                )
+            }
+        }
+
+        // Expanded content — tab row THEN renderer list/empty-state, hidden entirely when collapsed.
+        AnimatedVisibility(
+            modifier = Modifier.fillMaxWidth(),
+            visible = expanded,
+            enter = expandVertically(animationSpec = getAnimateTween()),
+            exit = shrinkVertically(animationSpec = getAnimateTween()) + fadeOut(),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+            ) {
+                RendererTabRow(
+                    selectedTab = selectedTab,
+                    onTabSelected = onTabSelected,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                )
+
+                val rendererItems = if (selectedTab == 0) builtInRenderers else externalRenderers
+
+                if (selectedTab == 1 && rendererItems.isEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_renderer_tab_external_empty_title),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Text(
+                                modifier = Modifier.alpha(0.7f),
+                                text = stringResource(R.string.settings_renderer_tab_external_empty),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                        IconButton(onClick = onDownloadClick) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_download_2_filled),
+                                contentDescription = stringResource(R.string.generic_download)
+                            )
+                        }
+                    }
+                } else {
+                    rendererItems.forEach { renderer ->
+                        SimpleListItem(
+                            modifier = Modifier.fillMaxWidth(),
+                            selected = renderer.getUniqueIdentifier() == currentRendererId,
+                            itemName = renderer.getRendererName(),
+                            summary = { RendererSummaryLayout(renderer) },
+                            trailing = if (renderer.getRendererName() == "MobileGlues") {
+                                {
+                                    IconButton(onClick = onMobileGluesSettingsClick) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_settings_filled),
+                                            contentDescription = stringResource(R.string.generic_setting)
+                                        )
+                                    }
+                                }
+                            } else null,
+                            onClick = {
+                                if (renderer.getUniqueIdentifier() != currentRendererId) {
+                                    onRendererSelected(renderer)
+                                    expanded = false
+                                }
+                            }
                         )
                     }
                 }

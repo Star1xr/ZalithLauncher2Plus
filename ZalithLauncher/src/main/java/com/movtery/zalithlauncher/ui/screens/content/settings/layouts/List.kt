@@ -94,7 +94,6 @@ private fun <E> BaseListSettingsCard(
         outerShape = outerShape,
         innerShape = innerShape
     ) {
-        topContent?.invoke()
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -158,6 +157,7 @@ private fun <E> BaseListSettingsCard(
                                 .fillMaxWidth()
                                 .padding(itemListPadding)
                         ) {
+                            topContent?.invoke()
                             items.forEach { item ->
                                 itemLayout(item)
                             }
