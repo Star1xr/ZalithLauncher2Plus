@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 
 import com.movtery.zalithlauncher.setting.AllSettings;
 import com.movtery.zalithlauncher.setting.AllStaticSettings;
+import com.movtery.zalithlauncher.ui.control.mouse.CursorHotspot;
 import com.movtery.zalithlauncher.utils.ZHTools;
 import com.movtery.zalithlauncher.utils.image.Dimension;
 import com.movtery.zalithlauncher.utils.image.ImageUtils;
@@ -30,6 +31,9 @@ public class Touchpad extends View implements GrabListener, AbstractTouchpad {
     /* Mouse pointer icon used by the touchpad */
     private Drawable mMousePointerDrawable;
     private float mMouseX, mMouseY;
+    /* Hotspot offset (in px), matching ZL2's arrowMouseHotspot percentage applied to the
+     * cursor's own rendered size, so the pointer's "tip" lines up the same way as ZL2. */
+    private float mHotspotOffsetX, mHotspotOffsetY;
 
     public Touchpad(@NonNull Context context) {
         this(context, null);
@@ -81,7 +85,7 @@ public class Touchpad extends View implements GrabListener, AbstractTouchpad {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.translate(mMouseX, mMouseY);
+        canvas.translate(mMouseX - mHotspotOffsetX, mMouseY - mHotspotOffsetY);
         mMousePointerDrawable.draw(canvas);
     }
 
@@ -103,9 +107,16 @@ public class Touchpad extends View implements GrabListener, AbstractTouchpad {
     }
 
     public void updateMouseScale() {
+        // Matches ZL2's MousePointer composable: mouseSize is a Dp value applied directly
+        // as the cursor's rendered size (converted to px here since this is a plain View).
+        int sizePx = (int) ZHTools.dipToPx(getContext(), ZHTools.getMouseSizeDp());
         Dimension mousescale = ImageUtils.resizeWithRatio(mMousePointerDrawable.getIntrinsicWidth(), mMousePointerDrawable.getIntrinsicHeight(),
-                AllSettings.getMouseScale().getValue());
-        mMousePointerDrawable.setBounds(0, 0, (int) (mousescale.width * 0.5), (int) (mousescale.height * 0.5));
+                sizePx);
+        mMousePointerDrawable.setBounds(0, 0, mousescale.width, mousescale.height);
+
+        CursorHotspot hotspot = ZHTools.getArrowMouseHotspot();
+        mHotspotOffsetX = mousescale.width * (hotspot.getXPercent() / 100f);
+        mHotspotOffsetY = mousescale.height * (hotspot.getYPercent() / 100f);
     }
 
     public void updateMouseDrawable() {
