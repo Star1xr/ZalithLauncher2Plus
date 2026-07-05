@@ -34,6 +34,7 @@ import com.movtery.zalithlauncher.utils.network.httpPostJson
 import io.ktor.http.Parameters
 import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -100,27 +101,34 @@ class CurseForgeSearcher(
     override suspend fun getVersions(
         projectID: String,
         pageCallback: (chunk: Int, page: Int) -> Unit
-    ): List<CurseForgeFile> {
-        return getAllVersions(
-            pageSize = 50,
-            chunkSize = 20,
-            maxConcurrent = 10,
-            pageCallback = pageCallback,
-            checkNotEmpty = { versions ->
-                versions.data.isNotEmpty()
-            },
-            asyncVersions = { index, pageSize ->
-                getVersions(
-                    projectID = projectID,
-                    index = index,
-                    pageSize = pageSize,
-                )
-            },
-            processVersions = { versions ->
-                val files = versions?.data ?: emptyArray()
-                files.toList() to files.size
-            }
-        )
+    ): List<CurseForgeFile> = coroutineScope {
+        val pageSize = 50
+
+        // Probe page 0 — pagination.totalCount tells us the exact total upfront,
+        // so we never fire speculative requests that get cancelled.
+        val firstPage = getVersions(projectID = projectID, index = 0, pageSize = pageSize)
+        pageCallback(1, 1)
+        val firstFiles = firstPage.data.toList()
+        // Keep as Long to avoid Int overflow on pathological API responses
+        val totalCount = firstPage.pagination.totalCount
+
+        // The vast majority of mods fit on one page — return immediately with 1 request.
+        if (totalCount <= pageSize) return@coroutineScope firstFiles
+
+        // Fetch all remaining pages concurrently (exact count known, no waste).
+        val semaphore = Semaphore(10)
+        val remainingFiles = (pageSize.toLong() until totalCount step pageSize.toLong())
+            .mapIndexed { idx, offset ->
+                async {
+                    semaphore.withPermit {
+                        pageCallback(1, idx + 2)
+                        // offset safely fits in Int for any realistic file count
+                        getVersions(projectID = projectID, index = offset.toInt(), pageSize = pageSize).data.toList()
+                    }
+                }
+            }.awaitAll().flatten()
+
+        firstFiles + remainingFiles
     }
 
     override suspend fun getVersionByLocalFile(
@@ -138,78 +146,3 @@ class CurseForgeSearcher(
     }
 }
 
-/**
- * 持续分页获取项目的所有版本文件，直到全部加载完成
- * @param pageSize 每页请求数量
- * @param chunkSize 一个区间的最大页数
- * @param maxConcurrent 同时最多允许的请求数
- * @param pageCallback 加载每一页时都通过此函数回调
- * @param checkNotEmpty 检查请求内容返回结果不为空
- * @param asyncVersions 异步获取单区块的版本数据
- * @param processVersions 加工返回数据，同时需要返回当前结果实际的页面大小
- */
-private suspend fun <E, T> getAllVersions(
-    pageSize: Int = 100,
-    chunkSize: Int = 10,
-    maxConcurrent: Int = 5,
-    pageCallback: (chunk: Int, page: Int) -> Unit = { _ , _ -> },
-    checkNotEmpty: (E) -> Boolean,
-    asyncVersions: suspend (index: Int, pageSize: Int) -> E,
-    processVersions: suspend (E?) -> Pair<List<T>, Int>
-): List<T> = coroutineScope {
-    val allVersions = mutableListOf<T>()
-    /** 当前区间编号 */
-    var currentChunk = 1
-    /** 起始页码 */
-    var startPage = 0
-    /** 是否已经到达过最后一页，控制是否进入下一区间 */
-    var reachedEnd = false
-
-    val semaphore = Semaphore(maxConcurrent)
-
-    while (!reachedEnd) {
-        //创建当前区间的任务列表
-        val jobs = (0 until chunkSize).map { offset ->
-            val pageIndex = startPage + offset
-            val index = pageIndex * pageSize
-
-            async {
-                semaphore.withPermit {
-                    val response = asyncVersions(index, pageSize)
-                    //检查当前页返回的结果是否正常
-                    //如果是最后一页之后的内容，则这里的列表是空的
-                    if (checkNotEmpty(response)) {
-                        //有东西，回调即可
-                        pageCallback(currentChunk, pageIndex + 1)
-                        response
-                    } else null
-                }
-            }
-        }
-
-        for ((i, job) in jobs.withIndex()) {
-            val (files, realSize) = processVersions(job.await())
-            files.takeIf { it.isNotEmpty() }?.let { list ->
-                allVersions.addAll(list)
-            }
-
-            //少于pageSize，已经是最后一页
-            if (realSize < pageSize) {
-                reachedEnd = true
-                //取消后续页
-                for (j in (i + 1) until jobs.size) {
-                    jobs[j].cancel()
-                }
-                break
-            }
-        }
-
-        //如果没发现最后一页，则进入下一区间
-        if (!reachedEnd) {
-            startPage += chunkSize
-            currentChunk++
-        }
-    }
-
-    return@coroutineScope allVersions
-}

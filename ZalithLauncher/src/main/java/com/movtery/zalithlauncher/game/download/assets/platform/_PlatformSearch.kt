@@ -42,6 +42,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.util.Collections
 
 private const val TAG = "PlatformSearch"
 
@@ -56,6 +57,20 @@ private val mirrorCurseForgeSearcher = CurseForgeSearcher(
     api = MCIM_CURSEFORGE_API,
     source = "MCIM CurseForge"
 )
+
+/**
+ * Session-scoped LRU cache for project metadata (mod info page data).
+ * Holds up to 50 entries; least-recently-used entries are evicted first.
+ * Avoids redundant network calls when the user navigates back to a mod they already opened.
+ */
+private val projectCache: MutableMap<String, PlatformProject> = Collections.synchronizedMap(
+    object : LinkedHashMap<String, PlatformProject>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, PlatformProject>?): Boolean =
+            size > 50
+    }
+)
+
+private fun projectCacheKey(platform: Platform, projectID: String) = "${platform.name}:$projectID"
 
 /**
  * 对资源平台搜索启用镜像源机制进行操作
@@ -261,6 +276,13 @@ suspend fun <E> getProject(
     onSuccess: (PlatformProject) -> Unit,
     onError: (DownloadAssetsState<E>, Throwable) -> Unit
 ) {
+    // Return cached result immediately — avoids a network round-trip when the user
+    // navigates back to a mod page they already opened in this session.
+    projectCache[projectCacheKey(platform, projectID)]?.let { cached ->
+        onSuccess(cached)
+        return
+    }
+
     runCatching {
         when (platform) {
             Platform.CURSEFORGE -> mirroredPlatformSearcher(
@@ -275,7 +297,10 @@ suspend fun <E> getProject(
             }
         }
     }.fold(
-        onSuccess = onSuccess,
+        onSuccess = { result ->
+            projectCache[projectCacheKey(platform, projectID)] = result
+            onSuccess(result)
+        },
         onFailure = { e ->
             if (e !is CancellationException) {
                 Logger.error(TAG, "An exception occurred while retrieving project information.", e)
@@ -294,7 +319,9 @@ suspend fun getProjectByVersion(
     platform: Platform,
     printLog: Boolean = true
 ): PlatformProject = withContext(Dispatchers.IO) {
-    when (platform) {
+    projectCache[projectCacheKey(platform, projectId)]?.let { return@withContext it }
+
+    val result = when (platform) {
         Platform.MODRINTH -> mirroredPlatformSearcher(
             searchers = mirroredModrinthSource(),
             printLog = printLog
@@ -308,6 +335,8 @@ suspend fun getProjectByVersion(
             searcher.getProject(projectId)
         }
     }
+    projectCache[projectCacheKey(platform, projectId)] = result
+    result
 }
 
 suspend fun getVersionByLocalFile(file: File, sha1: String): PlatformVersion? = coroutineScope {
