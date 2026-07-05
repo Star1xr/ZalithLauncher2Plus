@@ -145,13 +145,26 @@ private val SectionFadeOutSpec: FiniteAnimationSpec<Float> =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FileManagerScreen() {
+fun FileManagerScreen(
+    initialPath: String? = null
+) {
 
     val rootDirectory = remember { File(getGameHome()) }
     val context = LocalContext.current
 
     // ── Navigation & directory state ─────────────────────────────────────
-    var currentDirectory by remember { mutableStateOf(rootDirectory) }
+    var currentDirectory by remember {
+        mutableStateOf(
+            initialPath?.let { File(it) }?.takeIf { it.exists() && it.isDirectory } ?: rootDirectory
+        )
+    }
+    // When navigated to with a new initialPath (e.g. via Quick Actions for a
+    // different version folder), reset the current directory so the user
+    // actually lands in the requested folder instead of seeing a stale one.
+    LaunchedEffect(initialPath) {
+        val requested = initialPath?.let { File(it) }?.takeIf { it.exists() && it.isDirectory }
+        if (requested != null) currentDirectory = requested
+    }
     var refreshCounter by remember { mutableStateOf(0) }
 
     // ── Sidebar visibility ────────────────────────────────────────────────
