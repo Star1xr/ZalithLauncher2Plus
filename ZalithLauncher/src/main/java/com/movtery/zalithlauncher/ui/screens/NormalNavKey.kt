@@ -201,7 +201,9 @@ sealed interface NormalNavKey : TitledNavKey {
     }
 
     /** 文件管理屏幕 */
-    @Serializable data object FileManager : NormalNavKey {
+    @Serializable data class FileManager(
+        val initialPath: String? = null
+    ) : NormalNavKey {
         override val title: Int = R.string.page_title_file_manager
     }
 
