@@ -8,5 +8,6 @@ data class LegacyControlData(
     val buttonCount: Int,
     val drawerCount: Int,
     val joystickCount: Int,
-    val formatVersion: Int
+    val formatVersion: Int,
+    val isBuiltIn: Boolean = false
 )

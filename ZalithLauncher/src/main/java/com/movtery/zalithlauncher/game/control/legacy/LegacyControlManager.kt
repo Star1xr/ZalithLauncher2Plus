@@ -1,5 +1,8 @@
 package com.movtery.zalithlauncher.game.control.legacy
 
+import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.context.GlobalContext
+import com.movtery.zalithlauncher.context.readRawContent
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -16,6 +19,9 @@ import java.io.File
 import java.io.InputStream
 
 private const val TAG = "LegacyControlManager"
+
+/** Reserved filename for the launcher's bundled default legacy layout. */
+const val BUILTIN_LEGACY_FILENAME = "zeryth_builtin_default.json"
 
 object LegacyControlManager {
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -37,10 +43,32 @@ object LegacyControlManager {
         return File(PathManager.DIR_LEGACY_CONTROL_LAYOUTS, "${ts}_${rnd}.json")
     }
 
+    /**
+     * Ensures the bundled default layout exists in the legacy layouts directory.
+     * Only writes the file on first install or if the file was removed; never overwrites
+     * an existing built-in file so user edits or future bundled updates are handled correctly.
+     */
+    private fun seedBuiltInLayout() {
+        try {
+            val dir = PathManager.DIR_LEGACY_CONTROL_LAYOUTS
+            if (!dir.exists()) dir.mkdirs()
+            val builtInFile = File(dir, BUILTIN_LEGACY_FILENAME)
+            if (!builtInFile.exists()) {
+                val json = GlobalContext.readRawContent(R.raw.zeryth_default_legacy_layout)
+                builtInFile.writeText(json)
+                Logger.info(TAG, "Seeded built-in default legacy layout.")
+            }
+        } catch (e: Exception) {
+            Logger.warning(TAG, "Failed to seed built-in legacy layout", e)
+        }
+    }
+
     fun refresh() {
         currentJob?.cancel()
         currentJob = scope.launch(Dispatchers.IO) {
             _isRefreshing.update { true }
+
+            seedBuiltInLayout()
 
             val files = run {
                 val dir = PathManager.DIR_LEGACY_CONTROL_LAYOUTS
@@ -60,13 +88,18 @@ object LegacyControlManager {
                         buttonCount = controls.buttonCount,
                         drawerCount = controls.drawerCount,
                         joystickCount = controls.joystickCount,
-                        formatVersion = controls.formatVersion
+                        formatVersion = controls.formatVersion,
+                        isBuiltIn = file.name == BUILTIN_LEGACY_FILENAME
                     )
                 } catch (e: Exception) {
                     Logger.warning(TAG, "Failed to load legacy layout: ${file.name}", e)
                     null
                 }
-            }.sortedBy { it.info.name.ifEmpty { it.file.name } }
+            }
+                .sortedWith(
+                    compareByDescending<LegacyControlData> { it.isBuiltIn }
+                        .thenBy { it.info.name.ifEmpty { it.file.name } }
+                )
 
             _dataList.update { loaded }
             checkSettings()
@@ -90,6 +123,10 @@ object LegacyControlManager {
     }
 
     fun deleteControl(data: LegacyControlData) {
+        if (data.isBuiltIn) {
+            Logger.warning(TAG, "Attempted to delete built-in layout — blocked.")
+            return
+        }
         scope.launch(Dispatchers.IO) {
             if (!data.file.exists()) return@launch
             FileUtils.deleteQuietly(data.file)

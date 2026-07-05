@@ -87,7 +87,8 @@ private sealed interface LegacyOperation {
 fun LegacyControlManageContent(
     modifier: Modifier = Modifier,
     isVisible: Boolean,
-    submitError: (ErrorViewModel.ThrowableMessage) -> Unit
+    submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
+    onSetDefault: (LegacyControlData) -> Unit = {}
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -200,7 +201,8 @@ fun LegacyControlManageContent(
                 isLoading = isRefreshing,
                 data = selectedLayout,
                 onShareLayout = { data -> shareFile(context, data.file) },
-                onEditInfo = { data -> operation = LegacyOperation.EditInfo(data) }
+                onEditInfo = { data -> operation = LegacyOperation.EditInfo(data) },
+                onSetDefault = onSetDefault
             )
         }
     }
@@ -347,6 +349,19 @@ private fun LegacyLayoutItem(
                         text = data.info.name.ifEmpty { data.file.name },
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    if (data.isBuiltIn) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                text = stringResource(R.string.legacy_control_manage_builtin_badge),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
                 }
                 if (!data.info.author.isEmptyOrBlank()) {
                     MarqueeText(
@@ -361,11 +376,13 @@ private fun LegacyLayoutItem(
                     contentDescription = stringResource(R.string.legacy_control_manage_duplicate)
                 )
             }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_delete_outlined),
-                    contentDescription = stringResource(R.string.generic_delete)
-                )
+            if (!data.isBuiltIn) {
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_delete_outlined),
+                        contentDescription = stringResource(R.string.generic_delete)
+                    )
+                }
             }
         }
     }
@@ -378,7 +395,8 @@ private fun LegacyLayoutInfo(
     isLoading: Boolean,
     data: LegacyControlData?,
     onShareLayout: (LegacyControlData) -> Unit,
-    onEditInfo: (LegacyControlData) -> Unit
+    onEditInfo: (LegacyControlData) -> Unit,
+    onSetDefault: (LegacyControlData) -> Unit = {}
 ) {
     BackgroundCard(
         modifier = modifier.fillMaxHeight(),
@@ -472,6 +490,12 @@ private fun LegacyLayoutInfo(
                     .padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                ScalingActionButton(
+                    modifier = Modifier.weight(1f, fill = false),
+                    onClick = { onSetDefault(data) }
+                ) {
+                    MarqueeText(text = stringResource(R.string.legacy_control_manage_set_default))
+                }
                 ScalingActionButton(
                     modifier = Modifier.weight(1f, fill = false),
                     onClick = { onShareLayout(data) }
