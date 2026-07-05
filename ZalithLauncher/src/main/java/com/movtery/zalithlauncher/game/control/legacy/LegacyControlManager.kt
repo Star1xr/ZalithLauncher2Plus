@@ -1,4 +1,5 @@
 package com.movtery.zalithlauncher.game.control.legacy
+// Legacy control manager — provides built-in layout seeding and selectControl() activation.
 
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.GlobalContext
