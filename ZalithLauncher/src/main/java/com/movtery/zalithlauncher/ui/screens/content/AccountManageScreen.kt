@@ -75,7 +75,6 @@ import com.movtery.zalithlauncher.context.COPY_LABEL_ACCOUNT_UUID
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
-import com.movtery.zalithlauncher.path.URL_ELY_BY_AUTH
 import com.movtery.zalithlauncher.game.account.isAuthServerAccount
 import com.movtery.zalithlauncher.game.account.isMicrosoftLogging
 import com.movtery.zalithlauncher.game.account.yggdrasil.PlayerProfile
@@ -124,15 +123,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * å°è£è´¦å·çé¢ UI äº¤äºçåè°å½æ°
+ * 封装账号界面 UI 交互的回调函数
  * 
- * @property onIntent åé MVI Intent å° ViewModel
- * @property openLink æå¼å¤é¨é¾æ¥
- * @property backToMainScreen è¿åä¸»çé¢
- * @property navigateToWeb å¯¼èªå°åºç¨åæµè§å¨çé¢
- * @property checkIfInWebScreen æ£æ¥å½åæ¯å¦å¨æµè§å¨çé¢ä¸­ï¼ç¨äºå¾®è½¯ç»å½é»è¾å¤æ­ï¼
- * @property formatError æ ¼å¼åå¼å¸¸ä¸ºæ¬å°åå­ç¬¦ä¸²
- * @property submitError æäº¤éè¯¯å°å¨å±éè¯¯å±ç¤ºç³»ç»
+ * @property onIntent 发送 MVI Intent 到 ViewModel
+ * @property openLink 打开外部链接
+ * @property backToMainScreen 返回主界面
+ * @property navigateToWeb 导航到应用内浏览器界面
+ * @property checkIfInWebScreen 检查当前是否在浏览器界面中（用于微软登录逻辑判断）
+ * @property formatError 格式化异常为本地化字符串
+ * @property submitError 提交错误到全局错误展示系统
  */
 private data class AccountActions(
     val onIntent: (AccountManageIntent) -> Unit,
@@ -145,25 +144,25 @@ private data class AccountActions(
 )
 
 /**
- * è¿å¥è´¦å·ç®¡çå¨æ¶ï¼å¯éå çæå¼ç»å½èåéé¡¹
+ * 进入账号管理器时，可附加的打开登录菜单选项
  */
 enum class FirstLoginMenu {
-    /** ä¸æå¼èå */
+    /** 不打开菜单 */
     NONE,
-    /** æå¼å¾®è½¯ç»å½èå */
+    /** 打开微软登录菜单 */
     MICROSOFT,
-    /** æå¼æ»ç»å½èå */
+    /** 打开总登录菜单 */
     NORMAL
 }
 
 /**
- * è´¦å·ç®¡çä¸»çé¢
+ * 账号管理主界面
  *
- * @param backStackViewModel å±å¹å æ ç®¡çå¨
- * @param backToMainScreen è¿åä¸»å±å¹çåè°
- * @param openLink å¤é¨é¾æ¥è·³è½¬åè°
- * @param submitError å¨å±éè¯¯æäº¤åè°
- * @param viewModel è´¦å·ç®¡ç ViewModel (Hilt èªå¨æ³¨å¥)
+ * @param backStackViewModel 屏幕堆栈管理器
+ * @param backToMainScreen 返回主屏幕的回调
+ * @param openLink 外部链接跳转回调
+ * @param submitError 全局错误提交回调
+ * @param viewModel 账号管理 ViewModel (Hilt 自动注入)
  */
 @Composable
 fun AccountManageScreen(
@@ -241,7 +240,7 @@ fun AccountManageScreen(
 }
 
 /**
- * è´¦å·ç®¡ççé¢çå®éåå®¹å¸å±
+ * 账号管理界面的实际内容布局
  */
 @Composable
 private fun AccountManageContent(
@@ -285,12 +284,13 @@ private fun AccountManageContent(
     LoginMenuOperation(loginUiState.menuOp, actions, profileUiState.authServers)
     MicrosoftLoginOperation(loginUiState.microsoftOp, actions)
     LocalLoginOperation(loginUiState.localOp, actions)
+    ElyByLoginOperation(loginUiState.menuOp == LoginMenuOperation.ElyByLogin, actions)
     OtherLoginOperation(loginUiState.otherOp, actions)
     ServerTypeOperation(operationUiState.serverOp, actions)
 }
 
 /**
- * å·¦ä¾§ç»å½æ¹å¼èåç»ä»¶
+ * 左侧登录方式菜单组件
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -312,7 +312,7 @@ private fun ActionsLayout(
             .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
             .fillMaxHeight()
     ) {
-        //ç©å®¶æ¨¡åé¢è§
+        //玩家模型预览
         val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
         val accountSkin = remember(currentAccount, refreshWardrobe) {
             currentAccount?.getSkinFile()?.takeIf { it.exists() }
@@ -370,13 +370,13 @@ private fun ActionsLayout(
             }
         }
 
-        //æ·»å è´¦å·
+        //添加账号
         ScalingActionButton(
             modifier = Modifier
                 .fillMaxWidth(),
             onClick = {
                 if (isOffline) {
-                    //éæ­£çç¶æä¸ï¼åªåè®¸åå»ºå¾®è½¯è´¦å·
+                    //非正版状态下，只允许创建微软账号
                     actions.onIntent(AccountManageIntent.UpdateMicrosoftLoginOp(MicrosoftLoginOperation.Tip))
                 } else {
                     actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
@@ -463,19 +463,6 @@ private fun LoginMenuOperation(
                 onLocalLogin = {
                     actions.onIntent(AccountManageIntent.UpdateLocalLoginOp(LocalLoginOperation.Edit))
                 },
-                onElyByLogin = {
-                    actions.onIntent(
-                        AccountManageIntent.UpdateOtherLoginOp(
-                            OtherLoginOperation.OnLogin(
-                                AuthServer(
-                                    baseUrl = URL_ELY_BY_AUTH,
-                                    serverName = "Ely.by",
-                                    register = "https://ely.by/registration"
-                                )
-                            )
-                        )
-                    )
-                },
                 onAuthServerLogin = { server ->
                     actions.onIntent(
                         AccountManageIntent.UpdateOtherLoginOp(
@@ -499,7 +486,7 @@ private fun LoginMenuOperation(
 }
 
 /**
- * å¾®è½¯ç»å½ç¸å³é»è¾å¤ç
+ * 微软登录相关逻辑处理
  */
 @Composable
 private fun MicrosoftLoginOperation(
@@ -538,7 +525,7 @@ private fun MicrosoftLoginOperation(
 }
 
 /**
- * ç¦»çº¿è´¦å·ç»å½ç¸å³é»è¾å¤ç
+ * 离线账号登录相关逻辑处理
  */
 @Composable
 private fun LocalLoginOperation(
@@ -618,7 +605,43 @@ private fun LocalLoginOperation(
 }
 
 /**
- * ç¬¬ä¸æ¹éªè¯æå¡å¨ç»å½é»è¾å¤ç
+ * Ely.by 登录逻辑处理
+ */
+@Composable
+private fun ElyByLoginOperation(
+    isVisible: Boolean,
+    actions: AccountActions
+) {
+    if (!isVisible) return
+
+    val elyByServer = remember {
+        AuthServer(
+            serverName = "Ely.by",
+            baseUrl = "https://ely.by/api/authlib-injector",
+            //Ely.by 已将旧版 /registration 页面替换为 account.ely.by 上的账号中心，
+            //该页面同时提供注册与登录入口，并可在两者之间自由切换
+            register = "https://account.ely.by/register"
+        )
+    }
+
+    OtherServerLoginDialog(
+        server = elyByServer,
+        onRegisterClick = { url ->
+            actions.openLink(url)
+            actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.None))
+        },
+        onDismissRequest = {
+            actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.None))
+        },
+        onConfirm = { email, password ->
+            actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.None))
+            actions.onIntent(AccountManageIntent.PerformElyByLogin(email, password))
+        }
+    )
+}
+
+/**
+ * 第三方验证服务器登录逻辑处理
  */
 @Composable
 private fun OtherLoginOperation(
@@ -689,7 +712,7 @@ private fun OtherLoginOperation(
 }
 
 /**
- * éªè¯æå¡å¨ç®¡çæä½é»è¾å¤ç
+ * 验证服务器管理操作逻辑处理
  */
 @Composable
 private fun ServerTypeOperation(
@@ -752,7 +775,7 @@ private fun ServerTypeOperation(
 }
 
 /**
- * è´¦å·åè¡¨ç»ä»¶
+ * 账号列表组件
  */
 @Composable
 private fun AccountsLayout(
@@ -834,7 +857,7 @@ private fun AccountsLayout(
                                     .padding(vertical = 6.dp),
                                 currentAccount = currentAccount,
                                 account = account,
-                                enabled = !isOffline, //éæ­£çç¶æä¸ä¸åè®¸éæ©ä»»ä½ç¶æ
+                                enabled = !isOffline, //非正版状态下不允许选择任何状态
                                 onSelected = { AccountsManager.setCurrentAccount(it) },
                                 openChangeSkinDialog = {
                                     if (!account.isAuthServerAccount()) {
@@ -939,7 +962,7 @@ private fun AccountsLayout(
 }
 
 /**
- * è´¦å·ç®è¤æä½é»è¾å¤ç
+ * 账号皮肤操作逻辑处理
  */
 @Composable
 private fun AccountSkinOperation(
@@ -1011,7 +1034,7 @@ private fun AccountSkinOperation(
 }
 
 /**
- * éç¨è´¦å·ç®¡çæä½é»è¾å¤çï¼å¦å é¤ç¡®è®¤ï¼
+ * 通用账号管理操作逻辑处理（如删除确认）
  */
 @Composable
 private fun AccountOperation(

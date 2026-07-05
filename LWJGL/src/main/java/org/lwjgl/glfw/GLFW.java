@@ -572,19 +572,19 @@ public class GLFW
             // This will never happen since this is accessing itself
         }
 
-		/*
-		 mGLFWMonitorCallback = new GLFWMonitorCallback(){
+                /*
+                 mGLFWMonitorCallback = new GLFWMonitorCallback(){
 
-		 // Fake one!!!
-		 @Override
-		 public void free() {}
+                 // Fake one!!!
+                 @Override
+                 public void free() {}
 
-		 @Override
-		 public void callback(long args) {
-		 // TODO: Implement this method
-		 }
-		 };
-		 */
+                 @Override
+                 public void callback(long args) {
+                 // TODO: Implement this method
+                 }
+                 };
+                 */
     }
 
     private static native long nglfwSetCharCallback(long window, long ptr);
@@ -1035,6 +1035,22 @@ public class GLFW
     private static long mglfwCreateWindow(int width, int height, CharSequence title, long monitor, long share) {
         // Create an ACTUAL EGL context
         long ptr = nglfwCreateContext(share);
+        if (ptr == 0L) {
+            // Native context creation failed (e.g. the selected renderer/driver could not
+            // create a valid graphics context on this device). Fail loudly here instead of
+            // silently continuing with no context - the previous behavior let execution
+            // continue with ptr == 0, which meant glfwMakeContextCurrent() would unbind any
+            // context, and the failure only surfaced much later as a confusing
+            // "There is no OpenGL context current in the current thread" crash inside
+            // Minecraft's own GL.createCapabilities() call.
+            String pojavRenderer = System.getenv("POJAV_RENDERER");
+            throw new IllegalStateException(
+                "Failed to create a graphics context for renderer '" + pojavRenderer + "'. " +
+                "This usually means the selected renderer is not supported on this device/driver. " +
+                "Check the native logs (logcat, tag GLBridge) for the underlying error and try a " +
+                "different renderer."
+            );
+        }
         //nativeEglMakeCurrent(ptr);
         GLFWWindowProperties win = new GLFWWindowProperties();
         // win.width = width;

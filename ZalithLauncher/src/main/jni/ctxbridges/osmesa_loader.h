@@ -11,6 +11,7 @@ extern GLboolean (*OSMesaMakeCurrent_p) (OSMesaContext ctx, void *buffer, GLenum
                                          GLsizei width, GLsizei height);
 extern OSMesaContext (*OSMesaGetCurrentContext_p) (void);
 extern OSMesaContext  (*OSMesaCreateContext_p) (GLenum format, OSMesaContext sharelist);
+extern OSMesaContext  (*OSMesaCreateContextAttribs_p) (const int *attribList, OSMesaContext sharelist);
 extern void (*OSMesaDestroyContext_p) (OSMesaContext ctx);
 extern void (*OSMesaFlushFrontbuffer_p) ();
 extern void (*OSMesaPixelStore_p) ( GLint pname, GLint value );

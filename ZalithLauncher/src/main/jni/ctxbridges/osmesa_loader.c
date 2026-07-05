@@ -13,6 +13,7 @@
 GLboolean (*OSMesaMakeCurrent_p) (OSMesaContext ctx, void *buffer, GLenum type, GLsizei width, GLsizei height);
 OSMesaContext (*OSMesaGetCurrentContext_p) (void);
 OSMesaContext (*OSMesaCreateContext_p) (GLenum format, OSMesaContext sharelist);
+OSMesaContext (*OSMesaCreateContextAttribs_p) (const int *attribList, OSMesaContext sharelist);
 void (*OSMesaDestroyContext_p) (OSMesaContext ctx);
 void (*OSMesaFlushFrontbuffer_p) ();
 void (*OSMesaPixelStore_p) (GLint pname, GLint value);
@@ -61,6 +62,7 @@ void dlsym_OSMesa() {
     OSMesaMakeCurrent_p = OSMGetProcAddress(dl_handle, "OSMesaMakeCurrent");
     OSMesaGetCurrentContext_p = OSMGetProcAddress(dl_handle, "OSMesaGetCurrentContext");
     OSMesaCreateContext_p = OSMGetProcAddress(dl_handle, "OSMesaCreateContext");
+    OSMesaCreateContextAttribs_p = OSMGetProcAddress(dl_handle, "OSMesaCreateContextAttribs");
     OSMesaDestroyContext_p = OSMGetProcAddress(dl_handle, "OSMesaDestroyContext");
     OSMesaFlushFrontbuffer_p = OSMGetProcAddress(dl_handle, "OSMesaFlushFrontbuffer");
     OSMesaPixelStore_p = OSMGetProcAddress(dl_handle, "OSMesaPixelStore");

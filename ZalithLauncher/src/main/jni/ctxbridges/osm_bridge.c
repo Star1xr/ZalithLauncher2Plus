@@ -2,6 +2,7 @@
 // Created by maks on 18.10.2023.
 //
 #include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include <environ/environ.h>
 #include <android/log.h>
@@ -31,7 +32,45 @@ osm_render_window_t* osm_init_context(osm_render_window_t* share) {
     memset(render_window, 0, sizeof(osm_render_window_t));
     OSMesaContext osmesa_share = NULL;
     if(share != NULL) osmesa_share = share->context;
-    OSMesaContext context = OSMesaCreateContext_p(GL_RGBA, osmesa_share);
+
+    OSMesaContext context = NULL;
+    const char* pojavRenderer = getenv("POJAV_RENDERER");
+    bool needsCoreProfile = pojavRenderer != NULL && !strcmp(pojavRenderer, "vulkan_zink");
+
+    if (needsCoreProfile && OSMesaCreateContextAttribs_p != NULL) {
+        // Zink only implements the OpenGL core profile. The legacy OSMesaCreateContext()
+        // API always hands back a compatibility-profile context capped at whatever the
+        // driver's default version is, which Zink cannot satisfy - it either fails to
+        // create a context at all, or creates one that doesn't match the GL 4.6 core
+        // context LWJGL/Minecraft subsequently expects, both of which surface later as
+        // "There is no OpenGL context current in the current thread" once Minecraft
+        // calls GL.createCapabilities(). Explicitly request a core-profile 4.6 context
+        // so Zink can actually initialize.
+        const int attribs[] = {
+            OSMESA_PROFILE, OSMESA_CORE_PROFILE,
+            OSMESA_CONTEXT_MAJOR_VERSION, 4,
+            OSMESA_CONTEXT_MINOR_VERSION, 6,
+            OSMESA_DEPTH_BITS, 24,
+            OSMESA_STENCIL_BITS, 8,
+            0
+        };
+        context = OSMesaCreateContextAttribs_p(attribs, osmesa_share);
+        if (context == NULL) {
+            __android_log_print(ANDROID_LOG_ERROR, g_LogTag,
+                                "OSMesaCreateContextAttribs_p() failed to create a core-profile "
+                                "GL 4.6 context for Vulkan Zink. This device/driver likely does "
+                                "not support the Vulkan+Zink core-profile requirements; try a "
+                                "different renderer.");
+        }
+    } else {
+        context = OSMesaCreateContext_p(GL_RGBA, osmesa_share);
+        if (context == NULL) {
+            __android_log_print(ANDROID_LOG_ERROR, g_LogTag,
+                                "OSMesaCreateContext_p() failed to create an OSMesa context "
+                                "(renderer=%s)", pojavRenderer != NULL ? pojavRenderer : "unknown");
+        }
+    }
+
     if(context == NULL) {
         free(render_window);
         return NULL;
