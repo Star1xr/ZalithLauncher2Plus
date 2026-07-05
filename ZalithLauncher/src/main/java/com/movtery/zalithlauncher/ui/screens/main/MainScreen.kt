@@ -680,8 +680,8 @@ private fun NavigationUI(
                         backStackViewModel = screenBackStackModel,
                     )
                 }
-                entry<NormalNavKey.FileManager> {
-                    FileManagerScreen()
+                entry<NormalNavKey.FileManager> { key ->
+                    FileManagerScreen(initialPath = key.initialPath)
                 }
             }
         }
