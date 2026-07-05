@@ -71,7 +71,6 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.RenameVersionDialo
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionChunkBackground
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionOverviewItem
 import com.movtery.zalithlauncher.utils.file.ensureDirectory
-import com.movtery.zalithlauncher.utils.file.shareFile
 import com.movtery.zalithlauncher.utils.image.isImageFile
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
@@ -89,6 +88,7 @@ fun VersionOverViewScreen(
     versionsScreenKey: TitledNavKey?,
     backToMainScreen: () -> Unit,
     onExport: () -> Unit,
+    navigateToFileManager: (File) -> Unit,
     eventViewModel: EventViewModel,
     version: Version,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
@@ -190,14 +190,7 @@ fun VersionOverViewScreen(
                             )
                             return@VersionQuickActions
                         }
-                        shareFile(context, folder) {
-                            submitError(
-                                ErrorViewModel.ThrowableMessage(
-                                    title = context.getString(R.string.generic_error),
-                                    message = context.getString(R.string.versions_overview_cant_share_folder_message)
-                                )
-                            )
-                        }
+                        navigateToFileManager(folder)
                     }
                 )
             }
