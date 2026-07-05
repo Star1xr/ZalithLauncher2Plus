@@ -492,7 +492,10 @@ private fun LegacyLayoutInfo(
             ) {
                 ScalingActionButton(
                     modifier = Modifier.weight(1f, fill = false),
-                    onClick = { onSetDefault(data) }
+                    onClick = {
+                        LegacyControlManager.selectControl(data)
+                        onSetDefault(data)
+                    }
                 ) {
                     MarqueeText(text = stringResource(R.string.legacy_control_manage_set_default))
                 }
