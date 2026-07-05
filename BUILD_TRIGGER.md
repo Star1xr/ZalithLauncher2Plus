@@ -29,4 +29,19 @@ Stub coverage: `glFogf`, `glFogi`, `glFogfv`, `glFogiv`, `glFogCoordf`,
 Other renderers (GL4ES, Zink, VirGL, Freedreno, Panfrost) are unaffected — the
 stub path is strictly gated on `POJAV_RENDERER=mobileglues`.
 
+## Quick Actions → Built-in File Manager (Issue #5)
+
+Quick Actions buttons in the Version Overview now open the built-in File Manager
+at the appropriate version subdirectory instead of the Android system share menu.
+
+### Changes
+
+- `VersionOverViewScreen.kt` — removed unused `shareFile` import (cleanup).
+- `FileManagerScreen.kt` — added `LaunchedEffect(initialPath)` so the screen
+  resets its current directory when navigated to with a new `initialPath`. This
+  ensures Quick Actions for different version folders each land in the correct place.
+
+The navigation wiring itself (`navigateToFileManager` → `NormalNavKey.FileManager`
+→ `FileManagerScreen`) was already in place.
+
 Build date: 2026-07-05
