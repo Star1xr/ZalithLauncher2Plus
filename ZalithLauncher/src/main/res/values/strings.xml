@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="generic_cancel">Cancel</string>
+    <string name="generic_minimize">Minimize</string>
     <string name="generic_run_in_background">Run in background</string>
     <string name="generic_confirm">Confirm</string>
     <string name="generic_error">Error</string>

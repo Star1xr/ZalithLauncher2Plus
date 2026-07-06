@@ -23,6 +23,7 @@ import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.isInterruptedIOException
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -64,6 +65,14 @@ class TaskFlowExecutor(
     private var currentTaskJob: Job? = null
     /** 当前任务流阶段索引 */
     private var currentPhaseIndex: Int = -1
+
+    /** 用于追踪整个执行流程的完成状态，每次 executePhasesAsync 调用时重置 */
+    private var _completionDeferred: CompletableDeferred<Unit> = CompletableDeferred()
+
+    /**
+     * 挂起直到整个执行流程完成（成功、错误或取消）
+     */
+    suspend fun awaitCompletion() = _completionDeferred.await()
 
     /**
      * 获取下一个阶段
@@ -148,15 +157,18 @@ class TaskFlowExecutor(
                 if (th is CancellationException || th.isInterruptedIOException()) {
                     Logger.debug(TAG, "The current task flow has been cancelled. ${th.getMessageOrToString()}")
                     onCancel()
+                    runCatching { _completionDeferred.cancel() }
                 } else {
                     Logger.warning(TAG, "An exception occurred while executing the task flow.", th)
                     onError(th)
+                    runCatching { _completionDeferred.completeExceptionally(th) }
                 }
                 return@withContext
             }
         }
 
         onComplete()
+        runCatching { _completionDeferred.complete(Unit) }
     }
 
     /**
@@ -168,6 +180,7 @@ class TaskFlowExecutor(
         onError: (Throwable) -> Unit = {},
         onCancel: () -> Unit = {}
     ) {
+        _completionDeferred = CompletableDeferred()
         job = scope.launch(Dispatchers.IO) {
             onStart()
             executePhases(onComplete, onError, onCancel)
