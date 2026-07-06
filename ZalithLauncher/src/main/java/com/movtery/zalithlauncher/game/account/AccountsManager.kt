@@ -280,6 +280,7 @@ object AccountsManager {
         uniqueUUID.isNotEmpty() && _accounts.any { it.uniqueUUID == uniqueUUID }
 
     fun isAuthServerExists(baseUrl: String): Boolean =
+        baseUrl.isNotEmpty() && _authServers.any { it.baseUrl == baseUrl }
 
     /**
      * Reorders an account from one position to another.
