@@ -56,7 +56,6 @@ import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmCrashException
 import com.movtery.zalithlauncher.game.download.modpack.install.ModPackInfo
 import com.movtery.zalithlauncher.coroutine.TaskSystem
-import com.movtery.zalithlauncher.coroutine.InstallerRestoreRegistry
 import com.movtery.zalithlauncher.game.download.modpack.install.ModPackInstaller
 import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
@@ -399,19 +398,32 @@ private fun ModPackInstallOperation(
                 val tasks = installer.tasksFlow.collectAsStateWithLifecycle()
                 if (tasks.value.isNotEmpty()) {
                     //安装整合包流程对话框
+                    val dialogTitle = stringResource(R.string.download_modpack_install_title)
                     TitleTaskFlowDialog(
-                        title = stringResource(R.string.download_modpack_install_title),
+                        title = dialogTitle,
                         tasks = tasks.value,
                         onCancel = {
                             onCancel()
                             updateOperation(ModPackInstallOperation.None)
                         },
                         onMinimize = {
-                            TaskSystem.submitTask(
-                                installer!!.createBackgroundTask(
-                                    onCancelRequest = { onCancel() }
+                            val bgTask = installer.createBackgroundTask(
+                                onCancelRequest = { onCancel() }
+                            )
+                            InstallerRestoreRegistry.register(
+                                bgTask.id,
+                                InstallerRestoreRegistry.RestorableInstaller(
+                                    title = dialogTitle,
+                                    tasksFlow = installer.tasksFlow,
+                                    onCancel = {
+                                        onCancel()
+                                        updateOperation(ModPackInstallOperation.None)
+                                    }
                                 )
                             )
+                            TaskSystem.submitTask(bgTask, onEnded = {
+                                InstallerRestoreRegistry.unregister(bgTask.id)
+                            })
                             updateOperation(ModPackInstallOperation.None)
                         }
                     )
