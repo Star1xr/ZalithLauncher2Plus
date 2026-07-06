@@ -86,6 +86,12 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
+  import androidx.compose.runtime.LaunchedEffect
+  import androidx.lifecycle.compose.collectAsStateWithLifecycle
+  import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
+  import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
+  import com.movtery.zalithlauncher.game.versioninfo.popularVersions
+  import com.movtery.zalithlauncher.utils.logging.Logger
 
 /**
  * 搜索资源过滤器UI
@@ -93,7 +99,7 @@ import com.movtery.zalithlauncher.utils.animation.getAnimateTween
  * @param searchPlatform 目标平台
  * @param searchName 搜索名称
  * @param searchedMcMods 搜索得到的 MCMOD 项目
- * @param searchedVersions 搜索得到的Minecraft版本号
+ * @param installedVersions 已安装的Minecraft版本（显示在列表顶部）
  * @param gameVersion 游戏版本
  * @param sortField 排序方式
  * @param allCategories 可用资源类别列表
@@ -116,9 +122,9 @@ fun SearchFilter(
     onSearchNameChange: (String) -> Unit = {},
     onSearch: () -> Unit,
     searchedMcMods: List<ModTranslations.McMod>,
-    searchedVersions: List<String>,
-    gameVersion: String,
-    onGameVersionChange: (String) -> Unit = {},
+    installedVersions: List<String> = emptyList(),
+    gameVersion: String?,
+    onGameVersionChange: (String?) -> Unit = {},
     sortField: PlatformSortField,
     onSortFieldChange: (PlatformSortField) -> Unit = {},
     allCategories: List<PlatformFilterCode>,
@@ -166,24 +172,40 @@ fun SearchFilter(
             )
         }
 
-        item {
-            SuggestionsText(
-                value = gameVersion,
-                onValueChange = onGameVersionChange,
-                label = stringResource(R.string.download_assets_filter_game_version),
-                onSearch = onSearch,
-                suggestions = searchedVersions,
-                suggestionLabel = { item ->
-                    Text(
-                        text = item,
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                },
-                onSuggestionClick = { item ->
-                    onGameVersionChange(item)
-                    onSearch()
-                }
-            )
+          item {
+              val allVersions by MinecraftVersions.allVersions.collectAsStateWithLifecycle()
+              LaunchedEffect(Unit) {
+                  runCatching {
+                      MinecraftVersions.refreshVersions(force = false)
+                  }.onFailure {
+                      Logger.warning("SearchFilter", "Failed to refresh Minecraft versions")
+                  }
+              }
+              // Release versions only for CurseForge; all versions for Modrinth
+              val releaseVersions = remember(allVersions, searchPlatform) {
+                  val all = allVersions.filter {
+                      searchPlatform != Platform.CURSEFORGE || it.type == MinecraftVersion.Type.Release
+                  }.map { it.version.id }
+                  if (all.isEmpty()) popularVersions else all
+              }
+              // Issue #9: installed versions appear at the top, no duplicates
+              val displayVersions = remember(releaseVersions, installedVersions) {
+                  val installedSet = installedVersions.toSet()
+                  installedVersions + releaseVersions.filter { it !in installedSet }
+              }
+              FilterListLayout(
+                  modifier = Modifier.fillMaxWidth(),
+                  items = displayVersions,
+                  selectionMode = FilterSelectionMode.Single,
+                  selectedItems = listOfNotNull(gameVersion),
+                  onSelectionChange = { new ->
+                      val value = new.firstOrNull()
+                      if (value != gameVersion) onGameVersionChange(value)
+                  },
+                  getItemLabel = { it },
+                  title = stringResource(R.string.download_assets_filter_game_version)
+              )
+          }
         }
 
         extraFilter?.invoke(this@LazyColumn)
