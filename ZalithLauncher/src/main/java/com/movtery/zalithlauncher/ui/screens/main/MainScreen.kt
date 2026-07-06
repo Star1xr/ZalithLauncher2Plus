@@ -800,7 +800,6 @@ private fun TaskMenu(
                         key = { it.id },
                         contentType = { "task" }
                     ) { task ->
-                    ) { task ->
                         val canRestore = InstallerRestoreRegistry.hasEntry(task.id)
                         TaskItem(
                             taskProgress = task.currentProgress,
