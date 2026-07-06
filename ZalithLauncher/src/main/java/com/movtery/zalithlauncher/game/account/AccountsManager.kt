@@ -280,15 +280,19 @@ object AccountsManager {
         uniqueUUID.isNotEmpty() && _accounts.any { it.uniqueUUID == uniqueUUID }
 
     fun isAuthServerExists(baseUrl: String): Boolean =
-        baseUrl.isNotEmpty() && _authServers.any { it.baseUrl == baseUrl }
 
     /**
-     * Reorders an account from one position to another
+     * Reorders an account from one position to another.
+     * Uses a synchronized snapshot to prevent concurrent-access IndexOutOfBoundsException.
      */
     fun reorderAccount(fromIndex: Int, toIndex: Int) {
         if (fromIndex == toIndex) return
-        val item = _accounts.removeAt(fromIndex)
-        _accounts.add(toIndex, item)
+        synchronized(_accounts) {
+            val size = _accounts.size
+            if (fromIndex < 0 || fromIndex >= size || toIndex < 0 || toIndex >= size) return
+            val item = _accounts.removeAt(fromIndex)
+            _accounts.add(toIndex, item)
+        }
         _accountsFlow.update { _accounts.toList() }
     }
 }
