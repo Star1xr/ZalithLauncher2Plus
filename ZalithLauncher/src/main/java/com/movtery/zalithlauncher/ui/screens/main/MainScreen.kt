@@ -79,6 +79,9 @@ import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
+import com.movtery.zalithlauncher.coroutine.InstallerRestoreRegistry
+import com.movtery.zalithlauncher.coroutine.TitledTask
+import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.path.URL_ORIGINAL_PROJECT
@@ -708,6 +711,29 @@ private fun TaskMenu(
     modifier: Modifier = Modifier,
     changeExpandedState: () -> Unit = {}
 ) {
+    var restoredEntry by remember { mutableStateOf<InstallerRestoreRegistry.RestorableInstaller?>(null) }
+
+    // Restore dialog: shown when user taps a minimized installer task
+    restoredEntry?.let { entry ->
+        val restoredTasks = entry.tasksFlow.collectAsStateWithLifecycle()
+        if (restoredTasks.value.isNotEmpty()) {
+            TitleTaskFlowDialog(
+                title = entry.title,
+                tasks = restoredTasks.value,
+                onCancel = {
+                    entry.onCancel()
+                    restoredEntry = null
+                },
+                onMinimize = {
+                    // Re-minimize: just dismiss the restored overlay
+                    restoredEntry = null
+                }
+            )
+        } else {
+            // Tasks finished while dialog was open — dismiss cleanly
+            restoredEntry = null
+        }
+    }
     val show = isExpanded && tasks.isNotEmpty()
 
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
@@ -804,6 +830,7 @@ private fun TaskItem(
     color: Color = cardColor(false),
     contentColor: Color = onCardColor(),
     onCancelClick: () -> Unit = {}
+    onTaskClick: (() -> Unit)? = null,
 ) {
     Surface(
         modifier = modifier,
@@ -826,6 +853,22 @@ private fun TaskItem(
                     painter = painterResource(R.drawable.ic_close),
                     contentDescription = stringResource(R.string.generic_cancel)
                 )
+            }
+
+            Column(
+            if (onTaskClick != null) {
+                IconButton(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.CenterVertically),
+                    onClick = onTaskClick
+                ) {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.ic_arrow_drop_up_rounded),
+                        contentDescription = stringResource(R.string.generic_open)
+                    )
+                }
             }
 
             Column(
