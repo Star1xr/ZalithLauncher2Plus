@@ -206,7 +206,6 @@ fun SearchFilter(
                   title = stringResource(R.string.download_assets_filter_game_version)
               )
           }
-        }
 
         extraFilter?.invoke(this@LazyColumn)
 
