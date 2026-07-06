@@ -404,6 +404,14 @@ private fun ModPackInstallOperation(
                         onCancel = {
                             onCancel()
                             updateOperation(ModPackInstallOperation.None)
+                        },
+                        onMinimize = {
+                            TaskSystem.submitTask(
+                                installer!!.createBackgroundTask(
+                                    onCancelRequest = { onCancel() }
+                                )
+                            )
+                            updateOperation(ModPackInstallOperation.None)
                         }
                     )
                 }

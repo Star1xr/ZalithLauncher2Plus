@@ -331,6 +331,14 @@ private fun GameInstallOperation(
                         onCancel = {
                             onCancel()
                             updateOperation(GameInstallOperation.None)
+                        },
+                        onMinimize = {
+                            TaskSystem.submitTask(
+                                installer!!.createBackgroundTask(
+                                    onCancelRequest = { onCancel() }
+                                )
+                            )
+                            updateOperation(GameInstallOperation.None)
                         }
                     )
                 }
