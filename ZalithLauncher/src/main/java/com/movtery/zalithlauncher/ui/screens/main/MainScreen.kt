@@ -866,7 +866,7 @@ private fun TaskItem(
                     Icon(
                         modifier = Modifier.size(20.dp),
                         painter = painterResource(R.drawable.ic_arrow_drop_up_rounded),
-                        contentDescription = stringResource(R.string.generic_open)
+                        contentDescription = stringResource(R.string.generic_expand)
                     )
                 }
             }
