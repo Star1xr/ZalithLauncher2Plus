@@ -391,6 +391,14 @@ fun TitleTaskFlowDialog(
                         }
                     }
 
+                    if (onMinimize != null) {
+                        OutlinedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = onMinimize
+                        ) {
+                            MarqueeText(text = stringResource(R.string.generic_minimize))
+                        }
+                    }
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = onCancel
