@@ -91,7 +91,7 @@ private class SearchScreenViewModel(
     var currentSearchMCMODSJob: Job? = null
 
     /** Issue #9: 已安装的Minecraft版本号（用于在版本列表顶部显示） */
-    val installedVersionIds: List<String> = VersionsManager.versions.map { it.getVersionName() }
+    val installedVersionIds: List<String> = VersionsManager.versions.mapNotNull { it.getVersionInfo()?.minecraftVersion }.distinct()
 
     /**
      * 仅更新搜索名称
