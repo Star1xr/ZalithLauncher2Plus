@@ -512,6 +512,7 @@
     <string name="account_add_new_server">Add Auth Server</string>
     <string name="account_add_new_server_button">Add Auth</string>
     <string name="account_add_new_account">Add Account</string>
+    <string name="account_add_server_quick_ely_by">Quick add: Ely.by</string>
     <string name="account_label_username">Username</string>
     <string name="account_label_server_url">Enter server address</string>
     <string name="account_label_email">Email or Username</string>
