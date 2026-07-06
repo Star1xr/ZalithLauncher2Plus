@@ -2,46 +2,54 @@
 
 This file triggers the final GitHub Actions APK build.
 
-## MobileGlues glFogfv crash fix
+## Background Task Minimize / Click-to-Restore Fix
 
-Fixed NullPointerException crash in Minecraft 1.16.5 with the MobileGlues renderer.
+Fixed three issues with the background download/install task system introduced
+in the previous session's minimize feature.
 
-### Root Cause
+### Issue 1 — Background task progress freezes after minimize
 
-MobileGlues (a GLES 3.x-based OpenGL translator) does not export fixed-function
-OpenGL 1.x fog functions (`glFogfv`, `glFogf`, `glFogi`, etc.) because GLES has
-no fixed-function pipeline. LWJGL3 stores a null pointer for these functions when
-initialising `GLCapabilities`, and throws `NullPointerException` via `Checks.check`
-the first time Minecraft 1.16.5 calls `glFogfv` during fog rendering.
+**Root cause:** `createBackgroundTask()` in both `GameInstaller` and
+`ModPackInstaller` used `tasksFlow.collect {}` to mirror sub-task progress.
+`TaskFlowExecutor.tasksFlow` only re-emits when the *phase list* changes (a new
+`TitledTask` is added), not when individual `Task.currentProgress` (a Compose
+`mutableStateOf`) mutates within an existing phase. As a result, the proxy task
+stopped updating after the first phase.
 
-### Fix
+**Fix:** Replaced the `collect {}` with a `while (true) { delay(150); read
+tasksFlow.value }` polling loop in both installers. The loop correctly reads the
+current Compose state on every tick and mirrors it to the proxy task.
 
-Extended `GLGetProcAddress` in `ZalithLauncher/src/main/jni/ctxbridges/br_loader.c`
-to return silent no-op stubs for the GL 1.x fog function family when both
-`eglGetProcAddress` and `dlsym` fail to resolve a symbol and `POJAV_RENDERER` is
-`mobileglues`. This gives LWJGL3 a valid (non-null) function pointer so the
-capabilities check passes, and the no-op body silently ignores the unsupported call
-rather than crashing the game.
+### Issue 2 — Clicking a minimized task does nothing
 
-Stub coverage: `glFogf`, `glFogi`, `glFogfv`, `glFogiv`, `glFogCoordf`,
-`glFogCoordd`, `glFogCoordfv`, `glFogCoorddv`, `glFogCoordPointer`.
+**Root cause:** `TaskMenu`/`TaskItem` in `MainScreen.kt` had no click handler and
+no way to link a background `Task.id` back to the live installer.
 
-Other renderers (GL4ES, Zink, VirGL, Freedreno, Panfrost) are unaffected — the
-stub path is strictly gated on `POJAV_RENDERER=mobileglues`.
+**Fix:**
+- Added `InstallerRestoreRegistry` singleton (new
+  `coroutine/InstallerRestoreRegistry.kt`) mapping background task IDs to
+  `RestorableInstaller(title, tasksFlow, onCancel)` entries.
+- On minimize (`DownloadGameScreen`, `DownloadModPackScreen`): register the entry,
+  submit the proxy task with an `onEnded` callback that unregisters on completion.
+- `TaskMenu` in `MainScreen.kt`: added `restoredEntry` state + a
+  `TitleTaskFlowDialog` overlay that appears when a registered task is tapped.
+- `TaskItem` gains an `onTaskClick: (() -> Unit)?` parameter; tapping it when the
+  task has a registry entry sets `restoredEntry`, showing the restore dialog.
 
-## Quick Actions → Built-in File Manager (Issue #5)
+### Issue 3 — Modpack/version installs randomly stall
 
-Quick Actions buttons in the Version Overview now open the built-in File Manager
-at the appropriate version subdirectory instead of the Android system share menu.
+Identical root cause to Issue 1 (frozen progress reads like a stall). The polling
+fix in `ModPackInstaller.createBackgroundTask()` resolves this.
 
-### Changes
+### Files changed
 
-- `VersionOverViewScreen.kt` — removed unused `shareFile` import (cleanup).
-- `FileManagerScreen.kt` — added `LaunchedEffect(initialPath)` so the screen
-  resets its current directory when navigated to with a new `initialPath`. This
-  ensures Quick Actions for different version folders each land in the correct place.
+| File | Change |
+|------|--------|
+| `coroutine/InstallerRestoreRegistry.kt` | **New** — singleton restore registry |
+| `game/download/game/GameInstaller.kt` | Polling loop replaces `collect {}` in `createBackgroundTask` |
+| `game/download/modpack/install/ModPackInstaller.kt` | Same polling fix |
+| `ui/screens/content/download/DownloadGameScreen.kt` | Register + unregister on minimize |
+| `ui/screens/content/download/DownloadModPackScreen.kt` | Register + unregister on minimize |
+| `ui/screens/main/MainScreen.kt` | Restore dialog, `onTaskClick` in TaskItem |
 
-The navigation wiring itself (`navigateToFileManager` → `NormalNavKey.FileManager`
-→ `FileManagerScreen`) was already in place.
-
-Build date: 2026-07-05
+Build date: 2026-07-06
