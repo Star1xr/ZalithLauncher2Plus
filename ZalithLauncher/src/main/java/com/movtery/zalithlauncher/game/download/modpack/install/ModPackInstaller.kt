@@ -343,7 +343,13 @@ class ModPackInstaller(
               task = { proxyTask ->
                   coroutineScope {
                       val mirrorJob = launch {
-                          tasksFlow.collect { titledTasks ->
+                          // Poll the current task state at a fixed interval.
+                          // Task.currentProgress and friends are Compose mutableState – they are not a Flow
+                          // and do not cause tasksFlow to re-emit on every tick. Collecting tasksFlow only
+                          // fires when the phase list changes (new phase), so we must poll instead.
+                          while (true) {
+                              kotlinx.coroutines.delay(150)
+                              val titledTasks = tasksFlow.value
                               val running = titledTasks.firstOrNull { it.task.taskState == TaskState.RUNNING }
                                   ?: titledTasks.lastOrNull()
                               running?.task?.let { t ->
@@ -355,6 +361,7 @@ class ModPackInstaller(
                                       else proxyTask.updateMessage(msgRes)
                                   }
                                   if (t.currentRateBytesPerSec >= 0L) proxyTask.updateSpeed(t.currentRateBytesPerSec)
+                                  else proxyTask.clearSpeed()
                               }
                           }
                       }
