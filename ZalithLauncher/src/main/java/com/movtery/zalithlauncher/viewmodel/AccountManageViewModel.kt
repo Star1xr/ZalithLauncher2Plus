@@ -187,6 +187,9 @@ sealed interface AccountManageIntent {
 
     /** Reset the account cape */
     data class ResetCape(val account: Account) : AccountManageIntent
+
+    /** Reorder account by dragging */
+    data class ReorderAccount(val fromIndex: Int, val toIndex: Int) : AccountManageIntent
 }
 
 /**
@@ -389,6 +392,9 @@ class AccountManageViewModel @Inject constructor(
             is AccountManageIntent.RefreshAccount -> refreshAccount(intent.account)
             is AccountManageIntent.ResetSkin -> resetSkin(intent.account)
             is AccountManageIntent.ResetCape -> resetCape(intent.account)
+            is AccountManageIntent.ReorderAccount -> {
+                AccountsManager.reorderAccount(intent.fromIndex, intent.toIndex)
+            }
         }
     }
 

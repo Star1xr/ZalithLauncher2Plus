@@ -50,6 +50,8 @@ import java.util.Objects
 
 private const val TAG = "AuthServerApi"
 
+const val ELY_BY_AUTH_SERVER_URL = "https://authserver.ely.by/api/authlib-injector"
+
 class AuthServerApi(private var baseUrl: String) {
     fun formatUrl(baseUrl: String): String {
         var url = baseUrl

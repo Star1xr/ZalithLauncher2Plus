@@ -281,4 +281,14 @@ object AccountsManager {
 
     fun isAuthServerExists(baseUrl: String): Boolean =
         baseUrl.isNotEmpty() && _authServers.any { it.baseUrl == baseUrl }
+
+    /**
+     * Reorders an account from one position to another
+     */
+    fun reorderAccount(fromIndex: Int, toIndex: Int) {
+        if (fromIndex == toIndex) return
+        val item = _accounts.removeAt(fromIndex)
+        _accounts.add(toIndex, item)
+        _accountsFlow.update { _accounts.toList() }
+    }
 }
