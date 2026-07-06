@@ -800,16 +800,20 @@ private fun TaskMenu(
                         key = { it.id },
                         contentType = { "task" }
                     ) { task ->
+                    ) { task ->
+                        val canRestore = InstallerRestoreRegistry.hasEntry(task.id)
                         TaskItem(
                             taskProgress = task.currentProgress,
                             taskMessageRes = task.currentMessageRes,
                             taskMessageArgs = task.currentMessageArgs,
                             taskRateBytesPerSec = task.currentRateBytesPerSec,
+                            onTaskClick = if (canRestore) {
+                                { restoredEntry = InstallerRestoreRegistry.getEntry(task.id) }
+                            } else null,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 6.dp)
                         ) {
-                            //åæ¶ä»»å¡
                             TaskSystem.cancelTask(task.id)
                         }
                     }
@@ -829,8 +833,8 @@ private fun TaskItem(
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = cardColor(false),
     contentColor: Color = onCardColor(),
-    onCancelClick: () -> Unit = {}
     onTaskClick: (() -> Unit)? = null,
+    onCancelClick: () -> Unit = {}
 ) {
     Surface(
         modifier = modifier,
@@ -855,7 +859,6 @@ private fun TaskItem(
                 )
             }
 
-            Column(
             if (onTaskClick != null) {
                 IconButton(
                     modifier = Modifier
@@ -887,7 +890,7 @@ private fun TaskItem(
                     )
                 }
 
-                if (taskProgress < 0) { //è´æ°åä»£è¡¨ä¸ç¡®å®
+                if (taskProgress < 0) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth()
                     )
