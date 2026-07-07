@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.versions.elements
 
+import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.version.resource_pack.ResourcePackInfo
 
 /** 资源包操作状态 */
@@ -25,27 +26,35 @@ sealed interface ResourcePackOperation {
     data object None : ResourcePackOperation
     /** 执行任务中 */
     data object Progress : ResourcePackOperation
-    /** 重命名资源包输入对话框 */
-    data class RenamePack(val packInfo: ResourcePackInfo) : ResourcePackOperation
-    /** 删除资源包输入对话框 */
+    /** 删除资源包确认对话框 */
     data class DeletePack(val packInfo: ResourcePackInfo) : ResourcePackOperation
 }
 
+/** 资源包/光影包状态过滤器（全部 / 已启用 / 已禁用） */
+enum class PackStateFilter(val textRes: Int) {
+    All(R.string.generic_all),
+    Enabled(R.string.generic_enabled),
+    Disabled(R.string.generic_disabled)
+}
+
 /**
- * 简易的资源包过滤器
+ * 资源包过滤器
  */
 data class ResourcePackFilter(
-    val onlyShowValid: Boolean,
-    val filterName: String
+    val stateFilter: PackStateFilter = PackStateFilter.All,
+    val filterName: String = ""
 )
 
 /**
- * 简易过滤器，过滤指定名称的资源包
+ * 过滤资源包列表
  */
 fun List<ResourcePackInfo>.filterPacks(filter: ResourcePackFilter) = this.filter {
-    val valid = !filter.onlyShowValid || it.isValid
+    val matchesState = when (filter.stateFilter) {
+        PackStateFilter.All -> true
+        PackStateFilter.Enabled -> it.isEnabled
+        PackStateFilter.Disabled -> !it.isEnabled
+    }
     val nameMatched = filter.filterName.isEmpty() ||
-            //用清除了格式化代码的名称进行判断
             it.rawName.contains(filter.filterName, true)
-    valid && nameMatched
+    matchesState && nameMatched
 }
