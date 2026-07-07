@@ -30,35 +30,37 @@ import java.util.zip.ZipFile
 private const val TAG = "ResourcePackUtils"
 
 /**
- * 解析资源包文件，游戏内仅支持加载文件夹、文件后缀为zip的资源包
+ * 解析资源包文件，游戏内仅支持加载文件夹、文件后缀为zip的资源包。
+ * 同时支持以 .disabled 结尾的已禁用资源包（pack.zip.disabled / packfolder.disabled）。
  * @param file 资源包文件
  */
 suspend fun parseResourcePack(file: File): ResourcePackInfo? = withContext(Dispatchers.IO) {
+    val isEnabled = !file.name.endsWith(".disabled", ignoreCase = true)
+    val nameWithoutDisabled = if (!isEnabled) file.name.dropLast(9) else file.name
+    val isZipPack = nameWithoutDisabled.endsWith(".zip", ignoreCase = true)
+
+    // 只处理文件夹（含 folder.disabled）和 .zip / .zip.disabled
+    if (!file.isDirectory && !isZipPack) return@withContext null
+
     runCatching {
         var isValid = false
         var metaContent: String? = null
         var iconBytes: ByteArray? = null
         var fileSize: Long? = null
 
-        if (file.isDirectory) { //文件夹形式的资源包
-            //资源包元数据
+        if (file.isDirectory) { // 文件夹形式的资源包（包括 folder.disabled）
             File(file, "pack.mcmeta").takeIf { it.exists() }?.let { metaFile ->
                 metaContent = metaFile.readText()
             }
-            //尝试读取资源包的图标
             File(file, "pack.png").takeIf { it.exists() }?.let { iconFile ->
                 iconBytes = iconFile.readBytes()
             }
-        } else if (file.extension == "zip") { //压缩包形式的资源包
-            //性能、速度考虑，仅压缩包形式的资源包可以计算文件大小
+        } else if (isZipPack) { // 压缩包形式的资源包（包括 pack.zip.disabled）
             fileSize = FileUtils.sizeOf(file)
-
             ZipFile(file).use { zip ->
-                //资源包元数据
                 zip.getEntry("pack.mcmeta")?.let { metaEntry ->
                     metaContent = zip.getInputStream(metaEntry).bufferedReader().readText()
                 }
-                //尝试读取资源包的图标
                 zip.getEntry("pack.png")?.let { iconEntry ->
                     iconBytes = zip.getInputStream(iconEntry).readBytes()
                 }
@@ -72,7 +74,6 @@ suspend fun parseResourcePack(file: File): ResourcePackInfo? = withContext(Dispa
                 Logger.warning(TAG, "Failed to parse the resource package metadata: ${file.absolutePath}", it)
             }.getOrNull()
         }?.also {
-            //解析成功，则代表其是一个有效的格式
             isValid = true
         }
 
@@ -80,6 +81,7 @@ suspend fun parseResourcePack(file: File): ResourcePackInfo? = withContext(Dispa
             file = file,
             fileSize = fileSize,
             isValid = isValid,
+            isEnabled = isEnabled,
             description = meta?.pack?.description?.toPlainText(),
             packFormat = meta?.pack?.packFormat,
             icon = iconBytes
