@@ -34,7 +34,6 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.downloadDependenciesBatch
 import com.movtery.zalithlauncher.game.download.assets.downloadSingleForVersions
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -88,29 +87,6 @@ fun DownloadModScreen(
             backStack.navigateTo(
                 NormalNavKey.DownloadAssets(dep.platform, dep.projectId, classes)
             )
-        },
-        onDownloadAllDependencies = { deps, gameVersions, classes ->
-            scope.launch {
-                val failedDependencies = mutableListOf<String>()
-                downloadDependenciesBatch(
-                    context = context,
-                    deps = deps,
-                    gameVersions = gameVersions,
-                    folder = classes.versionFolder.folderName,
-                    submitError = submitError,
-                    onEachError = { name, error ->
-                        failedDependencies += "$name: $error"
-                    }
-                )
-                if (failedDependencies.isNotEmpty()) {
-                    submitError(
-                        ErrorViewModel.ThrowableMessage(
-                            title = context.getString(R.string.download_assets_install_failed),
-                            message = failedDependencies.joinToString("\n")
-                        )
-                    )
-                }
-            }
         }
     )
 
