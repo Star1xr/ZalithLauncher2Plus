@@ -124,7 +124,7 @@ fun DownloadSavesScreen(
                     submitError(
                         ErrorViewModel.ThrowableMessage(
                             title = context.getString(R.string.download_assets_download_all_deps),
-                            throwable = Exception(failedDependencies.joinToString("\n"))
+                            message = failedDependencies.joinToString("\n")
                         )
                     )
                 }
