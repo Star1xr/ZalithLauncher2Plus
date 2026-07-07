@@ -342,8 +342,8 @@ fun SearchAssetsScreen(
                     viewModel.resetSearch()
                 },
                 searchedMcMods = searchedMcMods,
-                searchedVersions = emptyList(),
-                gameVersion = viewModel.searchFilter.gameVersion ?: "",
+                installedVersions = viewModel.installedVersionIds,
+                gameVersion = viewModel.searchFilter.gameVersion,
                 onGameVersionChange = {
                     viewModel.researchWithFilter(
                         viewModel.searchFilter.copy(gameVersion = it)
