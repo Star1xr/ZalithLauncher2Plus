@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="generic_cancel">Cancel</string>
-    <string name="generic_minimize">Minimize</string>
     <string name="generic_run_in_background">Run in background</string>
     <string name="generic_confirm">Confirm</string>
     <string name="generic_error">Error</string>
@@ -512,7 +511,6 @@
     <string name="account_add_new_server">Add Auth Server</string>
     <string name="account_add_new_server_button">Add Auth</string>
     <string name="account_add_new_account">Add Account</string>
-    <string name="account_add_server_quick_ely_by">Quick add: Ely.by</string>
     <string name="account_label_username">Username</string>
     <string name="account_label_server_url">Enter server address</string>
     <string name="account_label_email">Email or Username</string>
@@ -1456,4 +1454,18 @@
       <string name="legacy_control_editor_hint_joystick_keycodes">Keycodes: W=87 · S=83 · A=65 · D=68 (GLFW key integers)</string>
       <string name="legacy_control_editor_joystick_options">Joystick Options</string>
     <string name="legacy_control_manage_set_default">Set as Default</string>
+
+    <!-- Upstream sync: build-76 additions -->
+    <string name="download_assets_download_all_deps">Download All Dependencies</string>
+    <string name="mods_update_all">Update All Mods</string>
+    <string name="account_add_server_quick_ely_by">Quick add: Ely.by</string>
+    <string name="download_game_classic_picker">Classic version list</string>
+    <string name="download_game_classic_picker_summary">Show only release versions without search bar</string>
+    <string name="download_game_installed_at_top">Installed versions first</string>
+    <string name="stats_play_time">Play Time</string>
+    <string name="stats_today">Today</string>
+    <string name="stats_month">This Month</string>
+    <string name="stats_all_time">All Time</string>
+    <string name="stats_most_played">Most Played</string>
+    <string name="stats_play_time_title">Play Time Statistics</string>
 </resources>
