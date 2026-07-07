@@ -179,3 +179,78 @@ fun mapExceptionToMessage(e: Throwable): Pair<Int, Array<Any>?> {
         }
     }
 }
+  /**
+   * Batch-downloads a list of dependency projects into the given game versions.
+   *
+   * For each dependency:
+   * 1. Fetches all available platform versions.
+   * 2. Picks the best version – prefers versions compatible with the installed
+   *    Minecraft versions; falls back to the most recently published one.
+   * 3. Initialises the version's file metadata (may require an extra network call).
+   * 4. Submits a background download task via [downloadSingleForVersions].
+   *
+   * Pre-download failures (network error fetching versions, no version found,
+   * init failure) are reported via [onEachError]. Errors that occur during the
+   * actual file download are forwarded to [submitError] as usual.
+   *
+   * @param deps     dependency entries — (dependency metadata, project metadata)
+   * @param gameVersions installed game versions to install each dep into
+   * @param folder   relative folder under each version's game dir (e.g. "mods")
+   * @param onEachError called with (name, errorMessage) for pre-download failures
+   */
+  suspend fun downloadDependenciesBatch(
+      context: Context,
+      deps: List<Pair<com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion.PlatformDependency, com.movtery.zalithlauncher.game.download.assets.platform.PlatformProject>>,
+      gameVersions: List<Version>,
+      folder: String,
+      submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
+      onEachError: (name: String, error: String) -> Unit
+  ) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+      val mcVersions = gameVersions
+          .mapNotNull { it.getVersionInfo()?.minecraftVersion }
+          .distinct()
+
+      for ((dep, project) in deps) {
+          val name = project.platformTitle()
+          runCatching {
+              // Fetch all versions for this dependency project
+              val allVersions = com.movtery.zalithlauncher.game.download.assets.platform.getVersions(
+                  projectID = dep.projectId,
+                  platform = dep.platform
+              )
+
+              // Pick best version: prefer MC-version-compatible, fallback to most recent
+              val best = if (mcVersions.isEmpty()) {
+                  allVersions.maxByOrNull { it.platformDatePublished() }
+              } else {
+                  allVersions
+                      .filter { v -> v.platformGameVersion().any { it in mcVersions } }
+                      .maxByOrNull { it.platformDatePublished() }
+                      ?: allVersions.maxByOrNull { it.platformDatePublished() }
+              } ?: throw java.io.IOException("No available version found for dependency: $name")
+
+              // Initialise file metadata (some platforms require an extra network call)
+              check(best.initFile(dep.projectId)) {
+                  "Failed to initialise version info for dependency: $name"
+              }
+
+              // Submit the download task (runs in TaskSystem background)
+              downloadSingleForVersions(
+                  context = context,
+                  version = best,
+                  versions = gameVersions,
+                  folder = folder,
+                  submitError = submitError
+              )
+          }.onFailure { e ->
+              if (e !is kotlinx.coroutines.CancellationException) {
+                  Logger.warning(TAG, "Failed to prepare batch download for dependency: $name", e)
+                  val msg = mapExceptionToMessage(e).let { (resId, args) ->
+                      if (args != null) context.getString(resId, *args) else context.getString(resId)
+                  }
+                  onEachError(name, msg)
+              }
+          }
+      }
+  }
+  

@@ -106,7 +106,8 @@ fun DownloadSingleOperation(
     operation: DownloadSingleOperation,
     changeOperation: (DownloadSingleOperation) -> Unit,
     doInstall: (PlatformClasses, PlatformVersion, List<Version>) -> Unit,
-    onDependencyClicked: (PlatformVersion.PlatformDependency, PlatformClasses) -> Unit = { _, _ -> }
+    onDependencyClicked: (PlatformVersion.PlatformDependency, PlatformClasses) -> Unit = { _, _ -> },
+    onDownloadAllDependencies: ((List<Pair<PlatformVersion.PlatformDependency, PlatformProject>>, List<Version>, PlatformClasses) -> Unit)? = null
 ) {
     when (operation) {
         DownloadSingleOperation.None -> {}
@@ -146,6 +147,12 @@ fun DownloadSingleOperation(
                 onDependencyClicked = { dependency, classes ->
                     changeOperation(DownloadSingleOperation.None)
                     onDependencyClicked(dependency, classes)
+                },
+                onDownloadAllDependencies = onDownloadAllDependencies?.let { callback ->
+                    { deps, versions, cls ->
+                        changeOperation(DownloadSingleOperation.None)
+                        callback(deps, versions, cls)
+                    }
                 }
             )
         }
@@ -162,7 +169,8 @@ private fun DownloadDialog(
     classes: PlatformClasses,
     onDismiss: () -> Unit,
     onInstall: (List<Version>) -> Unit,
-    onDependencyClicked: (PlatformVersion.PlatformDependency, PlatformClasses) -> Unit
+    onDependencyClicked: (PlatformVersion.PlatformDependency, PlatformClasses) -> Unit,
+    onDownloadAllDependencies: ((List<Pair<PlatformVersion.PlatformDependency, PlatformProject>>, List<Version>, PlatformClasses) -> Unit)? = null
 ) {
     val versions = remember { VersionsManager.versions.filter { it.isValid() } }
     val version by VersionsManager.currentVersion.collectAsStateWithLifecycle()
@@ -294,6 +302,20 @@ private fun DownloadDialog(
                             }
                         }
 
+                        if (onDownloadAllDependencies != null && dependencies.isNotEmpty()) {
+                            OutlinedButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    onDownloadAllDependencies(
+                                        dependencyProjects,
+                                        selectedVersions.toList(),
+                                        classes
+                                    )
+                                }
+                            ) {
+                                MarqueeText(text = stringResource(R.string.download_assets_download_all_deps))
+                            }
+                        }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
