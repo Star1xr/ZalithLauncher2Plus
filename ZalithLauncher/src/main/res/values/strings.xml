@@ -1457,7 +1457,8 @@
     <string name="legacy_control_manage_set_default">Set as Default</string>
 
     <!-- Upstream sync: build-76 additions -->
-    <string name="download_assets_download_all_deps">Download All Dependencies</string>
+    <string name="download_assets_download_all_deps">Download Dependencies</string>
+    <string name="download_assets_install_with_deps">Install with Dependencies</string>
     <string name="mods_update_all">Update All Mods</string>
     <string name="account_add_server_quick_ely_by">Quick add: Ely.by</string>
     <string name="download_game_classic_picker">Classic version list</string>
