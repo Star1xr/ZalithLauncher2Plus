@@ -66,7 +66,7 @@ object PluginLoader {
             RendererPluginManager.parseApkPlugin(context, applicationInfo) { apkPluginList.add(it) }
             NativePluginManager.parseApkPlugin(context, applicationInfo) { apkPluginList.add(it) }
         }
-        FFmpegPluginManager.loadPlugin(context) { apkPluginList.add(it) }
+        FFmpegPluginManager.loadPlugin()
 
         if (RendererPluginManager.isAvailable()) {
             RendererPluginManager.getRendererList().filter { plugin ->
