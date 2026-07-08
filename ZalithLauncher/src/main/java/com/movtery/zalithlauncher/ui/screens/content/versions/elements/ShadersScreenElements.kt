@@ -18,12 +18,15 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.versions.elements
 
+import com.movtery.zalithlauncher.game.version.shader_pack.RemoteShaderPack
 import java.io.File
 
 sealed interface ShaderOperation {
     data object None : ShaderOperation
     /** 执行任务中 */
     data object Progress : ShaderOperation
+    /** 重命名光影包输入对话框 */
+    data class Rename(val info: ShaderPackInfo) : ShaderOperation
     /** 删除光影包对话框 */
     data class Delete(val info: ShaderPackInfo) : ShaderOperation
 }
@@ -33,26 +36,23 @@ sealed interface ShaderOperation {
  */
 data class ShaderPackInfo(
     val file: File,
-    val fileSize: Long,
-    /** 是否已启用（false 表示文件名以 .disabled 结尾） */
-    val isEnabled: Boolean = !file.name.endsWith(".disabled", ignoreCase = true),
-    /** 显示名称（剥除 .disabled 后缀，保留 .zip） */
-    val displayName: String = if (file.name.endsWith(".disabled", ignoreCase = true))
-        file.name.dropLast(9) else file.name
+    val fileSize: Long
 )
 
 /**
- * 过滤光影包列表
+ * 简易过滤器，过滤特定的光影包
  */
 fun List<ShaderPackInfo>.filterShaders(
-    nameFilter: String,
-    stateFilter: PackStateFilter = PackStateFilter.All
+    nameFilter: String
 ) = this.filter {
-    val matchesName = nameFilter.isEmpty() || it.displayName.contains(nameFilter, true)
-    val matchesState = when (stateFilter) {
-        PackStateFilter.All -> true
-        PackStateFilter.Enabled -> it.isEnabled
-        PackStateFilter.Disabled -> !it.isEnabled
-    }
-    matchesName && matchesState
+    nameFilter.isEmpty() || it.file.name.contains(nameFilter, true)
+}
+
+/**
+ * 简易过滤器，过滤特定的光影包（携带远端项目信息的包装类型）
+ */
+fun List<RemoteShaderPack>.filterRemoteShaders(
+    nameFilter: String
+) = this.filter {
+    nameFilter.isEmpty() || it.info.file.name.contains(nameFilter, true)
 }

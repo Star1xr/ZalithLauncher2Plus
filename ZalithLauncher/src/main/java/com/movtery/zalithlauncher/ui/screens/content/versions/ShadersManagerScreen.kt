@@ -46,13 +46,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -69,12 +69,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -102,12 +104,13 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.SortByDropdownMenu
 import com.movtery.zalithlauncher.ui.screens.content.elements.SortByEnum
 import com.movtery.zalithlauncher.ui.screens.content.elements.rememberMultipleUriImportTaskBuilder
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.DeleteAllOperation
+import com.movtery.zalithlauncher.ui.screens.content.versions.elements.FileNameInputDialog
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.LoadingState
-import com.movtery.zalithlauncher.ui.screens.content.versions.elements.PackStateFilter
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.ShaderOperation
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.ShaderPackInfo
-import com.movtery.zalithlauncher.ui.screens.content.versions.elements.filterShaders
+import com.movtery.zalithlauncher.ui.screens.content.versions.elements.filterRemoteShaders
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionChunkBackground
+import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsIcon
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
@@ -115,25 +118,31 @@ import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.file.FolderFileCounter
 import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
+import com.movtery.zalithlauncher.game.version.shader_pack.RemoteShaderPack
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
+import java.util.LinkedList
+import kotlin.time.Duration.Companion.milliseconds
 
 private class ShadersManageViewModel(
     val shadersDir: File
 ) : ViewModel() {
     var nameFilter by mutableStateOf("")
-    var stateFilter by mutableStateOf(PackStateFilter.All)
-        private set
 
-    var allShaders by mutableStateOf<List<ShaderPackInfo>>(emptyList())
+    var allShaders by mutableStateOf<List<RemoteShaderPack>>(emptyList())
         private set
-    var filteredShaders by mutableStateOf<List<ShaderPackInfo>?>(null)
+    var filteredShaders by mutableStateOf<List<RemoteShaderPack>?>(null)
         private set
     var sortByEnum by mutableStateOf(SortByEnum.FileName)
         private set
@@ -143,15 +152,10 @@ private class ShadersManageViewModel(
     var shadersState by mutableStateOf<LoadingState>(LoadingState.None)
         private set
 
-    var enabledCount by mutableStateOf(-1)
-        private set
-    var disabledCount by mutableStateOf(-1)
-        private set
-
     /**
      * 已选择的文件
      */
-    val selectedPacks = mutableStateListOf<ShaderPackInfo>()
+    val selectedPacks = mutableStateListOf<RemoteShaderPack>()
 
     /**
      * 删除所有已选择文件的操作流程
@@ -161,6 +165,15 @@ private class ShadersManageViewModel(
     /** 临时记录的光影包数量 */
     private var packCount = FolderFileCounter(shadersDir)
 
+    //远端图标加载队列，避免同时对大量光影包发起网络请求
+    private val queueMutex = Mutex()
+    private val shadersToLoad = mutableListOf<RemoteShaderPack>()
+    private val loadQueue = LinkedList<Pair<RemoteShaderPack, Boolean>>()
+    private val semaphore = Semaphore(8) //一次最多允许同时加载8个光影包的图标
+
+    /**
+     * 全选所有文件
+     */
     fun selectAllFiles() {
         filteredShaders?.forEach { pack ->
             if (!selectedPacks.contains(pack)) selectedPacks.add(pack)
@@ -173,59 +186,6 @@ private class ShadersManageViewModel(
         }
     }
 
-    fun refreshCounter() {
-        allShaders.also { list ->
-            val counts = list.fold(Pair(0, 0)) { (enabled, disabled), pack ->
-                if (pack.isEnabled) Pair(enabled + 1, disabled) else Pair(enabled, disabled + 1)
-            }
-            enabledCount = counts.first
-            disabledCount = counts.second
-        }
-    }
-
-    fun enableSelectedPacks() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                selectedPacks.forEach { pack ->
-                    if (!pack.isEnabled) {
-                        val newName = pack.file.name.dropLast(9) // strip ".disabled"
-                        pack.file.renameTo(File(shadersDir, newName))
-                    }
-                }
-            }
-            withContext(Dispatchers.Main) { selectedPacks.clear() }
-            refresh(checkCount = false)
-        }
-    }
-
-    fun disableSelectedPacks() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                selectedPacks.forEach { pack ->
-                    if (pack.isEnabled) {
-                        pack.file.renameTo(File(shadersDir, "${pack.file.name}.disabled"))
-                    }
-                }
-            }
-            withContext(Dispatchers.Main) { selectedPacks.clear() }
-            refresh(checkCount = false)
-        }
-    }
-
-    fun togglePackEnabled(pack: ShaderPackInfo) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                if (pack.isEnabled) {
-                    pack.file.renameTo(File(shadersDir, "${pack.file.name}.disabled"))
-                } else {
-                    val newName = pack.file.name.dropLast(9)
-                    pack.file.renameTo(File(shadersDir, newName))
-                }
-            }
-            refresh(checkCount = false)
-        }
-    }
-
     private var job: Job? = null
     /**
      * @param checkCount 刷新目录内文件数量记录
@@ -233,7 +193,6 @@ private class ShadersManageViewModel(
     fun refresh(
         checkCount: Boolean = true
     ) {
-        job?.cancel()
         job = viewModelScope.launch {
             shadersState = LoadingState.Loading
             selectedPacks.clear()
@@ -241,20 +200,19 @@ private class ShadersManageViewModel(
 
             withContext(Dispatchers.IO) {
                 try {
-                    val list = shadersDir.listFiles()?.filter { file ->
-                        if (!file.isFile) return@filter false
-                        val ext = file.extension.lowercase()
-                        // 接受 .zip 或 .zip.disabled
-                        ext == "zip" || (ext == "disabled" && file.name.dropLast(9).endsWith(".zip", ignoreCase = true))
+                    val list = shadersDir.listFiles()?.filter {
+                        //光影包只能是后缀为.zip的压缩包
+                        it.isFile && it.extension.equals("zip", true)
                     }?.map { file ->
                         ensureActive()
-                        ShaderPackInfo(
-                            file = file,
-                            fileSize = FileUtils.sizeOf(file)
+                        RemoteShaderPack(
+                            info = ShaderPackInfo(
+                                file = file,
+                                fileSize = FileUtils.sizeOf(file)
+                            )
                         )
                     } ?: emptyList()
-                    allShaders = list.sortedBy { it.displayName }
-                    refreshCounter()
+                    allShaders = list.sortedBy { it.info.file.name }
                     filterShaders()
                 } catch (_: CancellationException) {
                     return@withContext
@@ -275,15 +233,11 @@ private class ShadersManageViewModel(
 
     init {
         refresh(checkCount = false)
+        startQueueProcessor()
     }
 
     fun updateFilter(name: String) {
         this.nameFilter = name
-        filterShaders()
-    }
-
-    fun updateStateFilter(filter: PackStateFilter) {
-        this.stateFilter = filter
         filterShaders()
     }
 
@@ -304,21 +258,67 @@ private class ShadersManageViewModel(
     private fun filterShaders() {
         filteredShaders = allShaders
             .takeIf { it.isNotEmpty() }
-            ?.filterShaders(nameFilter, stateFilter)
+            ?.filterRemoteShaders(nameFilter)
             ?.sortedWith { o1, o2 ->
-                val file1 = o1.file
-                val file2 = o2.file
+                val file1 = o1.info.file
+                val file2 = o2.info.file
                 val value = when (sortByEnum) {
-                    SortByEnum.FileName -> o1.displayName.compareTo(o2.displayName)
+                    SortByEnum.FileName -> file1.name.compareTo(file2.name)
                     SortByEnum.FileModifiedTime -> file2.lastModified().compareTo(file1.lastModified())
                     else -> error("This sorting method is not supported: $sortByEnum")
                 }
-                if (isAscending) value else -value
+                if (isAscending) {
+                    value
+                } else {
+                    -value
+                }
             }
     }
 
+    private fun startQueueProcessor() {
+        viewModelScope.launch {
+            while (true) {
+                try {
+                    ensureActive()
+                } catch (_: Exception) {
+                    break //取消
+                }
+
+                val task = queueMutex.withLock {
+                    loadQueue.poll()
+                } ?: run {
+                    delay(100.milliseconds)
+                    continue
+                }
+
+                val (pack, loadFromCache) = task
+                semaphore.acquire()
+
+                launch {
+                    try {
+                        pack.load(loadFromCache)
+                    } finally {
+                        semaphore.release()
+                    }
+                }
+            }
+        }
+    }
+
+    /** 尝试从远端平台获取光影包对应的项目信息（用于展示图标） */
+    fun loadShaderPack(pack: RemoteShaderPack, loadFromCache: Boolean = true) {
+        if (shadersToLoad.contains(pack)) return
+
+        shadersToLoad.add(pack)
+        viewModelScope.launch {
+            queueMutex.withLock {
+                loadQueue.add(pack to loadFromCache)
+            }
+        }
+    }
+
     override fun onCleared() {
-        job?.cancel()
+        viewModelScope.cancel()
     }
 }
 
@@ -395,9 +395,16 @@ fun ShadersManagerScreen(
                             viewModel.refresh()
                         }
                     }
-                    ShaderOperationHandler(
+                    ShaderOperation(
                         shaderOperation = shaderOperation,
                         updateOperation = { shaderOperation = it },
+                        shadersDir = shadersDir,
+                        renameShaderPack = { info, newName ->
+                            runProgress {
+                                val file = info.file
+                                file.renameTo(File(shadersDir, "$newName.${file.extension}"))
+                            }
+                        },
                         deleteShaderPack = { info ->
                             runProgress {
                                 FileUtils.deleteQuietly(info.file)
@@ -410,11 +417,6 @@ fun ShadersManagerScreen(
                             modifier = Modifier.fillMaxWidth(),
                             nameFilter = viewModel.nameFilter,
                             onNameFilterChange = { viewModel.updateFilter(it) },
-                            stateFilter = viewModel.stateFilter,
-                            onStateFilterChange = { viewModel.updateStateFilter(it) },
-                            allShadersCount = viewModel.allShaders.size,
-                            enabledCount = viewModel.enabledCount.takeIf { it >= 0 },
-                            disabledCount = viewModel.disabledCount.takeIf { it >= 0 },
                             supportedSortByEnums = viewModel.supportedSortByEnums,
                             sortByEnum = viewModel.sortByEnum,
                             onSortByChanged = { viewModel.updateSortBy(it) },
@@ -428,15 +430,15 @@ fun ShadersManagerScreen(
                                     selected.isNotEmpty()
                                 ) {
                                     viewModel.deleteAllOperation = DeleteAllOperation.Warning(
-                                        files = selected.map { pack -> pack.file }
+                                        files = selected.map { pack ->
+                                            pack.info.file
+                                        }
                                     )
                                 }
                             },
                             isFilesSelected = viewModel.selectedPacks.isNotEmpty(),
                             onSelectAll = { viewModel.selectAllFiles() },
                             onClearFilesSelected = { viewModel.clearSelected() },
-                            onEnableAll = { viewModel.enableSelectedPacks() },
-                            onDisableAll = { viewModel.disableSelectedPacks() },
                             swapToDownload = swapToDownload,
                             refresh = { viewModel.refresh() },
                             submitError = submitError
@@ -450,8 +452,8 @@ fun ShadersManagerScreen(
                             selectedPacks = viewModel.selectedPacks,
                             removeFromSelected = { viewModel.selectedPacks.remove(it) },
                             addToSelected = { viewModel.selectedPacks.add(it) },
-                            onToggleEnabled = { viewModel.togglePackEnabled(it) },
-                            updateOperation = { shaderOperation = it }
+                            updateOperation = { shaderOperation = it },
+                            onLoad = { viewModel.loadShaderPack(it) }
                         )
                     }
                 }
@@ -473,11 +475,6 @@ private fun ShadersActionsHeader(
     modifier: Modifier,
     nameFilter: String,
     onNameFilterChange: (String) -> Unit,
-    stateFilter: PackStateFilter,
-    onStateFilterChange: (PackStateFilter) -> Unit,
-    allShadersCount: Int,
-    enabledCount: Int?,
-    disabledCount: Int?,
     supportedSortByEnums: List<SortByEnum>,
     sortByEnum: SortByEnum,
     onSortByChanged: (SortByEnum) -> Unit,
@@ -488,8 +485,6 @@ private fun ShadersActionsHeader(
     isFilesSelected: Boolean,
     onSelectAll: () -> Unit,
     onClearFilesSelected: () -> Unit,
-    onEnableAll: () -> Unit,
-    onDisableAll: () -> Unit,
     swapToDownload: () -> Unit,
     refresh: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
@@ -504,54 +499,11 @@ private fun ShadersActionsHeader(
                 .padding(top = 4.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // 状态过滤器
                 Box {
                     var expanded by remember { mutableStateOf(false) }
-                    IconButton(onClick = { expanded = !expanded }) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_filter_alt_outlined),
-                            contentDescription = stringResource(R.string.mods_update_task_filter)
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        shape = MaterialTheme.shapes.large
+                    IconButton(
+                        onClick = { expanded = !expanded }
                     ) {
-                        PackStateFilter.entries.forEach { filter ->
-                            val count = when (filter) {
-                                PackStateFilter.Enabled -> enabledCount
-                                PackStateFilter.Disabled -> disabledCount
-                                else -> allShadersCount
-                            }
-                            DropdownMenuItem(
-                                text = {
-                                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Text(text = stringResource(filter.textRes))
-                                        if (count != null) Text(text = "($count)")
-                                    }
-                                },
-                                onClick = {
-                                    onStateFilterChange(filter)
-                                    expanded = false
-                                },
-                                trailingIcon = if (filter == stateFilter) {
-                                    {
-                                        Icon(
-                                            painter = painterResource(R.drawable.ic_check),
-                                            contentDescription = null
-                                        )
-                                    }
-                                } else null
-                            )
-                        }
-                    }
-                }
-
-                // 排序
-                Box {
-                    var expanded by remember { mutableStateOf(false) }
-                    IconButton(onClick = { expanded = !expanded }) {
                         Icon(
                             painter = painterResource(R.drawable.ic_sort),
                             contentDescription = stringResource(R.string.sort_by)
@@ -577,7 +529,7 @@ private fun ShadersActionsHeader(
                     hint = {
                         Text(
                             text = stringResource(R.string.generic_search),
-                            style = TextStyle(color = androidx.compose.ui.graphics.Color.Unspecified).copy(fontSize = 12.sp)
+                            style = TextStyle(color = LocalContentColor.current).copy(fontSize = 12.sp)
                         )
                     },
                     color = inputFieldColor,
@@ -590,40 +542,32 @@ private fun ShadersActionsHeader(
                     visible = isFilesSelected
                 ) {
                     Row {
-                        IconButton(onClick = onDeleteAll) {
+                        IconButton(
+                            onClick = onDeleteAll
+                        ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_delete_outlined),
                                 contentDescription = null
                             )
                         }
 
-                        IconButton(onClick = onSelectAll) {
+                        IconButton(
+                            onClick = onSelectAll
+                        ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_select_all),
                                 contentDescription = null
                             )
                         }
 
-                        IconButton(onClick = { if (isFilesSelected) onClearFilesSelected() }) {
+                        IconButton(
+                            onClick = {
+                                if (isFilesSelected) onClearFilesSelected()
+                            }
+                        ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_deselect),
                                 contentDescription = null
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        IconButton(onClick = onEnableAll) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_visibility_outlined),
-                                contentDescription = stringResource(R.string.generic_enable)
-                            )
-                        }
-
-                        IconButton(onClick = onDisableAll) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_visibility_off_outlined),
-                                contentDescription = stringResource(R.string.generic_disable)
                             )
                         }
 
@@ -665,7 +609,9 @@ private fun ShadersActionsHeader(
                     ImportMultipleFileButton(
                         extension = "zip",
                         progressUris = { uris ->
-                            TaskSystem.submitTask(taskBuilder(uris))
+                            TaskSystem.submitTask(
+                                taskBuilder(uris)
+                            )
                         }
                     )
 
@@ -675,7 +621,9 @@ private fun ShadersActionsHeader(
                         text = stringResource(R.string.generic_download)
                     )
 
-                    IconButton(onClick = refresh) {
+                    IconButton(
+                        onClick = refresh
+                    ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_refresh),
                             contentDescription = stringResource(R.string.generic_refresh)
@@ -690,12 +638,12 @@ private fun ShadersActionsHeader(
 @Composable
 private fun ShadersList(
     modifier: Modifier = Modifier,
-    shadersList: List<ShaderPackInfo>?,
-    selectedPacks: List<ShaderPackInfo>,
-    removeFromSelected: (ShaderPackInfo) -> Unit,
-    addToSelected: (ShaderPackInfo) -> Unit,
-    onToggleEnabled: (ShaderPackInfo) -> Unit,
-    updateOperation: (ShaderOperation) -> Unit
+    shadersList: List<RemoteShaderPack>?,
+    selectedPacks: List<RemoteShaderPack>,
+    removeFromSelected: (RemoteShaderPack) -> Unit,
+    addToSelected: (RemoteShaderPack) -> Unit,
+    updateOperation: (ShaderOperation) -> Unit,
+    onLoad: (RemoteShaderPack) -> Unit
 ) {
     shadersList?.let { list ->
         if (list.isNotEmpty()) {
@@ -710,25 +658,30 @@ private fun ShadersList(
             ) {
                 items(
                     items = list,
-                    key = { it.file.absolutePath },
+                    key = { it.info.file.absolutePath },
                     contentType = { "shader" }
-                ) { info ->
+                ) { pack ->
                     ShaderPackItem(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 6.dp),
-                        shaderPackInfo = info,
-                        selected = selectedPacks.contains(info),
+                        pack = pack,
+                        selected = selectedPacks.contains(pack),
                         onClick = {
-                            if (selectedPacks.contains(info)) removeFromSelected(info)
-                            else addToSelected(info)
+                            if (selectedPacks.contains(pack)) {
+                                removeFromSelected(pack)
+                            } else {
+                                addToSelected(pack)
+                            }
                         },
-                        onToggleEnabled = { onToggleEnabled(info) },
-                        onDelete = { updateOperation(ShaderOperation.Delete(info)) }
+                        updateOperation = updateOperation,
+                        onLoad = { onLoad(pack) }
                     )
                 }
             }
         } else {
+            //如果列表是空的，则是由搜索导致的
+            //展示“无匹配项”文本
             Box(modifier = Modifier.fillMaxSize()) {
                 ScalingLabel(
                     modifier = Modifier.align(Alignment.Center),
@@ -737,6 +690,7 @@ private fun ShadersList(
             }
         }
     } ?: run {
+        //如果为null，则代表本身就没有光影包可以展示
         Box(modifier = Modifier.fillMaxSize()) {
             ScalingLabel(
                 modifier = Modifier.align(Alignment.Center),
@@ -749,18 +703,21 @@ private fun ShadersList(
 @Composable
 private fun ShaderPackItem(
     modifier: Modifier = Modifier,
-    shaderPackInfo: ShaderPackInfo,
+    pack: RemoteShaderPack,
     selected: Boolean,
     onClick: () -> Unit = {},
-    onToggleEnabled: () -> Unit = {},
-    onDelete: () -> Unit = {},
+    updateOperation: (ShaderOperation) -> Unit,
+    onLoad: () -> Unit,
     itemColor: Color = itemColor(),
     itemContentColor: Color = onItemColor(),
     borderColor: Color = MaterialTheme.colorScheme.primary,
     shape: Shape = MaterialTheme.shapes.large,
 ) {
+    val shaderPackInfo = pack.info
+
     val borderWidth by animateDpAsState(
-        if (selected) 2.dp else (-1).dp
+        if (selected) 2.dp
+        else (-1).dp
     )
 
     val scale = remember { Animatable(initialValue = 0.95f) }
@@ -768,10 +725,19 @@ private fun ShaderPackItem(
         scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
     }
 
+    //尝试从平台获取该光影包对应的图标
+    LaunchedEffect(pack) {
+        onLoad()
+    }
+
     Surface(
         modifier = modifier
             .graphicsLayer(scaleY = scale.value, scaleX = scale.value)
-            .border(width = borderWidth, color = borderColor, shape = shape),
+            .border(
+                width = borderWidth,
+                color = borderColor,
+                shape = shape
+            ),
         onClick = onClick,
         shape = shape,
         color = itemColor,
@@ -781,17 +747,28 @@ private fun ShaderPackItem(
             modifier = Modifier.padding(all = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            //光影包图标
+            ShaderPackIcon(
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .clip(shape = MaterialTheme.shapes.medium),
+                pack = pack,
+                iconSize = 40.dp
+            )
+
             Column(
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .weight(1f),
             ) {
+                //文件名称
                 Text(
                     modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                    text = shaderPackInfo.displayName,
+                    text = shaderPackInfo.file.name,
                     style = MaterialTheme.typography.titleSmall,
                     maxLines = 1
                 )
+                //文件大小
                 Text(
                     modifier = Modifier.alpha(0.7f),
                     text = stringResource(
@@ -804,35 +781,118 @@ private fun ShaderPackItem(
 
             Row(
                 modifier = Modifier.align(Alignment.CenterVertically),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 启用/禁用
-                Checkbox(
-                    checked = shaderPackInfo.isEnabled,
-                    onCheckedChange = { onToggleEnabled() }
+                ShadersOperationMenu(
+                    buttonSize = 38.dp,
+                    iconSize = 26.dp,
+                    onRenameClick = {
+                        updateOperation(ShaderOperation.Rename(shaderPackInfo))
+                    },
+                    onDeleteClick = {
+                        updateOperation(ShaderOperation.Delete(shaderPackInfo))
+                    }
                 )
-
-                // 删除
-                IconButton(
-                    modifier = Modifier.size(38.dp),
-                    onClick = onDelete
-                ) {
-                    Icon(
-                        modifier = Modifier.size(26.dp),
-                        painter = painterResource(R.drawable.ic_delete_outlined),
-                        contentDescription = stringResource(R.string.generic_delete)
-                    )
-                }
             }
         }
     }
 }
 
 @Composable
-private fun ShaderOperationHandler(
+private fun ShaderPackIcon(
+    modifier: Modifier = Modifier,
+    pack: RemoteShaderPack,
+    iconSize: Dp
+) {
+    val projectInfo = pack.projectInfo
+    if (projectInfo != null) {
+        //已在平台上匹配到该光影包，展示远端获取到的图标
+        AssetsIcon(
+            modifier = modifier,
+            iconUrl = projectInfo.iconUrl,
+            size = iconSize
+        )
+    } else {
+        //未匹配到远端项目，展示默认的光影包图标
+        Box(
+            modifier = modifier.size(iconSize),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                modifier = Modifier.size(iconSize),
+                painter = painterResource(R.drawable.ic_unknown_pack),
+                contentDescription = null
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShadersOperationMenu(
+    buttonSize: Dp,
+    iconSize: Dp = buttonSize,
+    onRenameClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {}
+) {
+    Row {
+        var menuExpanded by remember { mutableStateOf(false) }
+
+        IconButton(
+            modifier = Modifier.size(buttonSize),
+            onClick = { menuExpanded = !menuExpanded }
+        ) {
+            Icon(
+                modifier = Modifier.size(iconSize),
+                painter = painterResource(R.drawable.ic_more_horiz),
+                contentDescription = stringResource(R.string.generic_more)
+            )
+        }
+
+        DropdownMenu(
+            expanded = menuExpanded,
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp,
+            onDismissRequest = { menuExpanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(text = stringResource(R.string.generic_rename)) },
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.ic_edit_filled),
+                        contentDescription = stringResource(R.string.generic_rename)
+                    )
+                },
+                onClick = {
+                    onRenameClick()
+                    menuExpanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(text = stringResource(R.string.generic_delete)) },
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(R.drawable.ic_delete_filled),
+                        contentDescription = stringResource(R.string.generic_delete)
+                    )
+                },
+                onClick = {
+                    onDeleteClick()
+                    menuExpanded = false
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShaderOperation(
     shaderOperation: ShaderOperation,
     updateOperation: (ShaderOperation) -> Unit,
+    shadersDir: File,
+    renameShaderPack: (ShaderPackInfo, String) -> Unit,
     deleteShaderPack: (ShaderPackInfo) -> Unit
 ) {
     when (shaderOperation) {
@@ -840,12 +900,36 @@ private fun ShaderOperationHandler(
         is ShaderOperation.Progress -> {
             ProgressDialog()
         }
+        is ShaderOperation.Rename -> {
+            val info = shaderOperation.info
+            FileNameInputDialog(
+                initValue = info.file.nameWithoutExtension,
+                existsCheck = { value ->
+                    if (File(shadersDir, "$value.${info.file.extension}").exists()) {
+                        stringResource(R.string.shader_pack_manage_exists)
+                    } else {
+                        null
+                    }
+                },
+                title = stringResource(R.string.generic_rename),
+                label = stringResource(R.string.shader_pack_manage_name),
+                onDismissRequest = {
+                    updateOperation(ShaderOperation.None)
+                },
+                onConfirm = { newName ->
+                    renameShaderPack(info, newName)
+                    updateOperation(ShaderOperation.None)
+                }
+            )
+        }
         is ShaderOperation.Delete -> {
             val info = shaderOperation.info
             SimpleAlertDialog(
                 title = stringResource(R.string.generic_warning),
                 text = stringResource(R.string.shader_pack_manage_delete_warning, info.file.name),
-                onDismiss = { updateOperation(ShaderOperation.None) },
+                onDismiss = {
+                    updateOperation(ShaderOperation.None)
+                },
                 onConfirm = {
                     deleteShaderPack(info)
                     updateOperation(ShaderOperation.None)
