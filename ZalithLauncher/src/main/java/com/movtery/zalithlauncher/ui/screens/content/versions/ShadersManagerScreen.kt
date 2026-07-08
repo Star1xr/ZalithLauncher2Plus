@@ -193,9 +193,12 @@ private class ShadersManageViewModel(
     fun refresh(
         checkCount: Boolean = true
     ) {
+        job?.cancel()
         job = viewModelScope.launch {
             shadersState = LoadingState.Loading
             selectedPacks.clear()
+            //数据即将重建，重置图标加载队列的记录，避免陈旧对象阻塞后续加载
+            shadersToLoad.clear()
             if (checkCount) packCount.checkDir()
 
             withContext(Dispatchers.IO) {
@@ -299,6 +302,8 @@ private class ShadersManageViewModel(
                         pack.load(loadFromCache)
                     } finally {
                         semaphore.release()
+                        //加载完成（无论成功与否），允许后续重新加入队列（例如刷新或强制重试）
+                        shadersToLoad.remove(pack)
                     }
                 }
             }
