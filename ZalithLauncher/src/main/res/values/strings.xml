@@ -128,6 +128,8 @@
     <string name="crash_exit_message">JVM exited with code %d.</string>
     <string name="crash_singnal_message">JVM aborted due to fatal signal %d.</string>
     <string name="crash_exit_note">For details on the cause, please check the log file. If you are unable to resolve the issue yourself, please send the log file to someone who can analyze it. They may be able to help you diagnose and fix the problem. Please do not take a screenshot of the current screen, as screenshots may not provide sufficient information to resolve the issue.</string>
+    <string name="crash_missing_dependency_hint">This crash looks like it was caused by a missing mod dependency: %1$s. Make sure %1$s is installed and compatible with your other mods (missing class: %2$s).</string>
+    <string name="crash_missing_dependency_hint_generic">This crash looks like it was caused by a missing class from a mod or one of its dependencies (%1$s). Check your mod list for missing or incompatible dependencies.</string>
     <string name="crash_type">Crash Type: %s</string>
     <string name="crash_type_launcher">Launcher Crash</string>
     <string name="crash_type_game">Game Crash</string>

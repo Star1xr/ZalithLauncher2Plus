@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
+import com.movtery.zalithlauncher.crashlogs.CrashLogAnalyzer
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.screens.main.ErrorScreen
@@ -101,14 +102,27 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
                 val messageResId = if (jvmCrash.isSignal) R.string.crash_singnal_message else R.string.crash_exit_message
                 val message = getString(messageResId, jvmCrash.code)
                 val messageBody = getString(R.string.crash_exit_note)
+                val logFile = File(jvmCrash.logPath).also { file ->
+                    //检查日志文件是否适合上传
+                    viewModel.check(file)
+                }
+                //尝试分析崩溃日志，识别是否为"缺失模组依赖"导致的类加载失败
+                //游戏运行在独立的 JVM 进程中，启动器无法拦截游戏内部异常，
+                //只能在崩溃后通过分析日志给出更有针对性的提示
+                val causeHint = runCatching { CrashLogAnalyzer.analyze(logFile) }.getOrNull()
+                val hintText = causeHint?.let { hint ->
+                    if (hint.dependencyName != null) {
+                        getString(R.string.crash_missing_dependency_hint, hint.dependencyName, hint.missingClass)
+                    } else {
+                        getString(R.string.crash_missing_dependency_hint_generic, hint.missingClass)
+                    }
+                }
                 ErrorMessage(
                     message = message,
                     messageBody = messageBody,
+                    hintMessage = hintText,
                     crashType = CrashType.GAME_CRASH,
-                    logFile = File(jvmCrash.logPath).also { file ->
-                        //检查日志文件是否适合上传
-                        viewModel.check(file)
-                    }
+                    logFile = logFile
                 )
             }
             else -> {
@@ -118,6 +132,7 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
                 ErrorMessage(
                     message = message,
                     messageBody = messageBody,
+                    hintMessage = null,
                     crashType = CrashType.LAUNCHER_CRASH,
                     logFile = PathManager.FILE_CRASH_REPORT
                 )
@@ -172,6 +187,12 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
                             text = errorMessage.message,
                             style = MaterialTheme.typography.bodyMedium
                         )
+                        errorMessage.hintMessage?.let { hint ->
+                            Text(
+                                text = hint,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                         Text(
                             text = errorMessage.messageBody,
                             style = MaterialTheme.typography.bodyMedium
@@ -185,6 +206,7 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
     private data class ErrorMessage(
         val message: String,
         val messageBody: String,
+        val hintMessage: String?,
         val crashType: CrashType,
         val logFile: File
     )
