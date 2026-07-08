@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.crashlogs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.io.File
 
 class TestCrashLogAnalyzer {
 
@@ -55,5 +56,34 @@ class TestCrashLogAnalyzer {
         val hint = CrashLogAnalyzer.analyze(log)
 
         assertNull(hint)
+    }
+
+    @Test
+    fun testMatchesClassNameFollowedByTrailingNoise() {
+        // Class names in real logs are often followed by punctuation, parens, or line breaks
+        val log = "Caused by: java.lang.ClassNotFoundException: net.irisshaders.iris.gui.IrisConfigScreen\n\tat java.base/..."
+
+        val hint = CrashLogAnalyzer.analyze(log)
+
+        assertEquals("net.irisshaders.iris.gui.IrisConfigScreen", hint?.missingClass)
+        assertEquals("Iris", hint?.dependencyName)
+    }
+
+    @Test
+    fun testFileAnalysisRespectsTailByteCap() {
+        val file = File.createTempFile("crash-log-tail-test", ".log")
+        try {
+            // Prefix filler far larger than the tail cap so the real exception is only
+            // reachable if the tail read correctly seeks near the end of the file.
+            val filler = "x".repeat(50 * 1024)
+            val realException = "java.lang.NoClassDefFoundError: com/example/somemod/SomeClass\n"
+            file.writeText(filler + realException)
+
+            val hint = CrashLogAnalyzer.analyze(file, maxBytes = 4 * 1024L)
+
+            assertEquals("com.example.somemod.SomeClass", hint?.missingClass)
+        } finally {
+            file.delete()
+        }
     }
 }

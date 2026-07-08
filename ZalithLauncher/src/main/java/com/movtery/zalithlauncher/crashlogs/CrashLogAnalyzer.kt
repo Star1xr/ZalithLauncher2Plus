@@ -92,9 +92,17 @@ object CrashLogAnalyzer {
         return if (length <= maxBytes) {
             file.readText()
         } else {
-            file.inputStream().use { input ->
-                input.skip(length - maxBytes)
-                input.readBytes().toString(Charsets.UTF_8)
+            java.io.RandomAccessFile(file, "r").use { raf ->
+                val start = length - maxBytes
+                raf.seek(start)
+                val buffer = ByteArray(maxBytes.toInt())
+                var read = 0
+                while (read < buffer.size) {
+                    val n = raf.read(buffer, read, buffer.size - read)
+                    if (n < 0) break
+                    read += n
+                }
+                buffer.toString(Charsets.UTF_8)
             }
         }
     }

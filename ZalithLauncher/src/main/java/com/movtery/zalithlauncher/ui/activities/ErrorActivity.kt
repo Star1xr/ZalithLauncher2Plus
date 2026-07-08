@@ -28,7 +28,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
@@ -48,6 +52,9 @@ import com.movtery.zalithlauncher.utils.network.openLink
 import com.movtery.zalithlauncher.utils.string.throwableToString
 import com.movtery.zalithlauncher.viewmodel.LogsUploadViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import java.io.File
 
@@ -106,21 +113,10 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
                     //检查日志文件是否适合上传
                     viewModel.check(file)
                 }
-                //尝试分析崩溃日志，识别是否为"缺失模组依赖"导致的类加载失败
-                //游戏运行在独立的 JVM 进程中，启动器无法拦截游戏内部异常，
-                //只能在崩溃后通过分析日志给出更有针对性的提示
-                val causeHint = runCatching { CrashLogAnalyzer.analyze(logFile) }.getOrNull()
-                val hintText = causeHint?.let { hint ->
-                    if (hint.dependencyName != null) {
-                        getString(R.string.crash_missing_dependency_hint, hint.dependencyName, hint.missingClass)
-                    } else {
-                        getString(R.string.crash_missing_dependency_hint_generic, hint.missingClass)
-                    }
-                }
                 ErrorMessage(
                     message = message,
                     messageBody = messageBody,
-                    hintMessage = hintText,
+                    hintMessage = null,
                     crashType = CrashType.GAME_CRASH,
                     logFile = logFile
                 )
@@ -142,6 +138,27 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
         val logFile = errorMessage.logFile
         val canRestart: Boolean = extras.getBoolean(BUNDLE_CAN_RESTART, true)
         val logExists = logFile.exists() && logFile.isFile
+
+        //尝试分析崩溃日志，识别是否为"缺失模组依赖"导致的类加载失败
+        //游戏运行在独立的 JVM 进程中，启动器无法拦截游戏内部异常，
+        //只能在崩溃后通过分析日志给出更有针对性的提示
+        //日志文件可能较大，分析放在 IO 线程进行，避免阻塞主线程
+        var hintMessage by mutableStateOf<String?>(null)
+        if (errorMessage.crashType == CrashType.GAME_CRASH) {
+            lifecycleScope.launch {
+                val hintText = withContext(Dispatchers.IO) {
+                    val causeHint = runCatching { CrashLogAnalyzer.analyze(logFile) }.getOrNull()
+                    causeHint?.let { hint ->
+                        if (hint.dependencyName != null) {
+                            getString(R.string.crash_missing_dependency_hint, hint.dependencyName, hint.missingClass)
+                        } else {
+                            getString(R.string.crash_missing_dependency_hint_generic, hint.missingClass)
+                        }
+                    }
+                }
+                hintMessage = hintText
+            }
+        }
 
         setContent {
             ZalithLauncherTheme {
@@ -187,7 +204,7 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
                             text = errorMessage.message,
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        errorMessage.hintMessage?.let { hint ->
+                        hintMessage?.let { hint ->
                             Text(
                                 text = hint,
                                 style = MaterialTheme.typography.bodyMedium
