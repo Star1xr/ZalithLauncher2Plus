@@ -110,6 +110,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.SortByEnum
 import com.movtery.zalithlauncher.ui.screens.content.elements.rememberMultipleUriImportTaskBuilder
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.ByteArrayIcon
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.DeleteAllOperation
+import com.movtery.zalithlauncher.ui.screens.content.versions.elements.DisabledStateIcon
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.LoadingState
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.MinecraftColorTextNormal
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.PackStateFilter
@@ -779,13 +780,19 @@ private fun ResourcePackItemLayout(
             modifier = Modifier.padding(all = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ByteArrayIcon(
+            DisabledStateIcon(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(shape = RoundedCornerShape(10.dp)),
-                triggerRefresh = resourcePackInfo,
-                icon = resourcePackInfo.icon
-            )
+                isDisabled = !resourcePackInfo.isEnabled
+            ) { colorFilter ->
+                ByteArrayIcon(
+                    modifier = Modifier.fillMaxSize(),
+                    triggerRefresh = resourcePackInfo,
+                    icon = resourcePackInfo.icon,
+                    colorFilter = colorFilter
+                )
+            }
 
             Column(
                 modifier = Modifier.weight(1f),

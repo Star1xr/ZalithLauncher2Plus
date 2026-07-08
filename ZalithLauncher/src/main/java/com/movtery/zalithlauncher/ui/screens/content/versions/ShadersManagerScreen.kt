@@ -24,6 +24,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -104,6 +105,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.SortByDropdownMenu
 import com.movtery.zalithlauncher.ui.screens.content.elements.SortByEnum
 import com.movtery.zalithlauncher.ui.screens.content.elements.rememberMultipleUriImportTaskBuilder
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.DeleteAllOperation
+import com.movtery.zalithlauncher.ui.screens.content.versions.elements.DisabledStateIcon
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.LoadingState
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.PackStateFilter
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.ShaderOperation
@@ -867,7 +869,8 @@ private fun ShaderPackItem(
                     .align(Alignment.CenterVertically)
                     .clip(shape = MaterialTheme.shapes.medium),
                 pack = pack,
-                iconSize = 40.dp
+                iconSize = 40.dp,
+                isDisabled = !shaderPackInfo.isEnabled
             )
 
             Column(
@@ -922,27 +925,35 @@ private fun ShaderPackItem(
 private fun ShaderPackIcon(
     modifier: Modifier = Modifier,
     pack: RemoteShaderPack,
-    iconSize: Dp
+    iconSize: Dp,
+    isDisabled: Boolean
 ) {
-    val projectInfo = pack.projectInfo
-    if (projectInfo != null) {
-        //已在平台上匹配到该光影包，展示远端获取到的图标
-        AssetsIcon(
-            modifier = modifier,
-            iconUrl = projectInfo.iconUrl,
-            size = iconSize
-        )
-    } else {
-        //未匹配到远端项目，展示默认的光影包图标
-        Box(
-            modifier = modifier.size(iconSize),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
+    DisabledStateIcon(
+        modifier = modifier,
+        isDisabled = isDisabled
+    ) { colorFilter ->
+        val projectInfo = pack.projectInfo
+        if (projectInfo != null) {
+            //已在平台上匹配到该光影包，展示远端获取到的图标
+            AssetsIcon(
                 modifier = Modifier.size(iconSize),
-                painter = painterResource(R.drawable.ic_unknown_pack),
-                contentDescription = null
+                iconUrl = projectInfo.iconUrl,
+                size = iconSize,
+                colorFilter = colorFilter
             )
+        } else {
+            //未匹配到远端项目，展示默认的光影包图标
+            Box(
+                modifier = Modifier.size(iconSize),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    modifier = Modifier.size(iconSize),
+                    painter = painterResource(R.drawable.ic_unknown_pack),
+                    contentDescription = null,
+                    colorFilter = colorFilter
+                )
+            }
         }
     }
 }
