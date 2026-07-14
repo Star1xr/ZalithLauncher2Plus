@@ -93,6 +93,7 @@ import net.burningtnt.terracotta.TerracottaAndroidAPI
 import com.movtery.zalithlauncher.terracotta.profile.TerracottaProfile
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedRow
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
@@ -491,12 +492,12 @@ private fun SettingsPanel(
                     )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.terracotta_open_multiplayer),
+                            text = stringResource(R.string.terracotta_launcher_open),
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
                             modifier = Modifier.alpha(0.7f),
-                            text = stringResource(R.string.terracotta_open_multiplayer_desc),
+                            text = stringResource(R.string.terracotta_launcher_open_desc),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -527,7 +528,8 @@ private fun MultiplayerControlsPanel(
             viewModel.joinGame(roomCode, userName)
         },
         onShowToast = { text ->
-            Toast.makeText(context, text.getText(context), Toast.LENGTH_SHORT).show()
+            val textStr = text.toAndroidString(context)
+            Toast.makeText(context, textStr, Toast.LENGTH_SHORT).show()
         }
     )
 
