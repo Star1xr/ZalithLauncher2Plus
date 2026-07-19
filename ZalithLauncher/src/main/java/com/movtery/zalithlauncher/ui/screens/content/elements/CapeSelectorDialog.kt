@@ -54,8 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import kotlin.math.roundToInt
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas as ComposeCanvas
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.IntSize
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -325,11 +327,13 @@ private fun CapeEntryCard(
                     }
                     val bmp = capeBitmap
                     if (bmp != null) {
-                        Image(
-                            bitmap = bmp.asImageBitmap(),
-                            contentDescription = entry.name,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        ComposeCanvas(modifier = Modifier.fillMaxSize()) {
+                            drawImage(
+                                image = bmp.asImageBitmap(),
+                                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                                filterQuality = FilterQuality.High
+                            )
+                        }
                     }
                 }
             }
