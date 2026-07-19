@@ -88,6 +88,7 @@ class GameHandler(
         scope: CoroutineScope
     ) {
         ZLBridge.setupBridgeWindow(surface)
+        ZLBridge.frameGenSetEnabled(AllSettings.frameGeneration.getValue())
 
         MCOptions.setup(activity, version)
 

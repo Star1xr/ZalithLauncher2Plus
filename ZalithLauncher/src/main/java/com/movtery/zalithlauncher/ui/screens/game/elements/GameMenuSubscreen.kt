@@ -61,6 +61,7 @@ import com.movtery.zalithlauncher.ui.components.MenuListLayout
 import com.movtery.zalithlauncher.ui.components.MenuSliderLayout
 import com.movtery.zalithlauncher.ui.components.MenuState
 import com.movtery.zalithlauncher.ui.components.MenuSwitchButton
+import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.ui.components.MenuTextButton
 
 import com.movtery.zalithlauncher.ui.components.lazyScrollWithBar
@@ -258,6 +259,21 @@ private fun GameActionContent(
                 text = stringResource(R.string.game_menu_option_disable_loading_popup),
                 switch = AllSettings.disableLoadingPopup.state,
                 onSwitch = { AllSettings.disableLoadingPopup.save(it) },
+                color = color,
+                contentColor = contentColor
+            )
+        }
+
+        //帧生成
+        item {
+            MenuSwitchButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.settings_renderer_frame_generation_title),
+                switch = AllSettings.frameGeneration.state,
+                onSwitch = {
+                    AllSettings.frameGeneration.save(it)
+                    ZLBridge.frameGenSetEnabled(it)
+                },
                 color = color,
                 contentColor = contentColor
             )

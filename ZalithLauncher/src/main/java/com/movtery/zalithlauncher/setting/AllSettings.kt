@@ -103,6 +103,11 @@ object AllSettings : SettingsRegistry() {
     val vsyncInZink = boolSetting("vsyncInZink", false)
 
     /**
+     * 帧生成（交换链帧加倍）
+     */
+    val frameGeneration = boolSetting("frameGeneration", false)
+
+    /**
      * 强制在高性能核心运行
      */
     val bigCoreAffinity = boolSetting("bigCoreAffinity", false)

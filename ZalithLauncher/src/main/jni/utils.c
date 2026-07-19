@@ -135,3 +135,12 @@ JNIEXPORT void JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_fsrSetQua
 	}
 }
 
+JNIEXPORT void JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_frameGenSetEnabled(JNIEnv *env, jclass clazz, jboolean enabled) {
+	void (*framegen_set_enabled_fn)(int) = dlsym(RTLD_DEFAULT, "framegen_set_enabled");
+	if (framegen_set_enabled_fn) {
+		framegen_set_enabled_fn((int)enabled);
+	} else {
+		LOG_TO_E("FrameGen: framegen_set_enabled not found");
+	}
+}
+

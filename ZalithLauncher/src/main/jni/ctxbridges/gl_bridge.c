@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include "gl_bridge.h"
 #include "egl_loader.h"
+#include <framegen/framegen_hook.h>
 
 typedef int32_t (*ANativeWindow_getTransformHint_t)(ANativeWindow* window);
 static ANativeWindow_getTransformHint_t ANativeWindow_getTransformHint_fn = NULL;
@@ -234,17 +235,24 @@ void gl_swap_buffers() {
 
     if (currentBundle->surface != NULL)
     {
-        if (!eglSwapBuffers_p(g_EglDisplay, currentBundle->surface) && eglGetError_p() == EGL_BAD_SURFACE)
+        framegen_capture(g_EglDisplay, currentBundle->surface);
+
+        if (!eglSwapBuffers_p(g_EglDisplay, currentBundle->surface))
         {
-            eglMakeCurrent_p(g_EglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-            currentBundle->newNativeSurface = NULL;
-            gl_swap_surface(currentBundle);
-            eglMakeCurrent_p(g_EglDisplay, currentBundle->surface, currentBundle->surface, currentBundle->context);
-            // 清理过期状态，避免下一帧重复进入 gl_swap_surface 导致回退到 1×1 pbuffer
-            if (currentBundle->nativeSurface != NULL && currentBundle->state == STATE_RENDERER_NEW_WINDOW) {
-                currentBundle->state = STATE_RENDERER_ALIVE;
+            if (eglGetError_p() == EGL_BAD_SURFACE)
+            {
+                eglMakeCurrent_p(g_EglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+                currentBundle->newNativeSurface = NULL;
+                gl_swap_surface(currentBundle);
+                eglMakeCurrent_p(g_EglDisplay, currentBundle->surface, currentBundle->surface, currentBundle->context);
+                // 清理过期状态，避免下一帧重复进入 gl_swap_surface 导致回退到 1×1 pbuffer
+                if (currentBundle->nativeSurface != NULL && currentBundle->state == STATE_RENDERER_NEW_WINDOW) {
+                    currentBundle->state = STATE_RENDERER_ALIVE;
+                }
+                __android_log_print(ANDROID_LOG_INFO, g_LogTag, "The window has died, awaiting window change");
             }
-            __android_log_print(ANDROID_LOG_INFO, g_LogTag, "The window has died, awaiting window change");
+        } else {
+            framegen_double(g_EglDisplay, currentBundle->surface);
         }
     }
 
