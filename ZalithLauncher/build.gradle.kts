@@ -173,7 +173,7 @@ val mobileGluesLibs by tasks.registering {
     doLast {
         val jniLibsDir = file("src/main/jniLibs")
 
-        val apiUrl = URL("https://api.github.com/repos/MobileGL-Dev/MobileGlues-release/releases/latest")
+        val apiUrl = URL("https://api.github.com/repos/MobileGL-Dev/MobileGlues-release/releases/V1.3.5")
         val releaseJson = retryWithBackoff(maxRetries = 5, initialDelayMs = 2000) { attempt ->
             val conn = apiUrl.openConnection() as java.net.HttpURLConnection
             conn.setRequestProperty("Accept", "application/json")
