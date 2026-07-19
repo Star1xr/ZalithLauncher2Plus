@@ -5,6 +5,7 @@
 #include <string.h>
 #include <android/log.h>
 #include <EGL/egl.h>
+#include "../ctxbridges/egl_loader.h"
 
 #define LOG_TAG "FrameGen"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
@@ -117,7 +118,7 @@ static int ensure(int w, int h) {
 void framegen_capture(EGLDisplay dpy, EGLSurface surface) {
     if (!g_enabled) return;
     EGLint w, h;
-    if (!eglQuerySurface(dpy, surface, EGL_WIDTH, &w) || !eglQuerySurface(dpy, surface, EGL_HEIGHT, &h))
+    if (!eglQuerySurface_p(dpy, surface, EGL_WIDTH, &w) || !eglQuerySurface_p(dpy, surface, EGL_HEIGHT, &h))
         return;
     if (w <= 0 || h <= 0) return;
     if (ensure(w, h) < 0) return;
@@ -148,7 +149,7 @@ void framegen_double(EGLDisplay dpy, EGLSurface surface) {
     f_glBindFramebuffer(GL_READ_FRAMEBUFFER, prevRead);
     f_glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDraw);
 
-    if (!eglSwapBuffers(dpy, surface)) {
+    if (!eglSwapBuffers_p(dpy, surface)) {
         LOGD("Double swap failed (surface may have died)");
     }
 }
