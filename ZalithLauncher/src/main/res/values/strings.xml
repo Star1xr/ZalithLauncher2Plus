@@ -1082,6 +1082,8 @@
     <string name="settings_renderer_vsync_in_zink_summary">Enable vertical sync for the Zink renderer via the system interface</string>
     <string name="settings_renderer_force_big_core_title">Force High-Performance Cores</string>
     <string name="settings_renderer_force_big_core_summary">Bind Minecraft\'s rendering thread to the CPU\'s high-performance cores (big cores). Enabling this may increase power consumption and heat</string>
+    <string name="settings_renderer_fps_limit_title">Frame Rate Limit</string>
+    <string name="settings_renderer_fps_limit_summary">Limits the maximum frames per second. Set to 0 for unlimited</string>
     <string name="settings_renderer_surface_title">Use SurfaceView Rendering</string>
     <string name="settings_renderer_surface_summary">Renders using a separate layer outside the UI</string>
     <string name="settings_renderer_surface_summary_kopper_disabled">Unavailable while using the Kopper Zink renderer</string>

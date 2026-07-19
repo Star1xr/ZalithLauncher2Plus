@@ -424,14 +424,32 @@ fun RendererSettingsScreen(
                         summary = stringResource(R.string.settings_renderer_force_big_core_summary)
                     )
 
+                    IntSliderSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        value = AllSettings.fpsLimit.state,
+                        onValueChange = { AllSettings.fpsLimit.updateState(it) },
+                        onValueChangeFinished = {
+                            val fps = AllSettings.fpsLimit.state
+                            AllSettings.fpsLimit.save(fps)
+                            ZLBridge.fpsLimitSet(fps)
+                        },
+                        title = stringResource(R.string.settings_renderer_fps_limit_title),
+                        summary = stringResource(R.string.settings_renderer_fps_limit_summary),
+                        valueRange = AllSettings.fpsLimit.floatRange,
+                        suffix = " FPS",
+                        fineTuningControl = false
+                    )
+
                     val isKopperZinkSelected = AllSettings.renderer.state == KopperZinkRenderer.getUniqueIdentifier()
                     var surfaceViewAutoDisabledAlert by remember { mutableStateOf(false) }
 
-                    //切换到 Kopper Zink 时，如果 SurfaceView 原本是开启的，仅提示用户已被关闭；
-                    //注意：这里不修改实际保存的偏好值，所以切换回其他渲染器时会自动恢复原来的开启状态
                     LaunchedEffect(isKopperZinkSelected) {
-                        if (isKopperZinkSelected && AllSettings.useSurfaceView.state && !AllSettings.surfaceViewKopperWarningDontShow.state) {
-                            surfaceViewAutoDisabledAlert = true
+                        if (isKopperZinkSelected && AllSettings.useSurfaceView.state) {
+                            AllSettings.useSurfaceView.save(false)
+                            if (!AllSettings.surfaceViewKopperWarningDontShow.state) {
+                                surfaceViewAutoDisabledAlert = true
+                            }
                         }
                     }
 

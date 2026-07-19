@@ -50,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
@@ -451,6 +452,23 @@ private fun ControlOverview(
                 onValueChange = { AllSettings.controlsOpacity.updateState(it) },
                 onValueChangeFinished = { AllSettings.controlsOpacity.save(it) },
                 suffix = "%",
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+        //帧率上限
+        item {
+            MenuSliderLayout(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.settings_renderer_fps_limit_title),
+                value = AllSettings.fpsLimit.state,
+                valueRange = AllSettings.fpsLimit.floatRange,
+                onValueChange = { AllSettings.fpsLimit.updateState(it) },
+                onValueChangeFinished = {
+                    AllSettings.fpsLimit.save(it)
+                    ZLBridge.fpsLimitSet(it)
+                },
+                suffix = " FPS",
                 color = color,
                 contentColor = contentColor,
             )

@@ -571,7 +571,9 @@
     <string name="settings_renderer_vsync_in_zink_title">Zink Vsync</string>
     <string name="settings_renderer_vsync_in_zink_summary">Zink işleyicisi için sistem arayüzünden dikey senkronizasyon aç</string>
     <string name="settings_renderer_force_big_core_title">Yüksek Performans Çekirdeği Kullan</string>
-    <string name="settings_renderer_force_big_core_summary">Minecraft’ın render iş parçacığını CPU’nun yüksek performanslı çekirdeklerine (büyük çekirdek) bağlar; etkinleştirildiğinde güç tüketimi ve ısınmayı artırabilir</string>
+    <string name="settings_renderer_force_big_core_summary">Minecraft\'ın render iş parçacığını CPU\'nun yüksek performanslı çekirdeklerine (büyük çekirdek) bağlar; etkinleştirildiğinde güç tüketimi ve ısınmayı artırabilir</string>
+    <string name="settings_renderer_fps_limit_title">Kare Hızı Sınırı</string>
+    <string name="settings_renderer_fps_limit_summary">Saniyedeki maksimum kare sayısını sınırlar. Sınırsız için 0 ayarlayın</string>
     <string name="settings_game_version_isolation_title">Genel Sürüm Yalıtımı</string>
     <string name="settings_game_version_isolation_summary">Varsayılan olarak tüm sürümler izole edilir, sürümler arası veriler birbirine karışmaz</string>
     <string name="settings_game_skip_game_integrity_check_title">Bütünlük Kontrolünü Atla</string>

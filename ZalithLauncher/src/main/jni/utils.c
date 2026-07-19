@@ -135,3 +135,12 @@ JNIEXPORT void JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_fsrSetQua
 	}
 }
 
+JNIEXPORT void JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_fpsLimitSet(JNIEnv *env, jclass clazz, jint fps) {
+	void (*fpslimit_set_limit_fn)(int) = dlsym(RTLD_DEFAULT, "fpslimit_set_limit");
+	if (fpslimit_set_limit_fn) {
+		fpslimit_set_limit_fn((int)fps);
+	} else {
+		LOG_TO_E("FPSLimit: fpslimit_set_limit not found");
+	}
+}
+

@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <environ/environ.h>
 #include <unistd.h>
+#include <framegen/fps_limit.h>
 #include "gl_bridge.h"
 #include "egl_loader.h"
 
@@ -246,6 +247,8 @@ void gl_swap_buffers() {
             }
             __android_log_print(ANDROID_LOG_INFO, g_LogTag, "The window has died, awaiting window change");
         }
+
+        fpslimit_throttle();
     }
 
 }
