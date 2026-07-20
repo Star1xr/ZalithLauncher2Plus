@@ -18,7 +18,7 @@
 - [ ] No breaking changes
 - [ ] Backward compatible
 - [ ] No duplicate pull request
-- [ ] No low-quality content
+- [ ] No low-quality, AI generated content
 - [ ] No malicious code
 - [ ] Tested locally
 
@@ -31,11 +31,7 @@ Closes #(issue_number)
 ### Screenshots (if UI changes)
 <!-- Drag and drop screenshots here -->
 
-### Test Steps
-<!-- Step-by-step instructions to test -->
-1. 
-2. 
-3. 
+
 
 ### Additional Notes
 <!-- Any extra information -->
