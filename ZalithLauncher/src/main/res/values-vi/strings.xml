@@ -11,6 +11,13 @@
     <string name="skin_reset">Đặt lại skin</string>
     <string name="generic_delete">Xóa</string>
     <string name="generic_rename">Đổi tên</string>
+    <string name="recorder_mic_on">Bật Microphone</string>
+    <string name="recorder_mic_off">Tắt Microphone</string>
+    <string name="recorder_notification_channel_name">Ghi màn hình</string>
+    <string name="recorder_notification_title">Đang trong tiến trình ghi màn hình.</string>
+    <string name="recorder_notification_text">Âm thanh và video game đã được ghi lại</string>
+    <string name="settings_renderer_fps_limit_title">Giới hạn khung hình</string>
+    <string name="settings_renderer_fps_limit_summary">Quy định khung hình tối đa mỗi giây. Để về 0 sẽ là không giới hạn</string>
     <string name="generic_copy">Sao chép</string>
     <string name="generic_paste">Dán</string>
     <string name="generic_more">Thêm</string>
