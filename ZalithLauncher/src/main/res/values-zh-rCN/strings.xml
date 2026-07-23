@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="generic_cancel">取消</string>
+    <string name="recorder_mic_off">麦克风已关</string>
+    <string name="recorder_notification_channel_name">录屏</string>
+    <string name="recorder_notification_title">正在录屏...</string>
+    <string name="recorder_notification_text">正在录制游戏声音和屏幕</string>
+    <string name="settings_renderer_fps_limit_title">限制画面流畅度</string>
+    <string name="settings_renderer_fps_limit_summary">设置每秒最多显示多少帧画面（数值越高越流畅）。设为0则不限制</string>
     <string name="generic_confirm">确认</string>
     <string name="generic_error">错误</string>
     <string name="generic_tip">提示</string>
