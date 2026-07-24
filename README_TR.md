@@ -62,7 +62,7 @@ git clone https://github.com/Star1xr/ZalithLauncher2Plus.git
 
 ## 📜 Lisans
 
-Bu proje, yukarı akış Zalith Launcher 2 projesinden devralınan **[GPL-3.0 lisansı](LICENSE)** altında lisanslanmıştır.
+Bu proje, upstream Zalith Launcher 2 projesinden devralınan **[GPL-3.0 lisansı](LICENSE)** altında lisanslanmıştır.
 
 ### Önemli Hükümler
 
