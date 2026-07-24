@@ -68,7 +68,7 @@ Bu proje, upstream Zalith Launcher 2 projesinden devralınan **[GPL-3.0 lisansı
 
 **Katkılar ve Atıf**
    - Tüm değişiklikler açıkça belgelenmiş ve bu çatala atfedilmiştir
-   - Yukarı akış projesine uygun şekilde atıfta bulunulmuştur
+   - Upstream projeye uygun şekilde atıfta bulunulmuştur
 
 ## 📦 Açık Kaynak Kütüphaneler ve Lisanslar
 
