@@ -45,10 +45,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -106,24 +107,25 @@ fun SideBar(
             .fillMaxHeight()
             .padding(vertical = 8.dp)
     ) {
-        Surface(
+        Card(
             modifier = Modifier
                 .fillMaxSize()
                 .offset(x = contentOffset)
-                .clipToBounds()
-                .backgroundGlass(
-                    blur = AllSettings.backgroundBlur.state,
-                    color = cardColor()
-                ),
+                .clipToBounds(),
             shape = RoundedCornerShape(20.dp),
-            color = cardColor(),
-            contentColor = onCardColor(),
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp
+            colors = CardDefaults.cardColors(
+                containerColor = cardColor(),
+                contentColor = onCardColor()
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .backgroundGlass(
+                        blur = AllSettings.backgroundBlur.state,
+                        color = cardColor()
+                    )
                     .padding(vertical = 10.dp)
             ) {
                 AnimatedVisibility(

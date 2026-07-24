@@ -66,8 +66,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -117,7 +119,7 @@ import com.movtery.zalithlauncher.ui.screens.game.elements.PerformanceSettingsDi
 import com.movtery.zalithlauncher.ui.screens.game.elements.PerformanceSettingsOperation
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.MarkdownBlock
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.customHomePage
-import com.movtery.zalithlauncher.ui.theme.cardColor
+
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.removeAndNavigateTo
 import com.movtery.zalithlauncher.utils.PlayTimeUtils
@@ -572,7 +574,7 @@ private fun LastLogCard(
                             .weight(1f)
                             .fillMaxWidth()
                             .alpha(0.5f)
-                            .bottomFade(36.dp, cardColor())
+                            .bottomFade(36.dp)
                     )
                     Text(
                         text = stringResource(R.string.stats_click_for_more),
@@ -953,7 +955,7 @@ private fun ChangelogCard(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth()
-                                .bottomFade(48.dp, cardColor()),
+                                .bottomFade(48.dp),
                             config = cardConfig,
                         )
                         Text(
@@ -1003,19 +1005,20 @@ private fun ChangelogCard(
     }
 }
 
-private fun Modifier.bottomFade(edgeHeight: androidx.compose.ui.unit.Dp, targetColor: Color = Color.Transparent): Modifier = this
-    .graphicsLayer(clip = true)
+private fun Modifier.bottomFade(edgeHeight: androidx.compose.ui.unit.Dp): Modifier = this
+    .graphicsLayer {
+        clip = true
+        compositingStrategy = CompositingStrategy.Offscreen
+    }
     .drawWithContent {
         drawContent()
         drawRect(
             brush = Brush.verticalGradient(
-                colors = listOf(
-                    Color.Transparent,
-                    targetColor
-                ),
+                colors = listOf(Color.Black, Color.Transparent),
                 startY = size.height - edgeHeight.toPx(),
                 endY = size.height
             ),
+            blendMode = BlendMode.DstIn,
             size = size
         )
     }
