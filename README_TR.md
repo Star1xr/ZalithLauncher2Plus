@@ -31,13 +31,13 @@ Bu çatal, orijinal Zalith Launcher 2 deneyimini geliştirmeyi ve özelleştirme
 
 Sayamayacağım kadar çok daha fazlası...
 
-## 🔗 Yukarı Akış (Upstream) Projesi
+## 🔗 Upstream Proje
 
-Bu proje, Zalith Launcher ekibinin mükemmel çalışmalarından türetilmiştir:
+Bu proje, Orjinal Zalith Launcher ekibinin mükemmel çalışmalarından türetilmiştir:
 - **Orijinal Proje:** [ZalithLauncher2](https://github.com/ZalithLauncher/ZalithLauncher2)
 - **Orijinal Lisans:** GPL-3.0
 
-Resmî, değiştirilmemiş sürümü istiyorsanız lütfen yukarı akış projesini ziyaret edin.
+Resmî, değiştirilmemiş sürümü istiyorsanız lütfen upstream projeyi ziyaret edin.
 
 ## 🌐 Dil ve Çeviri Desteği
 
