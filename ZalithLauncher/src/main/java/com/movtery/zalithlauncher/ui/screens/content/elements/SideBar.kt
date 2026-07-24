@@ -45,10 +45,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -106,83 +107,102 @@ fun SideBar(
             .fillMaxHeight()
             .padding(vertical = 8.dp)
     ) {
-        Surface(
+        Card(
             modifier = Modifier
                 .fillMaxSize()
                 .offset(x = contentOffset)
-                .clipToBounds()
-                .backgroundGlass(
-                    blur = AllSettings.backgroundBlur.state,
-                    color = cardColor()
-                ),
+                .clipToBounds(),
             shape = RoundedCornerShape(20.dp),
-            color = cardColor(),
-            contentColor = onCardColor(),
-            tonalElevation = 0.dp,
-            shadowElevation = 0.dp
+            colors = CardDefaults.cardColors(
+                containerColor = cardColor(),
+                contentColor = onCardColor()
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .clip(RoundedCornerShape(20.dp))
+                    .backgroundGlass(
+                        blur = AllSettings.backgroundBlur.state,
+                        color = cardColor()
+                    )
                     .padding(vertical = 10.dp)
             ) {
-                AnimatedVisibility(
-                    visible = expanded,
-                    enter = fadeIn(animationSpec = tween(250)) +
-                        slideInVertically(
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium
-                            )
-                        ) { it / 3 },
-                    exit = fadeOut(animationSpec = tween(150)) +
-                        slideOutVertically(
-                            animationSpec = tween(150)
-                        ) { it / 3 },
+                SideBarMenuContent(
+                    expanded = expanded,
+                    onFpsClick = onFpsClick,
+                    onVersionsClick = onVersionsClick,
+                    onInfoClick = onInfoClick,
                     modifier = Modifier.align(Alignment.TopCenter)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .padding(horizontal = 14.dp)
-                                .alpha(0.2f)
-                        )
-
-                        Spacer(modifier = Modifier.height(2.dp))
-
-                        StaggeredItem(delay = 0) {
-                            SideBarShortcut(
-                                icon = painterResource(R.drawable.ic_video_settings),
-                                label = stringResource(R.string.game_menu_option_fps_settings),
-                                onClick = onFpsClick
-                            )
-                        }
-
-                        StaggeredItem(delay = 120) {
-                            SideBarShortcut(
-                                icon = painterResource(R.drawable.ic_assignment_filled),
-                                label = stringResource(R.string.page_title_version_manage),
-                                onClick = onVersionsClick
-                            )
-                        }
-
-                        StaggeredItem(delay = 180) {
-                            SideBarShortcut(
-                                icon = painterResource(R.drawable.ic_info_outlined),
-                                label = stringResource(R.string.about_launcher_title),
-                                onClick = onInfoClick
-                            )
-                        }
-                    }
-                }
+                )
                 SideBarToggle(
                     expanded = expanded,
                     onClick = { expanded = !expanded },
                     modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SideBarMenuContent(
+    expanded: Boolean,
+    onFpsClick: () -> Unit,
+    onVersionsClick: () -> Unit,
+    onInfoClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AnimatedVisibility(
+        visible = expanded,
+        enter = fadeIn(animationSpec = tween(250)) +
+            slideInVertically(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium
+                )
+            ) { it / 3 },
+        exit = fadeOut(animationSpec = tween(150)) +
+            slideOutVertically(
+                animationSpec = tween(150)
+            ) { it / 3 },
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            HorizontalDivider(
+                modifier = Modifier
+                    .padding(horizontal = 14.dp)
+                    .alpha(0.2f)
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            StaggeredItem(delay = 0) {
+                SideBarShortcut(
+                    icon = painterResource(R.drawable.ic_video_settings),
+                    label = stringResource(R.string.game_menu_option_fps_settings),
+                    onClick = onFpsClick
+                )
+            }
+
+            StaggeredItem(delay = 120) {
+                SideBarShortcut(
+                    icon = painterResource(R.drawable.ic_assignment_filled),
+                    label = stringResource(R.string.page_title_version_manage),
+                    onClick = onVersionsClick
+                )
+            }
+
+            StaggeredItem(delay = 180) {
+                SideBarShortcut(
+                    icon = painterResource(R.drawable.ic_info_outlined),
+                    label = stringResource(R.string.about_launcher_title),
+                    onClick = onInfoClick
                 )
             }
         }
