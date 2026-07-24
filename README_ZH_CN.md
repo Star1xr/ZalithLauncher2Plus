@@ -1,6 +1,6 @@
 # Zalith Launcher 2+ (PLUS)
 
-[English](./README.md) | [「中文（台灣）」](./README_ZH_TW.md)
+[English](./README.md) | [「中文（台灣）」](./README_ZH_TW.md) | [「Türkçe」](./README_TR.md)
 
 > **⚠️ 非官方修改版本**
 >
