@@ -1,6 +1,8 @@
 
 # Zalith Launcher 2+ (PLUS)
 
+[**English**](./README.md) | [「中文（简体）」](./README_ZH_CN.md) | [「中文（台灣）」](./README_ZH_TW.md) | [「Türkçe」](./README_TR.md)
+
 > **⚠️ UNOFFICIAL MODIFIED VERSION**
 > 
 > This is an unofficial fork of [Zalith Launcher 2](https://github.com/ZalithLauncher/ZalithLauncher2). This project is **not affiliated with or endorsed by the official Zalith Launcher project**.
