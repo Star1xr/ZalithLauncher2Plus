@@ -47,7 +47,6 @@ fun parsePojavLayout(jsonString: String): ControlLayout {
             ),
             layers = emptyList(),
             styles = emptyList(),
-            special = ControlLayout.Special(),
             editorVersion = EDITOR_VERSION
         )
     }
@@ -117,7 +116,6 @@ fun convertPojavToZalith(jsonString: String, displayMetrics: DisplayMetrics): Co
             )
         ),
         styles = styleCache.values.toList(),
-        special = ControlLayout.Special(),
         editorVersion = EDITOR_VERSION
     )
 }
