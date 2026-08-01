@@ -28,7 +28,7 @@
  *
  *************************************************************************/
 
-package com.movtery.zalithlauncher.game.keycodes;
+package com.movtery.inputmap.keycodes;
 
 @SuppressWarnings("unused")
 public class LwjglGlfwKeycode {

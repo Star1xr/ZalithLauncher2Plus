@@ -21,9 +21,9 @@ package com.movtery.zalithlauncher.ui.control.gamepad
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
+import com.movtery.inputmap.keycodes.ControlEventKeyName
+import com.movtery.inputmap.keycodes.ControlEventKeycode
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.keycodes.ControlEventKeyName
-import com.movtery.zalithlauncher.game.keycodes.ControlEventKeycode
 
 /**
  * 特殊键值：鼠标滚轮上移一次

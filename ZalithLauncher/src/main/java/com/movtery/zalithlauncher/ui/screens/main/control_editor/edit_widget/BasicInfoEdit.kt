@@ -36,9 +36,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.movtery.layer_controller.data.ButtonPosition
 import com.movtery.layer_controller.data.ButtonSize
+import com.movtery.layer_controller.data.JOYSTICK_MIN_SIZE_DP
+import com.movtery.layer_controller.data.JOYSTICK_MIN_SIZE_PERCENTAGE
 import com.movtery.layer_controller.data.MIN_SIZE_DP
 import com.movtery.layer_controller.data.SIZE_PERCENTAGE_EDITOR
 import com.movtery.layer_controller.data.VisibilityType
+import com.movtery.layer_controller.observable.ObservableJoystickData
 import com.movtery.layer_controller.observable.ObservableNormalData
 import com.movtery.layer_controller.observable.ObservableTextData
 import com.movtery.layer_controller.observable.ObservableWidget
@@ -107,6 +110,15 @@ fun EditWidgetInfo(
                         onPositionChanged = { data.position = it },
                         buttonSize = data.buttonSize,
                         onButtonSizeChanged = { data.buttonSize = it }
+                    )
+                }
+                is ObservableJoystickData -> {
+                    joystickInfos(
+                        onPreviewRequested = onPreviewRequested,
+                        onDismissRequested = onDismissRequested,
+                        screenWidth = screenWidth,
+                        screenHeight = screenHeight,
+                        data = data
                     )
                 }
             }
@@ -301,6 +313,125 @@ private fun LazyListScope.commonInfos(
                         onButtonSizeChanged(buttonSize.copy(heightReference = it))
                     },
                     getItemText = { it.getReferenceText() }
+                )
+            }
+        }
+        ButtonSize.Type.WrapContent -> {}
+    }
+}
+
+private fun LazyListScope.joystickInfos(
+    onPreviewRequested: () -> Unit,
+    onDismissRequested: () -> Unit,
+    screenWidth: Float,
+    screenHeight: Float,
+    data: ObservableJoystickData
+) {
+    // 可见场景
+    item {
+        InfoLayoutListItem(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.control_editor_edit_visibility),
+            items = VisibilityType.entries,
+            selectedItem = data.visibilityType,
+            onItemSelected = { data.visibilityType = it },
+            getItemText = { it.getVisibilityText() }
+        )
+    }
+
+    item {
+        Spacer(modifier = Modifier.height(4.dp))
+    }
+
+    // 位置 X
+    item {
+        InfoLayoutSliderItem(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.control_editor_edit_position_x),
+            value = data.position.x / 100f,
+            onValueChange = {
+                data.position = data.position.copy(x = (it * 100).toInt())
+                onPreviewRequested()
+            },
+            valueRange = 0f..100f,
+            onValueChangeFinished = onDismissRequested,
+            decimalFormat = "#0.00",
+            suffix = "%"
+        )
+    }
+
+    // 位置 Y
+    item {
+        InfoLayoutSliderItem(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.control_editor_edit_position_y),
+            value = data.position.y / 100f,
+            onValueChange = {
+                data.position = data.position.copy(y = (it * 100).toInt())
+                onPreviewRequested()
+            },
+            valueRange = 0f..100f,
+            onValueChangeFinished = onDismissRequested,
+            decimalFormat = "#0.00",
+            suffix = "%"
+        )
+    }
+
+    item {
+        Spacer(modifier = Modifier.height(4.dp))
+    }
+
+    // 尺寸类型
+    val sizeTypes = listOf(ButtonSize.Type.Dp, ButtonSize.Type.Percentage)
+    item {
+        InfoLayoutListItem(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.control_editor_edit_size_type),
+            items = sizeTypes,
+            selectedItem = data.sizeType,
+            onItemSelected = { data.sizeType = it },
+            getItemText = { type ->
+                val textRes = when (type) {
+                    ButtonSize.Type.Dp -> R.string.control_editor_edit_size_type_dp
+                    ButtonSize.Type.Percentage -> R.string.control_editor_edit_size_type_percentage
+                    ButtonSize.Type.WrapContent -> R.string.control_editor_edit_size_type_wrap_content
+                }
+                stringResource(textRes)
+            }
+        )
+    }
+
+    when (data.sizeType) {
+        ButtonSize.Type.Dp -> {
+            item {
+                InfoLayoutSliderItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.control_editor_edit_size_joystick),
+                    value = data.sizeDp,
+                    onValueChange = {
+                        data.sizeDp = it
+                        onPreviewRequested()
+                    },
+                    valueRange = JOYSTICK_MIN_SIZE_DP..screenHeight,
+                    onValueChangeFinished = onDismissRequested,
+                    suffix = "Dp"
+                )
+            }
+        }
+        ButtonSize.Type.Percentage -> {
+            item {
+                InfoLayoutSliderItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.control_editor_edit_size_joystick),
+                    value = data.sizePercentage / 100f,
+                    onValueChange = {
+                        data.sizePercentage = (it * 100).toInt()
+                        onPreviewRequested()
+                    },
+                    valueRange = (JOYSTICK_MIN_SIZE_PERCENTAGE / 100f)..100f,
+                    onValueChangeFinished = onDismissRequested,
+                    decimalFormat = "#0.00",
+                    suffix = "%"
                 )
             }
         }

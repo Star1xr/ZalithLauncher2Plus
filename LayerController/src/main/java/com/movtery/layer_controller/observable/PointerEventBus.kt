@@ -21,9 +21,10 @@ package com.movtery.layer_controller.observable
 import androidx.compose.ui.input.pointer.PointerId
 
 /**
- * 触控会话状态持有者
+ * 共享的多指针状态管理器
+ * 管理每个指针的活跃控件列表和滑动链状态
  */
-class TouchSession {
+class PointerEventBus {
     /**
      * 指针 → 当前按压中的所有控件（按加入顺序）
      */
@@ -34,12 +35,22 @@ class TouchSession {
      */
     private val _swipeChainPointers = mutableSetOf<PointerId>()
 
+    /**
+     * 检查已占用的指针（来自 MouseControlLayout / Hotbar 等外部层）
+     */
+    var checkOccupiedPointers: (PointerId) -> Boolean = { false }
+
+    /**
+     * 标记指针为仅移动（不消费事件）
+     */
+    var markPointerAsMoveOnly: (PointerId) -> Unit = {}
+
     // ────────────────────────────────────────────────────────
     // 生命周期
     // ────────────────────────────────────────────────────────
 
     /**
-     * 手指抬起：清理该指针的所有状态，返回需要释放的控件列表。
+     * 手指抬起：清理该指针的所有状态，返回需要释放的控件列表
      */
     fun endPointer(pointerId: PointerId): List<ObservableWidget> {
         _swipeChainPointers.remove(pointerId)
@@ -51,34 +62,30 @@ class TouchSession {
     // ────────────────────────────────────────────────────────
 
     /**
-     * 获取指定指针的当前活跃控件列表（不可变副本）。
+     * 获取指定指针的当前活跃控件列表
      */
     fun activeWidgets(pointerId: PointerId): List<ObservableWidget> {
         return _activeWidgets[pointerId]?.toList() ?: emptyList()
     }
 
     /**
-     * 替换指定指针的活跃控件列表。
-     */
-    fun setActiveWidgets(pointerId: PointerId, widgets: List<ObservableWidget>) {
-        if (widgets.isEmpty()) {
-            _activeWidgets.remove(pointerId)
-        } else {
-            _activeWidgets[pointerId] = widgets.toMutableList()
-        }
-    }
-
-    /**
-     * 将控件加入指定指针的活跃列表。
+     * 将控件加入指定指针的活跃列表
      */
     fun addActiveWidget(pointerId: PointerId, widget: ObservableWidget) {
         _activeWidgets.getOrPut(pointerId) { mutableListOf() }.add(widget)
     }
 
     /**
-     * 获取活跃控件快照（用于越界检测前的状态保存）。
+     * 获取活跃控件快照
      */
     fun snapshot(pointerId: PointerId): List<ObservableWidget> = activeWidgets(pointerId)
+
+    /**
+     * 替换指定指针的活跃控件列表
+     */
+    fun setActiveWidgets(pointerId: PointerId, widgets: List<ObservableWidget>) {
+        _activeWidgets[pointerId] = widgets.toMutableList()
+    }
 
     // ────────────────────────────────────────────────────────
     // 滑动链管理

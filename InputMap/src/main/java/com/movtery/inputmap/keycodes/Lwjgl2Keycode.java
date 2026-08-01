@@ -29,7 +29,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.movtery.zalithlauncher.game.keycodes;
+package com.movtery.inputmap.keycodes;
 
 /**
  * @see <a href="https://github.com/LWJGL/lwjgl/blob/master/src/java/org/lwjgl/input/Keyboard.java">java.org.lwjgl.input.Keyboard</a>

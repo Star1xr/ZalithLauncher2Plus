@@ -20,7 +20,7 @@ package com.movtery.zalithlauncher.game.input
 
 import android.view.KeyEvent
 import android.view.MotionEvent
-import com.movtery.zalithlauncher.game.keycodes.LwjglGlfwKeycode
+import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
 import org.lwjgl.glfw.CallbackBridge
 
 object LWJGLCharSender : CharacterSenderStrategy {

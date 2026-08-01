@@ -18,8 +18,8 @@
 
 package com.movtery.zalithlauncher.setting.enums
 
+import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.keycodes.LwjglGlfwKeycode
 
 /**
  * 手势控制点击时触发的按钮

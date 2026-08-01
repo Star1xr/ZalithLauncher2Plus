@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -57,20 +56,20 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.movtery.inputmap.keycodes.ControlEventKeycode
+import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
+import com.movtery.inputmap.keycodes.OPEN_CHAT
+import com.movtery.inputmap.keycodes.OPEN_CHAT_VALUE
 import com.movtery.layer_controller.ControlBoxLayout
 import com.movtery.layer_controller.data.HideLayerWhen
 import com.movtery.layer_controller.event.ClickEvent
@@ -78,23 +77,12 @@ import com.movtery.layer_controller.event.EventHandler
 import com.movtery.layer_controller.layout.ControlLayout
 import com.movtery.layer_controller.layout.EmptyControlLayout
 import com.movtery.layer_controller.layout.loadLayoutFromFile
-import com.movtery.layer_controller.observable.DefaultObservableJoystickStyle
 import com.movtery.layer_controller.observable.ObservableControlLayout
-import com.movtery.layer_controller.observable.ObservableJoystickStyle
-import com.movtery.layer_controller.observable.ObservableSpecial
-import com.movtery.layer_controller.utils.widgetPosition
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
 import com.movtery.zalithlauncher.game.input.LWJGLCharSender
-import com.movtery.zalithlauncher.game.keycodes.ControlEventKeycode
-import com.movtery.zalithlauncher.game.keycodes.LwjglGlfwKeycode
-import com.movtery.zalithlauncher.game.keycodes.OPEN_CHAT
-import com.movtery.zalithlauncher.game.keycodes.OPEN_CHAT_VALUE
-import com.movtery.zalithlauncher.game.keycodes.SPRING
-import com.movtery.zalithlauncher.game.keycodes.SPRING_VALUE
-import com.movtery.zalithlauncher.game.keycodes.mapToControlEvent
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.handler.GameHandler
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerInputModifier
@@ -107,7 +95,6 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.setting.enums.toAction
 import com.movtery.zalithlauncher.terracotta.Terracotta
-import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MenuState
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
@@ -121,15 +108,10 @@ import com.movtery.zalithlauncher.ui.control.gyroscope.GyroscopeReader
 import com.movtery.zalithlauncher.ui.control.gyroscope.isGyroscopeAvailable
 import com.movtery.zalithlauncher.ui.control.hotbarPercentage
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
-import com.movtery.zalithlauncher.ui.control.joystick.JoystickDirectionListener
-import com.movtery.zalithlauncher.ui.control.joystick.StyleableJoystick
-import com.movtery.zalithlauncher.ui.control.joystick.loadJoystickStyle
-import com.movtery.zalithlauncher.ui.control.joystick.saveJoystickStyle
 import com.movtery.zalithlauncher.ui.control.mouse.SwitchableMouseLayout
 import com.movtery.zalithlauncher.ui.screens.game.elements.DraggableGameBall
 import com.movtery.zalithlauncher.ui.screens.game.elements.ForceCloseOperation
 import com.movtery.zalithlauncher.ui.screens.game.elements.GameMenuSubscreen
-import com.movtery.zalithlauncher.ui.screens.game.elements.JoystickManageOperation
 import com.movtery.zalithlauncher.ui.screens.game.elements.LogBox
 import com.movtery.zalithlauncher.ui.screens.game.elements.LogState
 import com.movtery.zalithlauncher.ui.screens.game.elements.PerformanceSettingsDialog
@@ -142,12 +124,9 @@ import com.movtery.zalithlauncher.ui.screens.game.multiplayer.TerracottaOperatio
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.rememberTerracottaViewModel
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
 import com.movtery.zalithlauncher.utils.logging.Logger
-import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
-import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
-import com.movtery.zalithlauncher.viewmodel.JoystickMovementViewModel
 import com.movtery.zalithlauncher.viewmodel.sendToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -218,23 +197,6 @@ private class GameViewModel(
     fun stopFpsCapture() {
         fpsJob?.cancel()
         fpsJob = null
-    }
-
-    /** 启动器默认摇杆样式 */
-    var launcherJoystickStyle by mutableStateOf(DefaultObservableJoystickStyle)
-    /** 保存启动器默认摇杆样式 */
-    fun saveLauncherJoystickStyle(
-        onFailed: (Throwable) -> Unit,
-        onSuccess: suspend () -> Unit
-    ) {
-        viewModelScope.launch {
-            saveJoystickStyle(
-                path = PathManager.DIR_STYLES,
-                launcherJoystickStyle,
-                onFailed = onFailed,
-                onSuccess = onSuccess
-            )
-        }
     }
 
     var editorRefresh by mutableIntStateOf(0)
@@ -386,7 +348,6 @@ private class GameViewModel(
     init {
         viewModelScope.launch(Dispatchers.Main) {
             loadControlLayout()
-            launcherJoystickStyle = loadJoystickStyle(PathManager.DIR_STYLES)
         }
     }
 
@@ -543,7 +504,6 @@ fun GameScreen(
     getAccountName: () -> String?,
     eventViewModel: EventViewModel,
     gamepadViewModel: GamepadViewModel,
-    submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
     val context = LocalContext.current
     val viewModel = rememberGameViewModel(version) { mode ->
@@ -557,7 +517,6 @@ fun GameScreen(
     val isGrabbing = remember(cursorMode) {
         cursorMode == CURSOR_DISABLED
     }
-    val joystickMovementViewModel: JoystickMovementViewModel = viewModel()
     val terracottaViewModel = rememberTerracottaViewModel(
         keyTag = gameHandler.toString() + "_Terracotta",
         gameHandler = gameHandler,
@@ -699,7 +658,8 @@ fun GameScreen(
                 checkOccupiedPointers = { viewModel.occupiedPointers.contains(it) },
                 opacity = (AllSettings.controlsOpacity.state.toFloat() / 100f).coerceIn(0f, 1f),
                 markPointerAsMoveOnly = { viewModel.moveOnlyPointers.add(it) },
-                isUsingJoystick = isGrabbing && AllSettings.enableJoystickControl.state,
+                onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
+                onReleasePointer = { viewModel.occupiedPointers.remove(it) },
                 isCursorGrabbing = isGrabbing,
                 hideLayerWhen = viewModel.controlLayerHideState,
                 isDark = isLauncherInDarkTheme()
@@ -739,21 +699,6 @@ fun GameScreen(
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) }
             )
 
-            //摇杆控制层
-            viewModel.observableLayout?.let { layout ->
-                val special by layout.special.collectAsStateWithLifecycle()
-                if (!hideControls) JoystickControlLayout(
-                    screenSize = screenSize,
-                    isGrabbing = isGrabbing,
-                    special = special,
-                    defaultStyle = viewModel.launcherJoystickStyle,
-                    hideLayerWhen = viewModel.controlLayerHideState,
-                    viewModel = joystickMovementViewModel,
-                    onKeyEvent = { event, pressed ->
-                        viewModel.onKeyEvent(event, pressed)
-                    }
-                )
-            }
         }
 
         //陀螺仪控制
@@ -824,9 +769,6 @@ fun GameScreen(
             },
             onSendKeycode = { viewModel.sendKeycodeState = SendKeycodeState.ShowDialog },
             onReplacementControl = { viewModel.replacementControlState = ReplacementControlState.Show },
-            onManageJoystick = {
-                joystickMovementViewModel.operation = JoystickManageOperation.Manage
-            },
             onEditLayout = {
                 viewModel.startControlEditor(
                     editorVM = editorViewModel
@@ -911,29 +853,6 @@ fun GameScreen(
             }
         }
     }
-
-    //摇杆管理状态操作
-    //包含覆盖全屏类UI组件，只能放到顶部
-    JoystickManageOperation(
-        operation = joystickMovementViewModel.operation,
-        onChanged = { joystickMovementViewModel.operation = it },
-        launcherJoystick = viewModel.launcherJoystickStyle,
-        onSaveStyle = {
-            viewModel.saveLauncherJoystickStyle(
-                onFailed = { th ->
-                    submitError(
-                        ErrorViewModel.ThrowableMessage(
-                            title = androidText(R.string.game_styles_save_failed),
-                            message = androidText(th.getMessageOrToString())
-                        )
-                    )
-                },
-                onSuccess = {
-                    eventViewModel.sendToast(androidText(R.string.generic_saved))
-                }
-            )
-        }
-    )
 
     LaunchedEffect(Unit) {
         eventViewModel.events
@@ -1148,114 +1067,4 @@ private fun Offset.sendPosition() {
 
 private fun Float.sumPosition(): Float {
     return (this * (AllSettings.resolutionRatio.state / 100f))
-}
-
-/**
- * 摇杆控制层
- * @param isGrabbing 当前游戏是否处于抓获鼠标的状态，根据这个判断是否处于游戏中
- * @param special 由控制布局提供的特殊设定，摇杆会根据这里的配置应用样式
- * @param defaultStyle 由启动器提供的摇杆样式，如果控制布局未提供样式，则使用这个
- * @param hideLayerWhen 复用控制布局的隐藏层逻辑，在鼠标、手柄操作时，根据设置判断是否隐藏摇杆
- * @param viewModel 摇杆移动监听 ViewModel
- * @param onKeyEvent 由
- */
-@Composable
-private fun JoystickControlLayout(
-    isGrabbing: Boolean,
-    screenSize: IntSize,
-    special: ObservableSpecial,
-    defaultStyle: ObservableJoystickStyle,
-    hideLayerWhen: HideLayerWhen,
-    viewModel: JoystickMovementViewModel,
-    onKeyEvent: (ClickEvent, pressed: Boolean) -> Unit
-) {
-    val joystickStyle by special.joystickStyle.collectAsStateWithLifecycle()
-
-    val density = LocalDensity.current
-    val layoutDirection = LocalLayoutDirection.current
-
-    val hideState = when (hideLayerWhen) {
-        HideLayerWhen.WhenMouse -> AllSettings.joystickHideWhenMouse.state
-        HideLayerWhen.WhenGamepad -> AllSettings.joystickHideWhenGamepad.state
-        HideLayerWhen.None -> false
-    }
-
-    //仅在游戏中或者管理摇杆状态中，显示摇杆
-    if (
-        ((isGrabbing && !hideState) || viewModel.operation == JoystickManageOperation.Manage) &&
-        AllSettings.enableJoystickControl.state
-    ) {
-        val size = AllSettings.joystickControlSize.state.dp
-        val x = AllSettings.joystickControlX.state
-        val y = AllSettings.joystickControlY.state
-
-        val position = remember(screenSize, size, x, y, layoutDirection) {
-            val widgetSize = with(density) {
-                val pixelSize = size.roundToPx()
-                IntSize(
-                    width = pixelSize,
-                    height = pixelSize
-                )
-            }
-
-            val originalPosition = widgetPosition(
-                xPercentage = x / 10000f,
-                yPercentage = y / 10000f,
-                widgetSize = widgetSize,
-                screenSize = screenSize
-            )
-
-            if (layoutDirection == LayoutDirection.Rtl) {
-                //fix: RTL布局下需手动反转X轴，避免使用absoluteOffset
-                // 不然控件会飞到屏幕外面去 #1034
-                val mirroredX = screenSize.width - originalPosition.x - widgetSize.width
-                Offset(x = mirroredX, y = originalPosition.y)
-            } else {
-                originalPosition
-            }
-        }
-
-        StyleableJoystick(
-            modifier = Modifier
-                .offset {
-                    IntOffset(x = position.x.toInt(), y = position.y.toInt())
-                },
-            style = if (AllSettings.joystickUseStyleByLayout.state) {
-                //启用后，优先使用控制布局提供的样式
-                joystickStyle ?: defaultStyle
-            } else {
-                defaultStyle
-            },
-            size = size,
-            onDirectionChanged = { direction ->
-                viewModel.onListen(direction)
-            },
-            deadZoneRatio = AllSettings.joystickDeadZoneRatio.state / 100f,
-            lockThreshold = AllSettings.joystickLockThreshold.state / 100f,
-            canLock = AllSettings.joystickControlCanLock.state,
-            onCanLock = { lock ->
-                if (AllSettings.joystickControlLockSpring.state) {
-                    mapToControlEvent(SPRING, SPRING_VALUE)?.let { key ->
-                        val event = ClickEvent(
-                            type = ClickEvent.Type.Key,
-                            key = key
-                        )
-                        if (lock) {
-                            onKeyEvent(event, true)
-                        } else {
-                            onKeyEvent(event, false)
-                        }
-                    }
-                }
-            }
-        )
-    }
-
-    JoystickDirectionListener(
-        viewModel = viewModel,
-        isGrabbing = isGrabbing,
-        onKeyEvent = { event, pressed ->
-            onKeyEvent(event, pressed)
-        }
-    )
 }

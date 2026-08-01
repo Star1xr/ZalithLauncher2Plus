@@ -57,15 +57,16 @@ import androidx.compose.ui.unit.dp
 import com.movtery.layer_controller.data.BORDER_RADIO_RANGE
 import com.movtery.layer_controller.data.SHAPE_PERCENT_RANGE
 import com.movtery.layer_controller.data.SIZE_PERCENT_RANGE
+import com.movtery.layer_controller.layout.JoystickStyleWidget
 import com.movtery.layer_controller.observable.ObservableJoystickStyle
 import com.movtery.layer_controller.observable.ObservableJoystickStyleConfig
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.unit.toFloatRange
 import com.movtery.zalithlauncher.ui.components.MarqueeText
-import com.movtery.zalithlauncher.ui.control.joystick.StyleableJoystick
+import com.movtery.zalithlauncher.ui.components.SingleLineTextCheck
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutColorItem
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutSliderItem
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutSwitchItem
 import com.movtery.zalithlauncher.ui.screens.rememberSwapTween
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
@@ -75,28 +76,14 @@ import com.movtery.zalithlauncher.ui.theme.onItemColor
 private data class TabItem(val titleRes: Int)
 
 /**
- * 编辑摇杆样式模式
- */
-enum class EditJoystickStyleMode {
-    /** 控制布局编辑其独立的样式 */
-    ControlLayout,
-    /** 编辑启动器默认样式 */
-    Launcher
-}
-
-/**
  * 摇杆样式编辑对话框
  * **不再真正使用Dialog，真的会有性能问题！**
- * @param mode 编辑样式的模式
- * @param onInfoButtonClick 根据模式变更文本的按钮被点击时的回调
  */
 @Composable
 fun EditJoystickStyleDialog(
     visible: Boolean,
     style: ObservableJoystickStyle?,
-    mode: EditJoystickStyleMode,
     onClose: () -> Unit,
-    onInfoButtonClick: () -> Unit
 ) {
     val tween = rememberSwapTween()
 
@@ -162,24 +149,14 @@ fun EditJoystickStyleDialog(
                             RenderBox(
                                 modifier = Modifier.weight(1f),
                                 style = style,
-                                isDarkMode = selectedTabIndex == 1
+                                isDarkMode = !style.commonStyle && selectedTabIndex == 1
                             )
-
-                            val buttonText = when (mode) {
-                                EditJoystickStyleMode.ControlLayout -> {
-                                    //在编辑控制布局独立样式时，这里是删除样式按钮
-                                    stringResource(R.string.generic_delete)
-                                }
-                                EditJoystickStyleMode.Launcher -> {
-                                    //在编辑启动器默认样式时，这里是保存按钮
-                                    stringResource(R.string.generic_save)
-                                }
-                            }
-                            InfoLayoutTextItem(
+                            // 不区分暗色主题
+                            InfoLayoutSwitchItem(
                                 modifier = Modifier.fillMaxWidth(),
-                                title = buttonText,
-                                onClick = onInfoButtonClick,
-                                showArrow = false
+                                title = stringResource(R.string.control_editor_edit_style_config_common_style),
+                                value = style.commonStyle,
+                                onValueChange = { style.commonStyle = it }
                             )
                         }
 
@@ -188,43 +165,54 @@ fun EditJoystickStyleDialog(
                                 .weight(0.6f)
                                 .fillMaxHeight()
                         ) {
-                            //顶贴标签栏
-                            SecondaryTabRow(
-                                selectedTabIndex = selectedTabIndex,
-                                containerColor = cardColor(false)
-                            ) {
-                                tabs.forEachIndexed { index, item ->
-                                    Tab(
-                                        selected = index == selectedTabIndex,
-                                        onClick = {
-                                            selectedTabIndex = index
-                                        },
-                                        text = {
-                                            MarqueeText(text = stringResource(item.titleRes))
-                                        }
-                                    )
-                                }
-                            }
+                            SingleLineTextCheck(
+                                text = style.name,
+                                onSingleLined = { style.name = it }
+                            )
 
-                            HorizontalPager(
-                                state = pagerState,
-                                userScrollEnabled = false,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                            ) { page ->
-                                when (page) {
-                                    0 -> {
-                                        StyleConfigEditor(
-                                            modifier = Modifier.fillMaxSize(),
-                                            config = style.lightStyle,
+                            if (style.commonStyle) {
+                                StyleConfigEditor(
+                                    modifier = Modifier.fillMaxSize(),
+                                    config = style.lightStyle
+                                )
+                            } else {
+                                SecondaryTabRow(
+                                    selectedTabIndex = selectedTabIndex,
+                                    containerColor = cardColor(false)
+                                ) {
+                                    tabs.forEachIndexed { index, item ->
+                                        Tab(
+                                            selected = index == selectedTabIndex,
+                                            onClick = {
+                                                selectedTabIndex = index
+                                            },
+                                            text = {
+                                                MarqueeText(text = stringResource(item.titleRes))
+                                            }
                                         )
                                     }
-                                    1 -> {
-                                        StyleConfigEditor(
-                                            modifier = Modifier.fillMaxSize(),
-                                            config = style.darkStyle,
-                                        )
+                                }
+
+                                HorizontalPager(
+                                    state = pagerState,
+                                    userScrollEnabled = false,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                ) { page ->
+                                    when (page) {
+                                        0 -> {
+                                            StyleConfigEditor(
+                                                modifier = Modifier.fillMaxSize(),
+                                                config = style.lightStyle,
+                                            )
+                                        }
+                                        1 -> {
+                                            StyleConfigEditor(
+                                                modifier = Modifier.fillMaxSize(),
+                                                config = style.darkStyle,
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -434,7 +422,7 @@ private fun RenderBox(
                 .padding(all = 16.dp),
             contentAlignment = Alignment.Center
         ) {
-            StyleableJoystick(
+            JoystickStyleWidget(
                 modifier = Modifier.size(120.dp),
                 style = style,
                 isDarkTheme = isDarkMode

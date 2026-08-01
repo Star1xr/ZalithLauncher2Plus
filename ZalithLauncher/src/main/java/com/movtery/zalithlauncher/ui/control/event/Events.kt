@@ -18,7 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.control.event
 
-import com.movtery.zalithlauncher.game.keycodes.ControlEventKeycode
+import com.movtery.inputmap.keycodes.ControlEventKeycode
 import org.lwjgl.glfw.CallbackBridge
 
 /**
