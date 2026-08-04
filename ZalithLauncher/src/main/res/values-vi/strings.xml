@@ -2,6 +2,7 @@
 <resources>
     <string name="generic_cancel">Hủy bỏ</string>
     <string name="generic_confirm">Xác nhận</string>
+    <string name="game_menu_option_disable_loading_popup">Tắt loading popup</string>
     <string name="generic_error">Lỗi</string>
     <string name="generic_tip">Mẹo</string>
     <string name="generic_warning">Cảnh báo</string>
